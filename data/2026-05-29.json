@@ -1,0 +1,680 @@
+{
+  "date": "2026-05-29",
+  "generated_at": "2026-05-29T06:00:00.000Z",
+  "stories": [
+    {
+      "headline": "Sample: Two Days Ago Briefing",
+      "tldr": "Israeli forces have captured the strategic Beaufort Castle in southern Lebanon, marking their deepest incursion in over 26 years and expanding operations beyond the Litani River despite an existing ceasefire. This advance, aimed at dismantling Hezbollah infrastructure, has led to widespread displacement and casualties, drawing condemnation from Lebanon and France, while US-mediated talks between Israel and Lebanon continue.",
+      "situational_analysis": {
+        "what": "Israeli troops have captured the strategic Beaufort Castle in southern Lebanon and significantly expanded their ground operations, pushing deeper into Lebanese territory than in over 26 years. This includes crossing the Litani River and issuing evacuation orders for residents south of the Zahrani River, near the cities of Nabatiyeh and Tyre.",
+        "why": "The Israeli military stated the operation was launched to dismantle Hezbollah infrastructure and eliminate 'direct threats to Israeli civilians.' Israeli Prime Minister Benjamin Netanyahu described the capture as a 'dramatic stage and dramatic change in our policy,' aiming to 'break the barrier of fear' and operate on all fronts. Analysts suggest Israel seeks to inflict damage on Hezbollah before potential new limits from US-Iran talks and to weaken Hezbollah's social base.",
+        "who": "Key actors include the Israeli military (IDF, Golani Brigade), Hezbollah fighters, the Lebanese government (Prime Minister Nawaf Salam, Health Ministry), the United States (mediating talks), France (requesting a UN Security Council meeting), and Iran (Hezbollah's main backer). Civilians in southern Lebanon are significantly impacted by displacement and casualties.",
+        "when": "The latest Israel-Hezbollah war began on March 2. A nominal ceasefire has been in place since April 17 but has been repeatedly violated. The operation to capture Beaufort Castle was launched 'several days ago,' with the castle falling on Sunday. US-brokered negotiations between Israel and Lebanon are ongoing, with a fourth round expected this week.",
+        "where": "The operations are concentrated in southern Lebanon, specifically around Beaufort Castle (Qalaat al-Shaqif) on a mountain ridge near Nabatiyeh. Israeli forces have advanced beyond the Litani River and issued evacuation warnings extending north to the Zahrani River, impacting areas near Nabatiyeh and the coastal city of Tyre.",
+        "how": "The capture of Beaufort Castle followed days of intense fighting and airstrikes in nearby villages. Israeli ground forces, including the Golani Brigade, are conducting offensive operations, expanding their control, and issuing widespread evacuation orders. Hezbollah has responded with rocket and drone attacks targeting Israeli troops and communities."
+      },
+      "strategic_assessment": "Israel's capture of Beaufort Castle and its deeper incursion into Lebanon represent a significant military and symbolic gain, allowing for greater operational depth and control over key routes. This expansion, however, risks further escalating the conflict, deepening the humanitarian crisis with massive displacement and casualties, and drawing international condemnation. While Israel aims to dismantle Hezbollah's capabilities and create a security zone, the move complicates ongoing US-mediated talks and strengthens Hezbollah's narrative as Lebanon's primary defender, potentially leading to long-term instability or even territorial changes in southern Lebanon.",
+      "perspective_matrix": {
+        "left_leaning": "Left-leaning global media frames the Israeli advance as a significant escalation and a violation of the existing ceasefire, highlighting the humanitarian crisis, widespread displacement, and Lebanese accusations of a 'scorched-earth policy' and 'collective punishment.' They emphasize the symbolic importance of the castle and Nabatieh, and raise concerns about Israel's potential long-term control or even annexation of Lebanese territory, linking the offensive to a vacuum in US-Iran negotiations. French condemnation and calls for a UN Security Council meeting are also prominent.",
+        "center": "Centrist outlets report the capture of Beaufort Castle as a strategic gain and Israel's deepest incursion into Lebanon in over two decades, noting the intense fighting and the violation of the ceasefire. They cover Israel's stated objectives of dismantling Hezbollah infrastructure and protecting its civilians, while also mentioning the ongoing US-mediated talks between Israel and Lebanon. The symbolic significance of the castle for Israel is highlighted, alongside the increasing zone of evacuation warnings and the rising casualty figures.",
+        "right_leaning": "Not represented in the provided source excerpts.",
+        "indian_media": "Indian media outlets primarily focus on the factual reporting of Israel's capture of Beaufort Castle, characterizing it as a strategic gain and the deepest incursion into Lebanon in over 26 years. They note the intense fighting, the violation of the April 17 ceasefire, and Israel's stated reasons for the operation. The ongoing direct talks between Israel and Lebanon in Washington and the significant human cost, including casualties and displacement in Lebanon, are also reported.",
+        "global_media": "Global media broadly emphasizes the strategic and symbolic importance of Beaufort Castle and the significant expansion of Israeli ground operations beyond the Litani River, reaching towards Nabatiyeh and extending evacuation orders to the Zahrani River. They highlight the violation of the ceasefire, the severe humanitarian impact (displacement, casualties, destruction), and Lebanese accusations of a 'scorched-earth policy.' International reactions, particularly France's request for a UN Security Council meeting and its condemnation of Israel's 'deep occupation,' are also central to the coverage. Some analyses suggest Israel might be aiming for long-term territorial control or to gain leverage in negotiations."
+      },
+      "facts_vs_claims": {
+        "facts": [
+          "Israeli troops have captured the strategic Beaufort Castle in southern Lebanon.",
+          "This marks Israel's deepest incursion into Lebanon in more than 26 years.",
+          "The Crusader-era fortress is located on a mountain ridge near Nabatiyeh.",
+          "The capture followed days of intense fighting and airstrikes.",
+          "The Israeli military stated the operation aimed to dismantle Hezbollah infrastructure and eliminate 'direct threats to Israeli civilians.'",
+          "The advance occurred despite a ceasefire in place since April 17.",
+          "Israeli forces have crossed the Litani River and are within approximately five kilometers of Nabatiyeh.",
+          "Israel has issued evacuation orders for residents south of the Zahrani River.",
+          "The latest Israel-Hezbollah war began on March 2.",
+          "The conflict has killed more than 3,350 people in Lebanon and displaced over one million others.",
+          "At least 25 Israeli soldiers and two Israeli civilians have been killed since March 2.",
+          "Israel and Lebanon are holding direct talks in Washington, mediated by the US.",
+          "France has requested a meeting of the United Nations Security Council to discuss Israeli military operations in Lebanon.",
+          "Lebanon's Health Ministry reported 13 hospital staff were injured in an airstrike near Hiram hospital in Tyre.",
+          "Hezbollah claimed two attacks targeting Israeli troops and a Merkava tank in Bayada.",
+          "Hezbollah targeted the air traffic control unit at the Meron base in northern Israel and fired rockets towards Kiryat Shmona and Nahariya."
+        ],
+        "claims": [
+          "The Israeli army is prepared 'to expand the operation if needed.'",
+          "Israeli Prime Minister Benjamin Netanyahu described the capture of Beaufort as 'a dramatic stage and dramatic change in our policy' and stated, 'We have broken the barrier of fear.'",
+          "Defence Minister Israel Katz vowed to make Beaufort Castle part of Israel’s permanent security zone in southern Lebanon.",
+          "Orna Mizrahi, a former deputy director in Israel’s National Security Council, believes the military's return to Beaufort feels like 'going in circles' and will not solve the issue with Hezbollah.",
+          "Brig. Gen. (res.) Oren Avman stated that 'the conquest of the ridge is tactical excellence that covers up strategic helplessness.'",
+          "Lebanon's Prime Minister Nawaf Salam accused Israel of a 'scorched-earth policy and collective punishment' in southern Lebanon.",
+          "Mohanad Hage Ali, a senior fellow, suggested that annexation of Lebanese territory is 'no longer a wild conspiracy theory' due to ministerial statements from Israel.",
+          "Imad Salamey, an international relations professor, stated that Israel's objectives have evolved into a broader campaign aimed at dismantling Hezbollah’s 'entire territorial and communal infrastructure.'",
+          "Souhayb Jawhar, a Lebanese analyst, said Israeli control over Nabatieh would 'shift the war from a border zone into the political and social heart of southern Lebanon.'",
+          "Al Jazeera correspondent Nida Ibrahim reported that the Israeli government believes Hezbollah has strengthened in recent months and is showing greater defiance through drone use.",
+          "Filippo Dionigi, a Senior Lecturer, stated that Israel is 'fundamentally indicating that it has no significant political plan for Lebanon' and is pursuing only a military strategy."
+        ]
+      },
+      "blind_spot": "The provided excerpts do not offer detailed information on the specific 'Hezbollah infrastructure' that Israel claims to be dismantling, nor do they include a direct, comprehensive response from Hezbollah regarding the Israeli advance beyond claiming specific attacks. There is also limited detail on the specific conditions or terms of the ongoing US-mediated talks between Israel and Lebanon.",
+      "stakeholder_impact": [
+        {
+          "stakeholder": "Israeli Military/Government",
+          "impact": "Achieved a significant strategic and symbolic victory by capturing Beaufort Castle and expanding its ground operations, aiming to dismantle Hezbollah infrastructure and enhance security for northern Israeli communities. However, this comes with continued soldier casualties and international condemnation, and may not offer a long-term solution to the conflict with Hezbollah."
+        },
+        {
+          "stakeholder": "Hezbollah",
+          "impact": "Suffered the loss of a strategic stronghold and infrastructure damage, but continues to launch rocket and drone attacks against Israeli forces and communities, demonstrating ongoing defiance. The Israeli advance into civilian areas may also bolster Hezbollah's narrative as the primary defender of Lebanon against Israeli aggression."
+        },
+        {
+          "stakeholder": "Lebanese Civilians",
+          "impact": "Facing a severe humanitarian crisis with over one million displaced and more than 3,350 killed. They are subject to widespread destruction of towns and villages, forced evacuation orders extending deep into southern Lebanon, and the fear of long-term Israeli occupation or annexation, leading to significant disruption of daily life and loss of homes."
+        },
+        {
+          "stakeholder": "Lebanese Government",
+          "impact": "In an extremely difficult and weakened position, largely acting as a bystander in the conflict between Israel and Hezbollah. It is attempting to pursue a diplomatic path through US-mediated talks, despite Israel's military escalation and Hezbollah's opposition to negotiations, while simultaneously accusing Israel of 'scorched-earth policy' and 'collective punishment.'"
+        },
+        {
+          "stakeholder": "France",
+          "impact": "Expressed strong condemnation of Israel's expanded military operations and 'ever-deeper occupation' of Lebanese territory, requesting an emergency meeting of the UN Security Council. France views Israel's actions as a 'major mistake' and a violation of international law, reaffirming its solidarity with Lebanon and commitment to its sovereignty."
+        },
+        {
+          "stakeholder": "United States",
+          "impact": "Continues to mediate talks between Israel and Lebanon aimed at a ceasefire and resolution, but its efforts are complicated by Israel's military expansion and the ongoing violations of the nominal ceasefire. The situation in Lebanon is also becoming increasingly tied to parallel US-Iran negotiations."
+        }
+      ],
+      "timeline": [
+        {
+          "when": "February 28, 2026",
+          "event": "US and Israel attacked Iran, killing Iran's Supreme Leader Ayatollah Ali Khamenei."
+        },
+        {
+          "when": "March 2, 2026",
+          "event": "Hezbollah launched rockets into northern Israel, marking the beginning of the latest Israel-Hezbollah war."
+        },
+        {
+          "when": "April 17, 2026",
+          "event": "A nominal ceasefire came into effect, though it has been repeatedly violated by both sides."
+        },
+        {
+          "when": "Several days ago",
+          "event": "Israeli military launched an operation in the Beaufort Ridge and Suluki Valley areas."
+        },
+        {
+          "when": "Friday, May 29, 2026",
+          "event": "Israeli forces crossed the Litani River for the first time since 2006; Israeli and Lebanese delegations held security talks in Washington, DC."
+        },
+        {
+          "when": "Saturday, May 30, 2026",
+          "event": "Hezbollah fired 25 projectiles towards northern Israel, and targeted the air traffic control unit at Meron base; Lebanon's PM accused Israel of 'scorched-earth policy.'"
+        },
+        {
+          "when": "Sunday, May 31, 2026",
+          "event": "Israeli troops captured the strategic Beaufort Castle; Israel issued new evacuation orders for residents south of the Zahrani River; Lebanon's Health Ministry reported 13 hospital staff injured in an airstrike near Tyre; France requested a UN Security Council meeting."
+        },
+        {
+          "when": "Next week (early June)",
+          "event": "A fourth round of US-brokered negotiations between Israeli and Lebanese governments is expected in Washington."
+        }
+      ],
+      "confidence": {
+        "level": "High",
+        "notes": "The information is corroborated across multiple diverse sources (Indian, global, left, center), providing a consistent narrative of the events, casualty figures, and international reactions. Key facts like the castle capture, depth of incursion, and ceasefire violation are universally reported. The different perspectives are clearly identifiable from the language used in the excerpts."
+      },
+      "id": "israel-expands-ground-offensive-captures-strategic-castle-in-29",
+      "region": "global",
+      "sources": [
+        {
+          "outlet": "Times of India",
+          "lean": "center",
+          "region": "india",
+          "title": "Israel captures strategic Lebanon castle in deepest incursion in 26 years",
+          "url": "https://timesofindia.indiatimes.com/world/middle-east/israel-captures-strategic-lebanon-castle-after-days-of-fighting-despite-ceasefire/articleshow/131419389.cms"
+        },
+        {
+          "outlet": "NDTV",
+          "lean": "left",
+          "region": "india",
+          "title": "Israel Captures Strategic Castle In Lebanon In Deepest Incursion Since 26 Years",
+          "url": "https://www.ndtv.com/world-news/israel-captures-strategic-castle-in-lebanon-in-deepest-incursion-since-26-years-11570811#publisher=newsstand"
+        },
+        {
+          "outlet": "BBC News",
+          "lean": "center",
+          "region": "global",
+          "title": "Israel seizes castle in Lebanon as it expands ground offensive",
+          "url": "https://www.bbc.com/news/articles/cdep04kzz5wo?at_medium=RSS&at_campaign=rss"
+        },
+        {
+          "outlet": "The Guardian",
+          "lean": "left",
+          "region": "global",
+          "title": "Israeli troops capture strategic Beaufort Castle as they push deeper into Lebanon",
+          "url": "https://www.theguardian.com/world/2026/may/31/israel-pursuing-scorced-earth-policy-says-lebanon-pm-as-more-airstrikes-hit-countrys-south"
+        },
+        {
+          "outlet": "The Guardian",
+          "lean": "left",
+          "region": "global",
+          "title": "Middle East crisis live: Netanyahu hails capture of castle in Lebanon as nominal ceasefire left in tatters",
+          "url": "https://www.theguardian.com/world/live/2026/may/31/middle-east-crisis-live-israel-lebanon-beaufort-castle-us-iran-nuclear-deal-hormuz-oil-latest-news-updates"
+        },
+        {
+          "outlet": "Al Jazeera",
+          "lean": "left",
+          "region": "global",
+          "title": "Israeli forces push past Lebanon’s Litani River: How significant is it?",
+          "url": "https://www.aljazeera.com/news/2026/5/31/israeli-forces-push-past-lebanons-litani-river-how-significant-is-it?traffic_source=rss"
+        },
+        {
+          "outlet": "Al Jazeera",
+          "lean": "left",
+          "region": "global",
+          "title": "Satellite imagery shows erasure of southern Gaza as Israel expands control",
+          "url": "https://www.aljazeera.com/news/2026/5/31/satellite-imagery-shows-erasure-of-southern-gaza-as-israel-expands-control?traffic_source=rss"
+        },
+        {
+          "outlet": "Al Jazeera",
+          "lean": "left",
+          "region": "global",
+          "title": "Israeli forces cross Lebanon’s Litani River and seize 12th century castle",
+          "url": "https://www.aljazeera.com/video/newsfeed/2026/5/31/israeli-forces-cross-lebanons-litani-river-and-seize-12th-century-castle?traffic_source=rss"
+        },
+        {
+          "outlet": "Al Jazeera",
+          "lean": "left",
+          "region": "global",
+          "title": "Israel issues more displacement orders in Lebanon, seizes strategic castle",
+          "url": "https://www.aljazeera.com/news/2026/5/31/israel-issues-more-displacement-orders-in-lebanon-seizes-strategic-castle?traffic_source=rss"
+        },
+        {
+          "outlet": "Al Jazeera",
+          "lean": "left",
+          "region": "global",
+          "title": "Iran war day 93: Trump won’t ‘rush’ deal; Israel expands Lebanon invasion",
+          "url": "https://www.aljazeera.com/news/2026/5/31/iran-war-day-93-trump-wont-rush-deal-israel-expands-lebanon-invasion?traffic_source=rss"
+        },
+        {
+          "outlet": "Al Jazeera",
+          "lean": "left",
+          "region": "global",
+          "title": "Panic on beach in northern Israel during Hezbollah strikes",
+          "url": "https://www.aljazeera.com/video/newsfeed/2026/5/31/panic-on-beach-in-northern-israel-during-hezbollah-strikes?traffic_source=rss"
+        }
+      ]
+    },
+    {
+      "headline": "India Appoints New Chief of Defence Staff and Navy Chief, Prioritizing Jointness, Self-Reliance, and Operational Readiness",
+      "tldr": "General N.S. Raja Subramani has assumed charge as India's third Chief of Defence Staff (CDS), while Admiral Krishna Swaminathan has taken over as the 27th Chief of the Naval Staff (CNS). Both leaders emphasized strengthening national security through military integration, indigenous defense capabilities, and maintaining high operational readiness amidst evolving regional security challenges and ongoing military reforms like theaterisation.",
+      "situational_analysis": {
+        "what": "India has appointed a new Chief of Defence Staff (CDS), General N.S. Raja Subramani, and a new Chief of the Naval Staff (CNS), Admiral Krishna Swaminathan. Both assumed their respective charges, outlining priorities focused on military integration, self-reliance, and operational effectiveness.",
+        "why": "The appointments follow the retirement of the previous CDS, General Anil Chauhan, and the outgoing Navy Chief, Admiral Dinesh Kumar Tripathi. The new leadership is tasked with advancing critical military reforms, including the theaterisation plan, and enhancing India's defense capabilities in a complex regional security environment.",
+        "who": "General N.S. Raja Subramani is the new CDS. Admiral Krishna Swaminathan is the new Navy Chief. They succeed General Anil Chauhan and Admiral Dinesh Kumar Tripathi, respectively. Prime Minister Narendra Modi's 'JAI' vision (Jointness, Atma Nirbharta, Innovation) was highlighted by the new CDS. Defence Minister Rajnath Singh and Army Chief General Upendra Dwivedi also commented on related defense matters.",
+        "when": "Both General N.S. Raja Subramani and Admiral Krishna Swaminathan assumed their charges on Sunday, May 31, 2026. The previous CDS retired on Saturday, and the previous Navy Chief retired on Sunday.",
+        "where": "The ceremonies for assuming charge took place in New Delhi. Discussions on military reforms and operational readiness pertain to India's national defense, with references to the Arabian Sea and the Indo-Pacific region for naval operations.",
+        "how": "General Subramani's assumption of charge included laying a wreath at the National War Memorial and receiving a ceremonial Tri-Services Guard of Honour. Both new chiefs addressed the media, outlining their priorities and commitment to national security, military reforms, and indigenous defense. The appointments come as the armed forces advance the theaterisation plan."
+      },
+      "strategic_assessment": "The appointments of the new CDS and Navy Chief signal a continued focus on comprehensive military modernization and strategic reforms for India. The emphasis on 'Jointness, Atma Nirbharta, and Innovation' (JAI vision) by the CDS, coupled with the Navy Chief's commitment to operational readiness and indigenisation, indicates a unified approach to strengthening national security. The ongoing push for theaterisation aims to enhance combat effectiveness and resource optimization across all domains, which is crucial for India's strategic posture in a challenging regional environment, particularly concerning Pakistan and China.",
+      "perspective_matrix": {
+        "left_leaning": "Not represented in the provided excerpts.",
+        "center": "Centrist outlets frame the story around the formal assumption of duties by the new CDS and Navy Chief, highlighting their stated priorities of jointness, self-reliance, innovation, and operational readiness. Coverage details their professional backgrounds and the ongoing military reforms like theaterisation, as well as the context of regional security challenges and past operations like Operation Sindoor.",
+        "right_leaning": "Not represented in the provided excerpts.",
+        "indian_media": "Indian media, specifically centrist outlets, extensively cover the appointments, the ceremonial aspects, and the immediate statements from both new chiefs regarding their vision for the armed forces. There is a strong focus on the continuity of strategic goals such as military integration, indigenous defense production, and maintaining a robust posture in the face of evolving security threats, including references to Operation Sindoor and the theaterisation plan.",
+        "global_media": "Not represented in the provided excerpts."
+      },
+      "facts_vs_claims": {
+        "facts": [
+          "General N.S. Raja Subramani assumed charge as India’s third Chief of Defence Staff (CDS) and Secretary, Department of Military Affairs, on May 31, 2026.",
+          "Admiral Krishna Swaminathan assumed charge as the 27th Chief of the Naval Staff (CNS) of the Indian Navy on May 31, 2026.",
+          "General Subramani succeeded General Anil Chauhan, and Admiral Swaminathan succeeded Admiral Dinesh Kumar Tripathi.",
+          "General Subramani paid tribute to fallen soldiers at the National War Memorial and was accorded a ceremonial Tri-Services Guard of Honour in New Delhi.",
+          "General Subramani was commissioned into the Garhwal Rifles in December 1985 and has over four decades of service.",
+          "Prior to becoming CDS, General Subramani served as Military Adviser at the National Security Council Secretariat and retired as Vice Chief of Army Staff on July 31 last year.",
+          "Admiral Swaminathan was commissioned into the Indian Navy on July 1, 1987, and is a Communication and Electronic Warfare specialist.",
+          "Prior to becoming Navy Chief, Admiral Swaminathan served as the Flag Officer Commanding-in-Chief of the Western Naval Command.",
+          "Defence Minister Rajnath Singh stated that domestic defense production increased from Rs 46,000 crore in 2014 to over Rs 1.51 lakh crore, with a target of Rs 1.75 lakh crore, and defense exports reached about Rs 40,000 crore.",
+          "Outgoing Navy Chief Admiral Dinesh K Tripathi stated the Navy maintained an operational tempo of nearly 11,000 ship days and over 50,000 flying hours in 2025.",
+          "The Navy conducted 23 bilateral, 16 multilateral, and 70 maritime partnership exercises over the past two years.",
+          "The Navy inducted two submarines and 18 warships since 2025.",
+          "Operation Sindoor involved the immediate deployment of a Carrier Battle Group and a forward operational posture in the Northern Arabian Sea.",
+          "General Subramani is an alumnus of the National Defence Academy (NDA) and the Indian Military Academy (IMA).",
+          "Admiral Swaminathan is an alumnus of the National Defence Academy, the Joint Services Command and Staff College in the UK, the College of Naval Warfare, and the US Naval War College.",
+          "General Subramani is one year junior to Army Chief General Upendra Dwivedi and Indian Air Force Chief Air Chief Marshal AP Singh, who are due to retire in June and October, respectively."
+        ],
+        "claims": [
+          "General Subramani's primary mandate will be to put in place the military theaterisation plan and strengthen tri-services synergy.",
+          "General Subramani is known for his expertise on Pakistan and China.",
+          "The Armed Forces would work towards implementing Prime Minister Narendra Modi’s vision of 'JAI' — Jointness, Atma Nirbharta, and Innovation.",
+          "Organisational reforms aimed at enhancing synergy, integration, and operational effectiveness among the three services would remain a key focus area for the CDS.",
+          "Atma Nirbharta is a central pillar of India's national security, and the development, induction, and integration of indigenous weapons will be accelerated.",
+          "The Indian Navy stands vigilant to protect national interests and is actively deployed in a regional security environment that remains challenging, complex, unpredictable, and uncertain.",
+          "Maintaining the highest standards of operational readiness and combat effectiveness will be Admiral Swaminathan's highest priority.",
+          "The Navy will continue its ongoing modernization drive while accelerating the induction of niche and emerging technologies.",
+          "The Indian Navy's aggressive posture during 'Operation Sindoor' forced the Pakistan Navy to remain confined to its ports and dented Islamabad's maritime economy by driving up shipping risks and insurance premiums.",
+          "Theaterisation is on the right track and could begin taking shape on the ground within the next two to three years.",
+          "No service can fight a modern war alone, and only theaterisation can align the military’s strategic vision and capabilities.",
+          "Modern conflicts demand much closer integration of strategic thought and technological capability, making jointness an absolute necessity.",
+          "The conflict in West Asia has thoroughly debunked the myth of short and swift wars and reinforced that maritime security and economic security are inseparable.",
+          "The character of the battlespace has shifted profoundly, becoming multi-domain and highly transparent, with uncrewed systems delivering macro-effects at sea.",
+          "India’s maritime posture in the Indo-Pacific is about protecting national maritime interests and contributing to a free, open, and inclusive Indo-Pacific, not about any one country alone.",
+          "The Indian Army and all three services are preparing well for Operation Sindoor 2.0 if it takes place.",
+          "Victory is always in the mind and not on the ground; information warfare is successful if the whole nation trusts the information providers."
+        ]
+      },
+      "blind_spot": "The provided excerpts, being entirely from Indian centrist media, do not offer perspectives from international media, left-leaning, or right-leaning Indian outlets. There is also limited detail on the specific challenges or potential disagreements among the services regarding the implementation of theaterisation, or the financial implications and public reception of these major defense reforms.",
+      "stakeholder_impact": [
+        {
+          "stakeholder": "Indian Armed Forces (Army, Navy, Air Force)",
+          "impact": "The new leadership is committed to enhancing jointness, synergy, and integration among the three services, accelerating indigenous weapon induction, and implementing the theaterisation plan, which will restructure operational commands and capabilities."
+        },
+        {
+          "stakeholder": "Indian Government/Ministry of Defence",
+          "impact": "The appointments facilitate the continuation and acceleration of strategic defense reforms, including the Prime Minister's 'JAI' vision and the long-awaited theaterisation plan, aiming to enhance national security and defense preparedness."
+        },
+        {
+          "stakeholder": "Indian Defence Industry",
+          "impact": "The strong emphasis on 'Atma Nirbharta' (self-reliance) and accelerating the development, induction, and integration of indigenous weapons will likely boost domestic defense manufacturing and innovation."
+        },
+        {
+          "stakeholder": "Pakistan",
+          "impact": "The Indian Navy's aggressive posture during 'Operation Sindoor' reportedly confined the Pakistan Navy to its ports and negatively impacted its maritime economy. The Indian Army Chief also stated preparations for 'Operation Sindoor 2.0' are underway if needed, indicating continued deterrence."
+        },
+        {
+          "stakeholder": "Serving Personnel, Veterans, and Veer Naris",
+          "impact": "The new CDS reiterated his commitment towards their welfare, urging all ranks to embrace change, uphold military ethos, and strive for excellence."
+        },
+        {
+          "stakeholder": "Citizens of India",
+          "impact": "The new CDS assured citizens that the armed forces would continue to serve the nation with dedication, courage, honor, and professionalism, committed to protecting sovereignty and territorial integrity."
+        }
+      ],
+      "timeline": [
+        {
+          "when": "December 1985",
+          "event": "General N.S. Raja Subramani was commissioned into the Garhwal Rifles."
+        },
+        {
+          "when": "July 1, 1987",
+          "event": "Admiral Krishna Swaminathan was commissioned into the Indian Navy."
+        },
+        {
+          "when": "May 29, 2022",
+          "event": "INS Gomati was decommissioned after 34 years of service."
+        },
+        {
+          "when": "July 31, 2025",
+          "event": "Admiral Krishna Swaminathan took charge as the 34th Flag Officer Commanding-in-Chief of the Western Naval Command."
+        },
+        {
+          "when": "2025 (throughout)",
+          "event": "Indian Navy maintained an operational tempo of nearly 11,000 ship days and over 50,000 flying hours, including 'Operation Sindoor'."
+        },
+        {
+          "when": "November (unspecified year, likely 2025)",
+          "event": "Indian Navy led the tri-services Exercise Trishul off the coast of Gujarat."
+        },
+        {
+          "when": "Saturday, May 30, 2026",
+          "event": "General Anil Chauhan completed his tenure and stepped away as CDS. Defence Minister Rajnath Singh inaugurated 'Nausena Shaurya Vatika' in Lucknow. Army Chief General Upendra Dwivedi reviewed the 150th course Passing Out Parade at NDA."
+        },
+        {
+          "when": "Sunday, May 31, 2026",
+          "event": "General N.S. Raja Subramani assumed charge as India's third Chief of Defence Staff (CDS). Admiral Krishna Swaminathan assumed charge as the 27th Chief of the Naval Staff (CNS). Admiral Dinesh Kumar Tripathi retired as Navy Chief."
+        },
+        {
+          "when": "June (unspecified year, likely 2026)",
+          "event": "Army Chief General Upendra Dwivedi is due to retire."
+        },
+        {
+          "when": "October (unspecified year, likely 2026)",
+          "event": "Indian Air Force Chief Air Chief Marshal AP Singh is due to retire."
+        },
+        {
+          "when": "Next two to three years",
+          "event": "The process of military theaterisation is expected to be seen happening on the ground."
+        },
+        {
+          "when": "2033",
+          "event": "The first submarine under Project-75I is expected to be inducted."
+        },
+        {
+          "when": "Until 2038",
+          "event": "Delivery of one submarine per year is expected after 2033."
+        }
+      ],
+      "confidence": {
+        "level": "High",
+        "notes": "The confidence level is high due to multiple corroborating sources (The Hindu, The Indian Express, Hindustan Times), all providing consistent factual information regarding the appointments, dates, and stated priorities of the new CDS and Navy Chief. The sources are all reputable Indian news outlets, offering a comprehensive view from the Indian media perspective. Details on their backgrounds, previous roles, and ongoing defense initiatives like theaterisation and 'Operation Sindoor' are well-covered across these sources."
+      },
+      "id": "india-appoints-new-chief-of-defence-staff-and-navy-chief-pri-29",
+      "region": "india",
+      "sources": [
+        {
+          "outlet": "The Hindu",
+          "lean": "center",
+          "region": "india",
+          "title": "General Raja Subramani takes over as CDS, says focus on integration and indigenous capability",
+          "url": "https://www.thehindu.com/news/national/general-subramani-takes-charge-as-new-chief-of-defence-staff/article71043826.ece"
+        },
+        {
+          "outlet": "The Hindu",
+          "lean": "center",
+          "region": "india",
+          "title": "New Navy chief focuses on readiness, technology, modernisation",
+          "url": "https://www.thehindu.com/news/national/new-navy-chief-admiral-krishna-swaminathan/article71043965.ece"
+        },
+        {
+          "outlet": "The Indian Express",
+          "lean": "center",
+          "region": "india",
+          "title": "Admiral Krishna Swaminathan takes charge as 27th Navy chief",
+          "url": "https://indianexpress.com/article/india/admiral-krishna-swaminathan-takes-charge-as-indias-27th-chief-of-naval-staff-10716745/"
+        },
+        {
+          "outlet": "The Indian Express",
+          "lean": "center",
+          "region": "india",
+          "title": "Gen Subramani takes charge as new Chief of Defence Staff: ‘Transformation of armed forces, organisational reforms key focus’",
+          "url": "https://indianexpress.com/article/india/gen-subramani-cds-armed-forces-reforms-key-focus-10716431/"
+        },
+        {
+          "outlet": "The Indian Express",
+          "lean": "center",
+          "region": "india",
+          "title": "Army Chief: Armed forces preparing well for Operation Sindoor 2.0 if it takes place",
+          "url": "https://indianexpress.com/article/india/army-chief-armed-forces-preparing-well-for-operation-sindoor-2-0-if-it-takes-place-10716328/"
+        },
+        {
+          "outlet": "The Indian Express",
+          "lean": "center",
+          "region": "india",
+          "title": "Our naval might confined Pakistan to its ports: Rajnath Singh",
+          "url": "https://indianexpress.com/article/india/our-naval-might-confined-pakistan-to-its-ports-rajnath-singh-10716333/"
+        },
+        {
+          "outlet": "Hindustan Times",
+          "lean": "center",
+          "region": "india",
+          "title": "General Subramani takes charge as India's new CDS: All about the 'Pakistan-China expert'",
+          "url": "https://www.hindustantimes.com/india-news/general-ns-raja-subramani-takes-charge-as-indias-new-chief-of-defence-staff-cds-all-about-the-pakistan-china-expert-101780217941768.html"
+        },
+        {
+          "outlet": "Hindustan Times",
+          "lean": "center",
+          "region": "india",
+          "title": "Operational readiness highest priority, says new Navy chief Admiral Swaminathan",
+          "url": "https://www.hindustantimes.com/india-news/operational-readiness-highest-priority-says-new-navy-chief-admiral-swaminathan-101780208460515.html"
+        },
+        {
+          "outlet": "Hindustan Times",
+          "lean": "center",
+          "region": "india",
+          "title": "India's new chief of defence staff, navy chief take charge",
+          "url": "https://www.hindustantimes.com/india-news/general-ns-raja-subramani-takes-charge-as-india-new-chief-of-defence-staff-101780200422886.html"
+        },
+        {
+          "outlet": "Hindustan Times",
+          "lean": "center",
+          "region": "india",
+          "title": "‘Busted myth of short and swift wars’: Navy chief on US-Iran conflict in West Asia",
+          "url": "https://www.hindustantimes.com/india-news/busted-myth-of-short-wars-navy-chief-dinesh-k-tripathi-on-us-iran-conflict-in-west-asia-101780189610390.html"
+        },
+        {
+          "outlet": "Hindustan Times",
+          "lean": "center",
+          "region": "india",
+          "title": "New chief of defence staff, navy chief to take charge today",
+          "url": "https://www.hindustantimes.com/india-news/new-cds-navy-chief-to-take-charge-today-101780166249024.html"
+        },
+        {
+          "outlet": "Hindustan Times",
+          "lean": "center",
+          "region": "india",
+          "title": "Indian Navy's aggressive posture during 'Operation Sindoor' crippled Pakistan's maritime trade: Naval chief",
+          "url": "https://www.hindustantimes.com/india-news/indian-navys-aggressive-posture-during-operation-sindoor-crippled-pakistans-maritime-trade-naval-chief-101780159345619.html"
+        },
+        {
+          "outlet": "Hindustan Times",
+          "lean": "center",
+          "region": "india",
+          "title": "Theaterisation on right track, could take shape in next 2-3 years: Army Chief",
+          "url": "https://www.hindustantimes.com/india-news/theaterisation-on-right-track-could-take-shape-in-next-2-3-years-army-chief-101780134981268.html"
+        }
+      ]
+    },
+    {
+      "headline": "CBSE On-Screen Marking System Plagued by Security Flaws and Evaluation Discrepancies; Rahul Gandhi Demands Probe",
+      "tldr": "The CBSE's new On-Screen Marking (OSM) system faced widespread criticism due to security vulnerabilities, answer sheet mix-ups, and alleged irregularities in its tender process, prompting the board to admit flaws and opposition leader Rahul Gandhi to demand a judicial inquiry.",
+      "situational_analysis": {
+        "what": "The Central Board of Secondary Education's (CBSE) newly implemented On-Screen Marking (OSM) system for Class 12 examinations has been embroiled in controversy. Key issues include students receiving incorrect answer sheets, an ethical hacker exposing security vulnerabilities in the evaluation portal and an AWS bucket, and allegations of irregularities in the tender process for the OSM contract. The re-evaluation process for students was also delayed due to a 'malicious cyberattack' on the payment gateway.",
+        "why": "The controversy stems from the large-scale adoption of the OSM system for the first time, which replaced physical answer sheet evaluation with digital assessment. Technical glitches, alleged lax security protocols, and a lack of preparedness in its implementation are cited as reasons for the issues. The perceived impact on students' futures and public trust in the examination system fueled the uproar.",
+        "who": "Key actors include the CBSE, its service provider Coempt EduTeck (formerly Globarena Technologies), Class 12 students like Vedant Shrivastava (who received an incorrect answer sheet) and Sarthak Sidhant (who analyzed tender documents), and ethical hacker Nisarga Adhikary (who exposed security flaws). Opposition leader Rahul Gandhi criticized the government, while Union Education Minister Dharmendra Pradhan took responsibility and promised corrective action. Government agencies, IITs, and public sector banks were involved in fortifying the system.",
+        "when": "The controversy escalated in May 2026, following the declaration of Class 12 results. Vedant Shrivastava's viral post about an incorrect answer sheet was on May 23. The re-evaluation portal faced a cyberattack around May 19. On May 31, Rahul Gandhi met students, and CBSE acknowledged 'vulnerabilities' and thanked ethical hackers. The re-evaluation process, initially postponed, was set to commence on June 1, 2026.",
+        "where": "The events unfolded across India, impacting students nationwide who appeared for the CBSE Class 12 board examinations. The technical infrastructure and service providers are primarily based in India, with the OSM portal and AWS buckets being central to the digital issues.",
+        "how": "The OSM system involved scanning answer sheets and digital evaluation. Problems arose when students accessed scanned copies and found discrepancies, leading to social media outcry. An ethical hacker publicly demonstrated security flaws, prompting CBSE to deploy cybersecurity experts. Rahul Gandhi amplified student concerns through social media and direct interaction, criticizing the government and demanding an independent probe into the contract awarded to Coempt EduTeck. CBSE responded by acknowledging vulnerabilities, deploying expert teams, and changing payment gateways."
+      },
+      "strategic_assessment": "The CBSE OSM controversy highlights significant challenges in the digital transformation of high-stakes public services, particularly education. It underscores the critical importance of robust cybersecurity, transparent procurement processes, and effective communication in maintaining public trust. The incident also demonstrates the growing power of Gen Z students and ethical hackers in holding institutions accountable through social media and independent investigations, forcing government bodies to acknowledge and address systemic flaws. The political amplification by opposition leaders further elevates the issue, turning technical problems into matters of governance and accountability.",
+      "perspective_matrix": {
+        "left_leaning": "Not represented in the provided sources.",
+        "center": "Centrist outlets frame the controversy by detailing the technical vulnerabilities in the CBSE's On-Screen Marking portal and the subsequent actions taken by the board to contain them. They highlight Rahul Gandhi's strong criticism of the government and the company Coempt, emphasizing the students' experiences of receiving incorrect answer sheets and facing online abuse. These outlets also cover the role of ethical hackers and student activists in exposing the flaws.",
+        "right_leaning": "Not represented in the provided sources.",
+        "indian_media": "Indian media frames the story as a significant controversy impacting students, highlighting the technical failures of the new OSM system, alleged security breaches, and questions surrounding the tender process. It covers Rahul Gandhi's criticism of the government and the board's responses, including acknowledgments of vulnerabilities and corrective actions. The media also emphasizes the anxiety among students and parents and the broader implications for trust in the examination system.",
+        "global_media": "Not represented in the provided sources."
+      },
+      "facts_vs_claims": {
+        "facts": [
+          "CBSE introduced the On-Screen Marking (OSM) system for Class 12 exams in 2026.",
+          "Vedant Shrivastava, a Class 12 student, alleged that the Physics answer sheet uploaded by CBSE under the revaluation process was not his.",
+          "CBSE acknowledged that an incorrect Physics answer sheet was uploaded for Vedant and subsequently shared the correct one, promising to update his result.",
+          "CBSE stated that 'vulnerabilities' identified in the OnMark portal of its service provider have been contained.",
+          "An expert team of cybersecurity professionals from government agencies and IITs has been deployed to fortify CBSE's systems.",
+          "CBSE thanked alert citizens and ethical hackers for pointing out weaknesses and contacted some of them directly.",
+          "Ethical hacker Nisarga Adhikary, 19, alleged security flaws in CBSE's digital evaluation ecosystem and claimed an AWS bucket containing 2026 answer sheets and question papers was publicly accessible.",
+          "Sarthak Sidhant, a 17-year-old student, published a blog analyzing CBSE's tender documents for the OSM contract.",
+          "The CBSE's revaluation portal was hit by a 'malicious cyberattack' affecting payment processing for around 50 students, causing incorrect fee displays.",
+          "CBSE removed HDFC Bank's payment gateway and integrated payment systems of four public sector banks (State Bank of India, Canara Bank, Indian Bank, Bank of Baroda) as corrective measures.",
+          "The re-evaluation process was postponed multiple times, with a revised commencement date of June 1, 2026.",
+          "Coempt EduTeck, formerly Globarena Technologies, was awarded the OSM contract.",
+          "Of 98.6 lakh answer books evaluated, 68,018 required rescanning for poor image quality and 13,583 were checked manually after scans failed."
+        ],
+        "claims": [
+          "Rahul Gandhi alleged that Coempt (Edu Teck) had a 'murky past' in Telangana under its old name Globarena and that the contract award was a 'deliberate conspiracy'.",
+          "Rahul Gandhi claimed students asking questions received 'insults instead of answers' and were labeled 'anti-nationals', 'Soros agents', 'Pakistanis', 'deep state agents', and 'terrorists'.",
+          "Sarthak Sidhant alleged that CBSE 'rewrote rules to favour Coempt EduTeck' by systematically modifying eligibility and technical requirements across three tender rounds.",
+          "Sarthak Sidhant claimed the condition barring 'blacklisted earlier' firms was changed to 'blacklisted currently' to allow Coempt to qualify.",
+          "Nisarga Adhikary claimed he identified a 'master password' that could bypass all security protocols and allow access to alter marks on the system.",
+          "Nisarga Adhikary alleged that the AWS bucket exposure allowed anyone to download any scanned booklet across institutions without authentication.",
+          "The Government Schools Teachers' Association (GSTA) claimed the OSM system was implemented without adequate preparation and practical assessment, leading evaluators to adopt 'excessive caution' and stricter evaluation.",
+          "GSTA alleged that teachers were issued show-cause notices and threatened with adverse remarks in their Annual Performance Appraisal Reports (APARs) over the drop in Class 12 pass percentage."
+        ]
+      },
+      "blind_spot": "The provided sources lack perspectives from explicitly left-leaning, right-leaning, and global media outlets, limiting the understanding of how these segments frame the controversy. There is also limited detail on the full extent and perpetrators of the 'malicious cyberattack' on the payment gateway, beyond its impact on transaction fees. The actual impact of the alleged 'master password' and AWS bucket exposure on the integrity of the live evaluation system, beyond the hacker's claims, is not fully elaborated or independently verified within the provided excerpts.",
+      "stakeholder_impact": [
+        {
+          "stakeholder": "CBSE",
+          "impact": "The board faced intense scrutiny and public criticism, leading to acknowledgments of 'vulnerabilities' and deployment of expert cybersecurity teams. It had to postpone re-evaluation processes, remove a payment gateway, and integrate new banking partners. The controversy also forced CBSE to defend its procurement protocols and the integrity of its new OSM system."
+        },
+        {
+          "stakeholder": "Class 12 Students",
+          "impact": "Students experienced significant anxiety and distress due to incorrect answer sheets, alleged discrepancies in marking, and delays in the re-evaluation process. Some, like Vedant Shrivastava, faced online abuse and were labeled 'anti-national' for raising legitimate concerns. Their trust in the examination system was profoundly affected, with many seeking re-evaluation."
+        },
+        {
+          "stakeholder": "Rahul Gandhi / Opposition",
+          "impact": "The controversy provided a platform for the opposition to criticize the government's handling of education and alleged corruption. Rahul Gandhi gained visibility by interacting with affected students and demanding an independent judicial probe and SIT inquiry into the 'scam' and the contract awarded to Coempt EduTeck."
+        },
+        {
+          "stakeholder": "Coempt EduTeck (formerly Globarena Technologies)",
+          "impact": "The company, as the service provider for the OSM system, came under attack for alleged irregularities in the tender process and its past controversies in Telangana. It denied any wrongdoing and defended its selection, attributing issues like incorrect answer sheets to human error rather than technological failure."
+        },
+        {
+          "stakeholder": "Government / Ministry of Education",
+          "impact": "The government faced criticism for the perceived failures of the CBSE's new system. Education Minister Dharmendra Pradhan took 'full responsibility' and promised thorough investigations and corrective actions, indicating the high-level attention the issue garnered."
+        },
+        {
+          "stakeholder": "Ethical Hackers / Alert Citizens",
+          "impact": "Individuals like Nisarga Adhikary played a crucial role in identifying and publicly exposing security vulnerabilities, prompting CBSE to take corrective measures and acknowledge their contributions. This highlights their significant impact on system security and accountability."
+        },
+        {
+          "stakeholder": "Teachers / Evaluators",
+          "impact": "Teachers and evaluators faced technical and practical difficulties with the OSM system, including blurred scans and missing pages, leading to 'excessive caution' in marking. The Government Schools Teachers' Association reported that teachers were issued show-cause notices and threatened with adverse remarks, causing stress within the teaching community."
+        }
+      ],
+      "timeline": [
+        {
+          "when": "May 19, 2026",
+          "event": "CBSE's revaluation portal went live and was subsequently hit by a 'malicious cyberattack' affecting payment processing."
+        },
+        {
+          "when": "May 23, 2026",
+          "event": "Class 12 student Vedant Shrivastava's post on X alleging an incorrect Physics answer sheet went viral."
+        },
+        {
+          "when": "May 24, 2026",
+          "event": "Union Education Minister Dharmendra Pradhan discussed technical and payment-related issues with Finance Minister Nirmala Sitharaman."
+        },
+        {
+          "when": "May 26, 2026",
+          "event": "The revaluation portal became unavailable, and its reopening was postponed from May 26 to May 29."
+        },
+        {
+          "when": "May 27, 2026",
+          "event": "India Today reported on the unfolding issues with the OSM system and re-evaluation."
+        },
+        {
+          "when": "May 28, 2026",
+          "event": "Education Minister Dharmendra Pradhan stated he expected 20% of the four lakh students who requested answer scripts to apply for re-evaluation."
+        },
+        {
+          "when": "May 29, 2026",
+          "event": "The reopening of the re-evaluation portal was further postponed to June 1."
+        },
+        {
+          "when": "May 31, 2026",
+          "event": "Rahul Gandhi interacted with affected CBSE students, criticizing the government and demanding an independent judicial probe. CBSE issued a statement acknowledging 'vulnerabilities' in its OnMark portal and thanked ethical hackers. Ethical hacker Nisarga Adhikary alleged an AWS bucket containing answer sheets was publicly accessible. Sarthak Sidhant's blog analyzing CBSE's tender documents gained significant attention."
+        },
+        {
+          "when": "June 1, 2026",
+          "event": "The revised verification and re-evaluation process for Class 12 students was scheduled to commence."
+        }
+      ],
+      "confidence": {
+        "level": "High",
+        "notes": "The analysis is based on multiple, corroborating sources from prominent Indian media outlets (The Hindu, Indian Express, Times of India, India Today, Hindustan Times). These sources provide consistent factual details regarding the events, stakeholders, and responses from CBSE and political figures. The diversity of reporting angles from these centrist Indian outlets enhances the reliability of the information presented."
+      },
+      "id": "cbse-on-screen-marking-system-plagued-by-security-flaws-and--29",
+      "region": "india",
+      "sources": [
+        {
+          "outlet": "The Hindu",
+          "lean": "center",
+          "region": "india",
+          "title": "'Revealing chat with fellow anti-national Soros agents': Rahul's dig at govt over CBSE OSM row",
+          "url": "https://www.thehindu.com/news/national/revealing-chat-with-fellow-anti-national-soros-agents-rahuls-dig-at-govt-over-cbse-osm-row/article71044736.ece"
+        },
+        {
+          "outlet": "The Hindu",
+          "lean": "center",
+          "region": "india",
+          "title": "CBSE says OnMark portal ‘vulnerabilities’ contained amid security concerns",
+          "url": "https://www.thehindu.com/news/national/cbse-says-onmark-portal-vulnerabilities-contained-amid-security-concerns/article71044420.ece"
+        },
+        {
+          "outlet": "The Indian Express",
+          "lean": "center",
+          "region": "india",
+          "title": "‘With my fellow anti-national Soros agents’: Rahul Gandhi’s dig over CBSE row",
+          "url": "https://indianexpress.com/article/india/rahul-gandhi-soros-osm-bjp-cbse-10717130/"
+        },
+        {
+          "outlet": "Times of India",
+          "lean": "center",
+          "region": "india",
+          "title": "CBSE vs students: Board admits flaws after teen hacker exposes website vulnerabilities",
+          "url": "https://timesofindia.indiatimes.com/education/news/cbse-vs-student-board-admits-vulnerabilities-after-teen-hacker-exposes-website-flaws/articleshow/131420668.cms"
+        },
+        {
+          "outlet": "Times of India",
+          "lean": "center",
+          "region": "india",
+          "title": "'A chat with Soros agents': Rahul's dig at BJP as he meets CBSE students",
+          "url": "https://timesofindia.indiatimes.com/india/a-chat-with-anti-national-soros-agents-rahul-gandhis-dig-at-bjp-as-he-meets-cbse-students/articleshow/131420701.cms"
+        },
+        {
+          "outlet": "India Today",
+          "lean": "center",
+          "region": "india",
+          "title": "CBSE's U-turn, admits security gaps after online marking portal hacked twice",
+          "url": " https://www.indiatoday.in/education-today/story/cbse-acknowledges-security-gaps-after-teen-hacker-compromises-online-marking-portal-twice-2919867-2026-05-31?utm_source=rss "
+        },
+        {
+          "outlet": "India Today",
+          "lean": "center",
+          "region": "india",
+          "title": "17-year-old Soros agents: Rahul Gandhi jabs BJP during chat with Class 12 students",
+          "url": " https://www.indiatoday.in/india/story/cbse-class-12-physics-marks-row-rahul-gandhi-backs-students-over-evaluation-2919865-2026-05-31?utm_source=rss "
+        },
+        {
+          "outlet": "India Today",
+          "lean": "center",
+          "region": "india",
+          "title": "CBSE OSM row exposes a hard truth: Class 12 marks still matter",
+          "url": " https://www.indiatoday.in/sunday-special/story/board-games-cbse-osm-re-evaluation-and-the-strange-power-of-the-cbse-class-12-marksheet-2919157-2026-05-31?utm_source=rss "
+        },
+        {
+          "outlet": "India Today",
+          "lean": "center",
+          "region": "india",
+          "title": "CBSE's U-turn, admits security gaps after online marking portal hacked twice",
+          "url": " https://www.indiatoday.in/education-today/story/cbse-acknowledges-security-gaps-after-teen-hacker-compromises-online-marking-portal-twice-2919867-2026-05-31?utm_source=rss "
+        },
+        {
+          "outlet": "India Today",
+          "lean": "center",
+          "region": "india",
+          "title": "Gen Z vs CBSE: Nisarga alleges 2026 answer sheets were exposed online",
+          "url": " https://www.indiatoday.in/education-today/news/story/gen-z-vs-cbse-nisarga-adhikary-claims-scanned-class-12-answer-sheets-are-publicly-downloadable-2919816-2026-05-31?utm_source=rss "
+        },
+        {
+          "outlet": "Hindustan Times",
+          "lean": "center",
+          "region": "india",
+          "title": "3 teens vs CBSE: How the Class 12 paper-checking system OSM blew up, and the board corrected, defended, countered",
+          "url": "https://www.hindustantimes.com/india-news/3-teens-vs-cbse-how-the-class-12-osm-marking-system-row-blew-up-and-the-board-corrected-defended-countered-101780220881360.html"
+        },
+        {
+          "outlet": "Hindustan Times",
+          "lean": "center",
+          "region": "india",
+          "title": "After CBSE 'monitors' issues over OSM portal, hacker says 'my work is done'",
+          "url": "https://www.hindustantimes.com/india-news/after-hacker-nisarga-adhikary-flags-concerns-in-osm-portal-cbse-says-closely-monitoring-problems-class-12-results-101780220914576.html"
+        },
+        {
+          "outlet": "Hindustan Times",
+          "lean": "center",
+          "region": "india",
+          "title": "‘Show the terrorists' faces!’: Rahul Gandhi meets Vedant, student at centre of CBSE row, mocks familiar insults",
+          "url": "https://www.hindustantimes.com/india-news/17yearold-anti-nationals-rahul-gandhi-meets-vedant-student-at-centre-of-cbse-class-12-marking-system-row-101780214986550.html"
+        },
+        {
+          "outlet": "Hindustan Times",
+          "lean": "center",
+          "region": "india",
+          "title": "Officials blame cyberattack for CBSE revaluation portal glitches",
+          "url": "https://www.hindustantimes.com/india-news/officials-blame-cyberattack-for-cbse-revaluation-portal-glitches-101780167629556.html"
+        },
+        {
+          "outlet": "Hindustan Times",
+          "lean": "center",
+          "region": "india",
+          "title": "Gen-Z blog explodes: How 17-yr-old Sarthak's investigation of CBSE OSM tenders became centrepiece of a mega row",
+          "url": "https://www.hindustantimes.com/india-news/sarthak-sidhant-and-his-blog-how-a-17-year-olds-investigation-of-cbses-osm-tenders-became-centrepiece-of-a-mega-row-101780138993805.html"
+        },
+        {
+          "outlet": "Hindustan Times",
+          "lean": "center",
+          "region": "india",
+          "title": "CBSE Class 12 score drop due to OSM: Teachers' body seeks withdrawal of notices",
+          "url": "https://www.hindustantimes.com/india-news/cbse-class-12-score-drop-due-to-osm-teachers-body-seeks-withdrawal-of-notices-101780129381625.html"
+        }
+      ]
+    }
+  ]
+}
