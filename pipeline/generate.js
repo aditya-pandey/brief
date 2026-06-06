@@ -3,8 +3,9 @@ import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { fetchCandidates } from "./retrieve.js";
 import { selectTopStories } from "./select.js";
-import { fetchText } from "./scrape.js";
+import { fetchArticle } from "./scrape.js";
 import { analyzeStory } from "./analyze.js";
+import { TOP_N } from "./sources.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = resolve(__dirname, "../data");
@@ -15,8 +16,6 @@ function slug(text) {
 }
 
 function refreshIndex() {
-  // index.json stores [{date, count}] objects so the Time Machine UI can show
-  // story counts without having to fetch every day's full JSON.
   const entries = readdirSync(DATA_DIR)
     .filter(f => f.endsWith(".json") && f !== "index.json")
     .map(f => {
@@ -28,7 +27,7 @@ function refreshIndex() {
         return { date, count: 0 };
       }
     })
-    .sort((a, b) => b.date.localeCompare(a.date)); // newest first
+    .sort((a, b) => b.date.localeCompare(a.date));
   writeFileSync(`${DATA_DIR}/index.json`, JSON.stringify(entries, null, 2));
   console.log(`   index updated: ${entries.length} day(s)`);
 }
@@ -37,16 +36,14 @@ async function run() {
   const today = new Date().toISOString().slice(0, 10);
   const outPath = `${DATA_DIR}/${today}.json`;
 
-  // Skip if today's file already exists — avoids redundant API calls during local dev.
-  // Set FORCE_REGEN=1 to override (e.g. after a partial run or a source change).
   if (existsSync(outPath) && !process.env.FORCE_REGEN) {
     console.log(`== data/${today}.json already exists — nothing to do.`);
     console.log(`   (set FORCE_REGEN=1 to regenerate today's briefing)`);
-    refreshIndex(); // keep index in sync even on a skip
+    refreshIndex();
     return;
   }
 
-  console.log(`== Generating deep dives for ${today} ==`);
+  console.log(`== Generating deep dives for ${today} (target: ${TOP_N} stories) ==`);
 
   console.log("1) Retrieving candidates...");
   const candidates = await fetchCandidates();
@@ -55,30 +52,51 @@ async function run() {
     return;
   }
 
-  console.log("2) Selecting top stories...");
+  console.log("2) Selecting stories (primaries + reserves)...");
   const selected = await selectTopStories(candidates);
-  console.log(`   selected ${selected.length} stories`);
+  console.log(`   pool: ${selected.length} stories (${TOP_N} target + up to ${selected.length - TOP_N} reserves)`);
 
+  // ── Backfill loop ────────────────────────────────────────────────────────
+  // Work through the pool in priority order. Stop as soon as TOP_N stories
+  // have been successfully scraped + analysed. Any reserves beyond that are
+  // never even fetched, keeping API usage minimal.
   const storiesOut = [];
+
   for (let n = 0; n < selected.length; n++) {
+    if (storiesOut.length >= TOP_N) break; // ✓ hit the target — stop
+
     const sel = selected[n];
-    console.log(`3.${n + 1}) Story: ${sel.title}`);
+    const isReserve = n >= TOP_N;
+    const label = isReserve ? `reserve-${n - TOP_N + 1}` : String(n + 1);
+    console.log(`\n${label}) ${sel.title}`);
+
+    // Scrape all articles for this story (get text + og:image)
     const articles = [];
     for (const idx of sel.article_indices) {
       const c = candidates[idx];
       console.log(`      scraping ${c.source}...`);
-      const text = await fetchText(c.url);
-      articles.push({ ...c, text });
+      const { text, imageUrl } = await fetchArticle(c.url);
+      articles.push({ ...c, text, imageUrl });
+    }
+
+    // Skip if nothing scraped (no text to analyse)
+    const usable = articles.filter(a => a.text);
+    if (!usable.length) {
+      console.log(`    ! no usable text — ${isReserve ? "reserve" : "trying next reserve"}`);
+      continue;
     }
 
     let deep;
     try {
       deep = await analyzeStory(sel.title, articles);
     } catch (err) {
-      console.log(`    ! analysis failed for '${sel.title}': ${err.message?.slice(0, 120)} — skipping`);
+      console.log(`    ! analysis failed: ${err.message?.slice(0, 120)} — ${isReserve ? "reserve" : "trying next reserve"}`);
       continue;
     }
     if (!deep) continue;
+
+    // Pick the best cover image: first og:image found across the story's articles
+    const coverImage = articles.map(a => a.imageUrl).find(u => u) ?? null;
 
     const sourcesUsed = articles
       .filter(a => a.text)
@@ -88,13 +106,20 @@ async function run() {
       ...deep,
       id: slug(deep.headline),
       region: sel.region,
+      image_url: coverImage,
       sources: sourcesUsed,
     });
+
+    console.log(`    ✓ story ${storiesOut.length}/${TOP_N} done${coverImage ? " (has image)" : ""}`);
   }
 
   if (!storiesOut.length) {
     console.log("No stories produced — aborting write.");
     return;
+  }
+
+  if (storiesOut.length < TOP_N) {
+    console.log(`\n⚠  Only ${storiesOut.length}/${TOP_N} stories produced — pool exhausted.`);
   }
 
   const payload = {
@@ -105,7 +130,7 @@ async function run() {
 
   mkdirSync(DATA_DIR, { recursive: true });
   writeFileSync(outPath, JSON.stringify(payload, null, 2));
-  console.log(`   wrote ${outPath}`);
+  console.log(`\n   wrote ${outPath} (${storiesOut.length} stories)`);
 
   refreshIndex();
   console.log("== Done ==");

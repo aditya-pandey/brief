@@ -28,5 +28,20 @@ export const SOURCES = [
     feed: "https://news.google.com/rss/search?q=reuters&hl=en-IN&gl=IN&ceid=IN:en" },
 ];
 
-export const TOP_N = 8;
+// ── Tuning knobs ────────────────────────────────────────────────────────────
+
+// How many stories to publish per day.
+export const TOP_N = 10;
+
+// Extra stories the model selects as insurance — if any of the first TOP_N
+// fail to scrape or analyse, we fall back to these before giving up.
+export const RESERVE = 4;
+
+// Bias the selection toward India ("majorly India, but global too").
+// At TOP_N=10 and INDIA_SHARE=0.65 the target is 6–7 India, 3–4 global.
 export const INDIA_SHARE = 0.65;
+
+// Only consider articles published within this many hours.
+// 36h gives a generous window that covers overnight stories from all timezones
+// without drifting into yesterday's stale news.
+export const LOOKBACK_HOURS = 36;

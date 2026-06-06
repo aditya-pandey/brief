@@ -1,7 +1,6 @@
 import Parser from "rss-parser";
-import { SOURCES } from "./sources.js";
+import { SOURCES, LOOKBACK_HOURS } from "./sources.js";
 
-const LOOKBACK_HOURS = 30;
 const parser = new Parser({ timeout: 15000 });
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }

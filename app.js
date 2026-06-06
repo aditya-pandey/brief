@@ -94,15 +94,21 @@ async function renderHome(date) {
   $("dateline-text").textContent = fmtDate(payload.date) + " · " + payload.stories.length + " stories";
   $("date-picker").hidden = true; // replaced by Time Machine section
 
-  const items = payload.stories.map((s, i) => `
-    <li class="story-card" data-id="${esc(s.id)}" data-date="${esc(date)}">
+  const items = payload.stories.map((s, i) => {
+    const thumb = s.image_url
+      ? `<div class="card-thumb"><img src="${esc(s.image_url)}" alt="" loading="lazy" onerror="this.parentElement.remove()"></div>`
+      : "";
+    return `
+    <li class="story-card${s.image_url ? " has-image" : ""}" data-id="${esc(s.id)}" data-date="${esc(date)}">
       <div class="num">${String(i + 1).padStart(2, "0")}</div>
-      <div>
+      <div class="card-body">
         <h2>${esc(s.headline)}</h2>
         <p class="tldr">${esc(s.tldr)}</p>
         <span class="region-tag">${esc(s.region || "")}</span>
       </div>
-    </li>`).join("");
+      ${thumb}
+    </li>`;
+  }).join("");
 
   // On past-day view: show "← Today" link above the list
   const backToToday = !isToday
@@ -185,9 +191,14 @@ async function renderStory(date, id) {
   $("dateline-text").textContent = fmtDate(payload.date);
   $("date-picker").hidden = true;
 
+  const hero = s.image_url
+    ? `<div class="story-hero"><img src="${esc(s.image_url)}" alt="${esc(s.headline)}" onerror="this.parentElement.remove()"></div>`
+    : "";
+
   app.innerHTML = `
     <div class="detail">
       <a class="back" href="#/day/${esc(date)}">← All stories</a>
+      ${hero}
       <h1>${esc(s.headline)}</h1>
       <p class="tldr">${esc(s.tldr)}</p>
 
