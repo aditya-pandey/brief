@@ -5,28 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The Briefing — daily news, decoded</title>
   <meta name="description" content="The day's top stories, each broken down into a structured deep dive: 5W1H, perspectives across the spectrum, facts vs claims, blind spots, and transparent sourcing." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="wrap">
-    <header class="masthead">
-      <div class="kicker">News, decoded — not just reported</div>
-      <h1>The&nbsp;Briefing</h1>
-      <div class="dateline">
-        <span id="dateline-text">Loading the day's dossier…</span>
-        <select id="date-picker" hidden></select>
+
+  <!-- ── Sticky nav ─────────────────────────────── -->
+  <header id="site-header">
+    <div class="header-inner">
+      <a class="wordmark" href="#">The Briefing</a>
+      <div class="header-right">
+        <span id="header-date"></span>
+        <button id="theme-toggle" aria-label="Toggle dark mode">
+          <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
       </div>
-    </header>
+    </div>
+    <!-- reading progress bar (only visible on story detail) -->
+    <div id="progress-bar"></div>
+  </header>
 
-    <main id="app">
-      <div class="loading">Loading…</div>
-    </main>
-
-    <footer>
-      THE BRIEFING · Analysis is AI-generated from the cited sources and may contain errors —
-      always check the linked originals. Source text is never republished; only analysis and attribution.
-    </footer>
+  <!-- ── Hero banner (home only) ───────────────── -->
+  <div id="hero" class="hero hidden">
+    <div class="hero-inner">
+      <p class="hero-kicker">News, decoded — not just reported</p>
+      <h1 class="hero-title">The Briefing</h1>
+      <p id="hero-meta" class="hero-meta"></p>
+    </div>
   </div>
+
+  <!-- ── Main content ───────────────────────────── -->
+  <main id="app">
+    <div class="loading-screen">
+      <div class="spinner"></div>
+    </div>
+  </main>
+
+  <!-- ── Footer ────────────────────────────────── -->
+  <footer id="site-footer">
+    <div class="footer-inner">
+      <span class="footer-brand">The Briefing</span>
+      <span class="footer-copy">Analysis is AI-generated from cited sources and may contain errors — always check the linked originals. Source text is never republished; only analysis and attribution.</span>
+    </div>
+  </footer>
 
   <script src="app.js"></script>
 </body>
