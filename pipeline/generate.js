@@ -3,7 +3,7 @@ import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { fetchCandidates } from "./retrieve.js";
 import { selectTopStories } from "./select.js";
-import { fetchArticle } from "./scrape.js";
+import { fetchText } from "./scrape.js";
 import { analyzeStory } from "./analyze.js";
 import { TOP_N } from "./sources.js";
 
@@ -70,13 +70,13 @@ async function run() {
     const label = isReserve ? `reserve-${n - TOP_N + 1}` : String(n + 1);
     console.log(`\n${label}) ${sel.title}`);
 
-    // Scrape all articles for this story (get text + og:image)
+    // Scrape all articles for this story
     const articles = [];
     for (const idx of sel.article_indices) {
       const c = candidates[idx];
       console.log(`      scraping ${c.source}...`);
-      const { text, imageUrl } = await fetchArticle(c.url);
-      articles.push({ ...c, text, imageUrl });
+      const text = await fetchText(c.url);
+      articles.push({ ...c, text });
     }
 
     // Skip if nothing scraped (no text to analyse)
@@ -95,9 +95,6 @@ async function run() {
     }
     if (!deep) continue;
 
-    // Pick the best cover image: first og:image found across the story's articles
-    const coverImage = articles.map(a => a.imageUrl).find(u => u) ?? null;
-
     const sourcesUsed = articles
       .filter(a => a.text)
       .map(a => ({ outlet: a.source, lean: a.lean, region: a.region, title: a.title, url: a.url }));
@@ -106,11 +103,10 @@ async function run() {
       ...deep,
       id: slug(deep.headline),
       region: sel.region,
-      image_url: coverImage,
       sources: sourcesUsed,
     });
 
-    console.log(`    ✓ story ${storiesOut.length}/${TOP_N} done${coverImage ? " (has image)" : ""}`);
+    console.log(`    ✓ story ${storiesOut.length}/${TOP_N} done (${sourcesUsed.length} source${sourcesUsed.length > 1 ? "s" : ""})`);
   }
 
   if (!storiesOut.length) {
