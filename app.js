@@ -361,36 +361,107 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
 
   wireButtons();
 
-  // Swipe gesture
-  const deck = () => container.querySelector("#slide-deck");
-  let sx = 0, sy = 0, dragging = false;
+  // Live drag-follow swipe with 3D rotation
+  let sx = 0, sy = 0, dragging = false, axis = null;
+  let activeEl = null, neighborEl = null, neighborDir = 0;
+
+  function getSlides() { return container.querySelectorAll(".slide"); }
+
   container.addEventListener("touchstart", e => {
     sx = e.touches[0].clientX;
     sy = e.touches[0].clientY;
-    dragging = true;
+    dragging = true; axis = null;
+    const slides = getSlides();
+    activeEl = slides[cur];
+    if (activeEl) activeEl.style.transition = "none";
   }, {passive:true});
+
   container.addEventListener("touchmove", e => {
-    if (!dragging) return;
+    if (!dragging || !activeEl) return;
     const dx = e.touches[0].clientX - sx;
     const dy = e.touches[0].clientY - sy;
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8) e.preventDefault();
+    if (axis === null) {
+      if (Math.abs(dx) > 10 || Math.abs(dy) > 10)
+        axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+    }
+    if (axis !== "x") return;
+    e.preventDefault();
+    // Resistance at boundaries
+    const goingNext = dx < 0;
+    const canGo = goingNext ? (cur < slides.length-1) : (cur > 0);
+    const resist = canGo ? 1 : 0.32;
+    const offset = dx * resist;
+    const pct = offset / window.innerWidth;
+    const rot = -pct * 16; // up to ~16deg
+    activeEl.style.transform = `translateX(${offset}px) rotateY(${rot}deg)`;
+    activeEl.style.opacity = String(1 - Math.min(0.35, Math.abs(pct) * 0.6));
+
+    // Prep neighbor
+    const newDir = goingNext ? 1 : -1;
+    if (canGo && newDir !== neighborDir) {
+      neighborDir = newDir;
+      const slidesEls = getSlides();
+      const n = slidesEls[cur + newDir];
+      if (neighborEl && neighborEl !== n) { neighborEl.style.cssText = ""; }
+      neighborEl = n;
+      if (neighborEl) {
+        neighborEl.style.transition = "none";
+        neighborEl.style.zIndex = "1";
+        neighborEl.style.opacity = "1";
+      }
+    }
+    if (canGo && neighborEl) {
+      const w = window.innerWidth;
+      const nxOffset = newDir > 0 ? (w + offset) : (-w + offset);
+      const nRot = newDir > 0 ? (16 + rot) : (-16 + rot);
+      neighborEl.style.transform = `translateX(${nxOffset}px) rotateY(${nRot}deg)`;
+    }
   }, {passive:false});
+
   container.addEventListener("touchend", e => {
     if (!dragging) return;
     dragging = false;
     const dx = e.changedTouches[0].clientX - sx;
-    const dy = e.changedTouches[0].clientY - sy;
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 55) {
-      if (dx < 0) {
-        if (cur < slides.length-1) update(cur+1, "next");
-        else if (storyIdx < stories.length-1)
-          location.hash = `#/story/${date}/${stories[storyIdx+1].id}`;
-      } else {
-        if (cur > 0) update(cur-1, "prev");
-        else if (storyIdx > 0)
-          location.hash = `#/story/${date}/${stories[storyIdx-1].id}`;
-      }
+    const wasAxisX = axis === "x";
+    axis = null;
+
+    // Re-enable transitions
+    if (activeEl) activeEl.style.transition = "";
+    if (neighborEl) neighborEl.style.transition = "";
+
+    if (!wasAxisX) {
+      if (activeEl) { activeEl.style.transform = ""; activeEl.style.opacity = ""; }
+      return;
     }
+
+    const threshold = window.innerWidth * 0.22;
+    if (dx < -threshold) {
+      if (cur < slides.length - 1) {
+        // Clear inline styles so update() can take over
+        if (activeEl) activeEl.style.cssText = "";
+        if (neighborEl) neighborEl.style.cssText = "";
+        update(cur + 1, "next");
+      } else if (storyIdx < stories.length - 1) {
+        location.hash = `#/story/${date}/${stories[storyIdx+1].id}`;
+      } else {
+        if (activeEl) { activeEl.style.transform = ""; activeEl.style.opacity = ""; }
+      }
+    } else if (dx > threshold) {
+      if (cur > 0) {
+        if (activeEl) activeEl.style.cssText = "";
+        if (neighborEl) neighborEl.style.cssText = "";
+        update(cur - 1, "prev");
+      } else if (storyIdx > 0) {
+        location.hash = `#/story/${date}/${stories[storyIdx-1].id}`;
+      } else {
+        if (activeEl) { activeEl.style.transform = ""; activeEl.style.opacity = ""; }
+      }
+    } else {
+      // Snap back
+      if (activeEl) { activeEl.style.transform = ""; activeEl.style.opacity = ""; }
+      if (neighborEl) { neighborEl.style.cssText = ""; }
+    }
+    neighborEl = null; neighborDir = 0; activeEl = null;
   });
 
   // Arrow keys
@@ -421,11 +492,37 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
       <span class="sidebar-title">${esc(st.headline)}</span>
     </button>`).join("");
 
-  // Cover slide is shown as headline+tldr above; skip it in the section list
-  const allSections = slides.filter(sl => sl.id !== "cover").map(sl=>`
-    <div class="desktop-section" id="section-${sl.id}">
-      ${sl.html}
-    </div>`).join("");
+  // Cover slide is shown as headline+tldr above; skip it in the section list.
+  // Magazine layout: top is 2-col flex masonry, deep sections span full width.
+  const sections = slides.filter(sl => sl.id !== "cover");
+  // Sections that read better at full width:
+  const fullWidthIds = new Set(["blindspot","context","simple","sources"]);
+  // Estimated content density per section type for balanced 2-col distribution
+  const weight = { "5w1h": 6, "perspectives": 5, "facts": 3, "editorial": 3,
+                   "impact": 3, "timeline": 3, "strategic": 2 };
+  const grid = sections.filter(s => !fullWidthIds.has(s.id));
+  const fullWidth = sections.filter(s => fullWidthIds.has(s.id));
+
+  // Sort by weight desc, then greedy place into shorter column
+  const sorted = [...grid].sort((a,b) => (weight[b.id]||3) - (weight[a.id]||3));
+  const colA = [], colB = [];
+  let sumA = 0, sumB = 0;
+  for (const sl of sorted) {
+    const w = weight[sl.id] || 3;
+    if (sumA <= sumB) { colA.push(sl); sumA += w; }
+    else              { colB.push(sl); sumB += w; }
+  }
+  const renderSection = sl => `
+    <div class="desktop-section" id="section-${sl.id}">${sl.html}</div>`;
+
+  const allSections = `
+    <div class="desktop-sections">
+      <div class="desktop-col">${colA.map(renderSection).join("")}</div>
+      <div class="desktop-col">${colB.map(renderSection).join("")}</div>
+    </div>
+    ${fullWidth.map(sl => `
+      <div class="desktop-section desktop-section-full" id="section-${sl.id}">${sl.html}</div>
+    `).join("")}`;
 
   const wrap = document.createElement("div");
   wrap.className = "desktop-story-layout";
@@ -442,7 +539,7 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
         <span class="detail-region ${(s.region||"").toLowerCase()}">${esc((s.region||"").toUpperCase())}</span>
         <h1 class="detail-headline">${esc(s.headline)}</h1>
         <p class="detail-tldr">${esc(s.tldr)}</p>
-        <div class="desktop-sections">${allSections}</div>
+        ${allSections}
         <div class="desktop-story-nav">
           ${storyIdx > 0 ? `<a class="story-nav-btn prev" href="#/story/${date}/${stories[storyIdx-1].id}">← ${esc(stories[storyIdx-1].headline.slice(0,50))}…</a>` : "<span></span>"}
           ${storyIdx < stories.length-1 ? `<a class="story-nav-btn next" href="#/story/${date}/${stories[storyIdx+1].id}">${esc(stories[storyIdx+1].headline.slice(0,50))}… →</a>` : "<span></span>"}
