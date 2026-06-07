@@ -111,15 +111,22 @@ async function renderHome(date) {
   /* ── Story cards ── */
   const cards = payload.stories.map((s, i) => {
     const tldr = s.tldr ? `<p class="card-tldr">${esc(s.tldr)}</p>` : "";
+    const region = (s.region || "global").toLowerCase();
     return `
-      <div class="story-card" data-id="${esc(s.id)}" data-date="${esc(date)}" role="button" tabindex="0"
+      <div class="story-card" data-id="${esc(s.id)}" data-date="${esc(date)}"
+           data-region="${esc(region)}" role="button" tabindex="0"
            aria-label="${esc(s.headline)}">
+        <div class="card-accent"></div>
         <div class="card-body">
-          <div class="card-num">${String(i+1).padStart(2,"0")}</div>
-          <span class="card-region">${esc((s.region||"").toUpperCase())}</span>
+          <div class="card-top">
+            <span class="card-num">${String(i+1).padStart(2,"0")}</span>
+            <span class="card-region">${esc(region.toUpperCase())}</span>
+          </div>
           <h2 class="card-headline">${esc(s.headline)}</h2>
           ${tldr}
-          <span class="card-arrow">Read deep dive →</span>
+          <div class="card-footer">
+            <span class="card-arrow">Read deep dive →</span>
+          </div>
         </div>
       </div>`;
   }).join("");
