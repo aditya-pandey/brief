@@ -110,14 +110,10 @@ async function renderHome(date) {
 
   /* ── Story cards ── */
   const cards = payload.stories.map((s, i) => {
-    const imgHtml = s.image_url
-      ? `<div class="card-img"><img src="${esc(s.image_url)}" alt="" loading="${i<3?"eager":"lazy"}" onerror="this.parentElement.classList.add('no-img'); this.remove()"></div>`
-      : `<div class="card-img no-img" data-num="${String(i+1).padStart(2,'0')}"></div>`;
     const tldr = s.tldr ? `<p class="card-tldr">${esc(s.tldr)}</p>` : "";
     return `
       <div class="story-card" data-id="${esc(s.id)}" data-date="${esc(date)}" role="button" tabindex="0"
            aria-label="${esc(s.headline)}">
-        ${imgHtml}
         <div class="card-body">
           <div class="card-num">${String(i+1).padStart(2,"0")}</div>
           <span class="card-region">${esc((s.region||"").toUpperCase())}</span>
@@ -198,17 +194,21 @@ function renderSituational(s) {
 }
 
 function renderMatrix(m) {
-  const row = (cls, label, val) => `
+  if (!m) return "";
+  const row = (cls, label, val) => val ? `
     <div class="matrix-row">
       <div class="matrix-key ${cls}">${label}</div>
       <div class="matrix-val">${esc(val)}</div>
-    </div>`;
+    </div>` : "";
+  // Support both old field names (left_leaning/indian_media/global_media)
+  // and new Gemini-import field names (western_international/indian_media)
   return sec("Perspective Matrix", `<div class="matrix">
-    ${row("lean-left","Left-leaning",m.left_leaning)}
-    ${row("lean-center","Center",m.center)}
-    ${row("lean-right","Right-leaning",m.right_leaning)}
-    ${row("scope","Indian media",m.indian_media)}
-    ${row("scope","Global media",m.global_media)}</div>`);
+    ${row("lean-left","Left-leaning", m.left_leaning)}
+    ${row("lean-center","Center", m.center)}
+    ${row("lean-right","Right-leaning", m.right_leaning)}
+    ${row("scope","Indian media", m.indian_media)}
+    ${row("scope","Western / International", m.western_international || m.global_media)}
+  </div>`);
 }
 
 function renderFacts(fc) {
@@ -260,21 +260,46 @@ async function renderStory(date, id) {
   $("header-date").textContent = fmtHeaderDate(date).toUpperCase();
   $("hero").classList.add("hidden");
 
-  const hero = s.image_url
-    ? `<div class="story-hero"><img src="${esc(s.image_url)}" alt="${esc(s.headline)}" onerror="this.parentElement.remove()"></div>`
-    : "";
-
-  // Rows sections need the outer section-card applied differently
   const stakeholderContent = (s.stakeholder_impact||[]).map(o=>`
     <div class="row-item">
       <div class="row-lhs">${esc(o.stakeholder)}</div>
       <div class="row-rhs">${esc(o.impact)}</div>
     </div>`).join("");
+
   const timelineContent = (s.timeline||[]).map(o=>`
     <div class="row-item">
       <div class="row-lhs mono">${esc(o.when)}</div>
       <div class="row-rhs">${esc(o.event)}</div>
     </div>`).join("");
+
+  // Editorial & Expert Insight (new section)
+  const editorialHtml = s.editorial_expert_insight ? sec("Editorial & Expert Insight", `
+    <div class="editorial-grid">
+      ${s.editorial_expert_insight.opinion ? `
+        <div class="editorial-block">
+          <div class="editorial-label">Opinion</div>
+          <div class="editorial-body">${esc(s.editorial_expert_insight.opinion)}</div>
+        </div>` : ""}
+      ${s.editorial_expert_insight.analysis ? `
+        <div class="editorial-block">
+          <div class="editorial-label">Analysis</div>
+          <div class="editorial-body">${esc(s.editorial_expert_insight.analysis)}</div>
+        </div>` : ""}
+    </div>`) : "";
+
+  // Context & Background (new section)
+  const contextHtml = s.context_background ? sec("Context & Background",
+    `<div class="assessment-body">${esc(s.context_background)}</div>`) : "";
+
+  // Simple Explanation (new section)
+  const simpleHtml = s.simple_explanation ? `
+    <div class="section">
+      <div class="sec-label">In Plain Terms</div>
+      <div class="simple-explanation">
+        <span class="simple-icon">💡</span>
+        ${esc(s.simple_explanation)}
+      </div>
+    </div>` : "";
 
   app.innerHTML = `
     <div class="detail-wrap">
@@ -282,8 +307,6 @@ async function renderStory(date, id) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
         All stories
       </a>
-
-      ${hero}
 
       <span class="detail-region">${esc((s.region||"").toUpperCase())}</span>
       <h1 class="detail-headline">${esc(s.headline)}</h1>
@@ -302,16 +325,21 @@ async function renderStory(date, id) {
         </div>
       </div>
 
+      ${editorialHtml}
+
       <div class="section">
         <div class="sec-label">Stakeholder Impact</div>
         <div class="section-card"><div class="rows">${stakeholderContent}</div></div>
       </div>
+
+      ${contextHtml}
 
       <div class="section">
         <div class="sec-label">Timeline & Historical Context</div>
         <div class="section-card"><div class="rows">${timelineContent}</div></div>
       </div>
 
+      ${simpleHtml}
       ${renderConfidence(s.confidence)}
       ${renderSources(s.sources)}
     </div>`;

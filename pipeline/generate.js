@@ -5,6 +5,8 @@ import { fetchCandidates } from "./retrieve.js";
 import { selectTopStories } from "./select.js";
 import { fetchText } from "./scrape.js";
 import { analyzeStory } from "./analyze.js";
+import { structured } from "./llm.js";
+import { RECAP_SCHEMA } from "./schema.js";
 import { TOP_N } from "./sources.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
