@@ -98,15 +98,29 @@ function buildSlides(s) {
     </div>`
   });
 
-  // 2 · 5W1H
+  // 2 · 5W1H — with glyph badges per question
   const sa = s.situational_analysis;
+  const wIcons = {
+    "WHAT":  "▣",  // square — the thing itself
+    "WHY":   "?",
+    "WHO":   "◉",  // who/agent
+    "WHEN":  "⏱",
+    "WHERE": "⌖",  // crosshair
+    "HOW":   "⚙",
+  };
   if (sa) slides.push({ id:"5w1h", label:"Situation", icon:"⬡", html:`
     <div class="slide-body">
       <div class="slide-section-label">5W1H · Situation</div>
       <div class="w-list">
         ${[["WHAT",sa.what],["WHY",sa.why],["WHO",sa.who],["WHEN",sa.when],["WHERE",sa.where],["HOW",sa.how]]
           .filter(([,v])=>v).map(([k,v])=>`
-          <div class="w-item"><div class="w-key">${k}</div><div class="w-val">${esc(v)}</div></div>`).join("")}
+          <div class="w-item">
+            <div class="w-keyrow">
+              <span class="w-glyph" data-k="${k}">${wIcons[k]||"·"}</span>
+              <span class="w-key">${k}</span>
+            </div>
+            <div class="w-val">${esc(v)}</div>
+          </div>`).join("")}
       </div>
     </div>`
   });
@@ -119,26 +133,56 @@ function buildSlides(s) {
     </div>`
   });
 
-  // 4 · Perspectives
+  // 4 · Perspectives — visual political spectrum
   const pm = s.perspective_matrix;
-  if (pm) slides.push({ id:"perspectives", label:"Perspectives", icon:"⊞", html:`
+  if (pm) {
+    const spectrum = [
+      { cls:"lean-left",   label:"Progressive", short:"L", view:pm.left_leaning },
+      { cls:"lean-center", label:"Moderate",    short:"C", view:pm.center },
+      { cls:"lean-right",  label:"Conservative",short:"R", view:pm.right_leaning },
+    ].filter(p => p.view);
+    const regional = [
+      { cls:"region-in", label:"Indian media",       glyph:"IN", view:pm.indian_media },
+      { cls:"region-wi", label:"Western / Intl",     glyph:"WW", view:pm.western_international||pm.global_media },
+    ].filter(p => p.view);
+
+    slides.push({ id:"perspectives", label:"Perspectives", icon:"⊞", html:`
     <div class="slide-body">
       <div class="slide-section-label">Perspective Matrix</div>
-      <div class="persp-list">
-        ${[
-          ["lean-left","Left-leaning", pm.left_leaning],
-          ["lean-center","Center",      pm.center],
-          ["lean-right","Right-leaning",pm.right_leaning],
-          ["scope","Indian media",      pm.indian_media],
-          ["scope","Western / Intl",    pm.western_international||pm.global_media],
-        ].filter(([,,v])=>v).map(([cls,label,val])=>`
-          <div class="persp-item">
-            <div class="persp-key ${cls}">${label}</div>
-            <div class="persp-val">${esc(val)}</div>
+
+      ${spectrum.length ? `
+      <div class="spectrum-wrap">
+        <div class="spectrum-axis">
+          <span class="spectrum-tag lean-left">LEFT</span>
+          <div class="spectrum-bar"></div>
+          <span class="spectrum-tag lean-right">RIGHT</span>
+        </div>
+        <div class="persp-cards">
+          ${spectrum.map(p => `
+            <div class="persp-card ${p.cls}">
+              <div class="persp-card-top">
+                <span class="persp-glyph ${p.cls}">${p.short}</span>
+                <span class="persp-label ${p.cls}">${p.label}</span>
+              </div>
+              <div class="persp-card-body">${esc(p.view)}</div>
+            </div>`).join("")}
+        </div>
+      </div>` : ""}
+
+      ${regional.length ? `
+      <div class="region-perspectives">
+        ${regional.map(p => `
+          <div class="region-card ${p.cls}">
+            <div class="region-card-top">
+              <span class="region-glyph">${p.glyph}</span>
+              <span class="region-label">${p.label}</span>
+            </div>
+            <div class="region-card-body">${esc(p.view)}</div>
           </div>`).join("")}
-      </div>
+      </div>` : ""}
     </div>`
-  });
+    });
+  }
 
   // 5 · Facts vs Claims
   const fc = s.facts_vs_claims;
@@ -226,15 +270,22 @@ function buildSlides(s) {
     </div>`
   });
 
-  // 12 · Sources + Confidence
+  // 12 · Sources + Confidence — with visual meter
+  const confLevel = (s.confidence?.level||"").toLowerCase();
+  const confFill = confLevel === "high" ? 100 : confLevel === "medium" ? 60 : confLevel === "low" ? 25 : 0;
   slides.push({ id:"sources", label:"Sources", icon:"⊕", html:`
     <div class="slide-body">
       <div class="slide-section-label">Sources & Transparency</div>
       ${s.confidence ? `
-        <div class="confidence-wrap" style="margin-bottom:20px">
-          <span class="confidence-label">Confidence</span>
-          <span class="confidence-badge ${(s.confidence.level||"").toLowerCase()}">${esc(s.confidence.level)}</span>
-          <span class="confidence-notes">${esc(s.confidence.notes)}</span>
+        <div class="confidence-card">
+          <div class="confidence-head">
+            <span class="confidence-label">Confidence</span>
+            <span class="confidence-badge ${confLevel}">${esc(s.confidence.level)}</span>
+          </div>
+          <div class="confidence-meter">
+            <div class="confidence-meter-fill ${confLevel}" style="width:${confFill}%"></div>
+          </div>
+          <div class="confidence-notes">${esc(s.confidence.notes)}</div>
         </div>` : ""}
       <ul class="sources-list">
         ${(s.sources||[]).map(src=>`
