@@ -1104,6 +1104,7 @@ async function renderHome(date) {
     const sourceCount = (s.sources||[]).length;
     const readMin = readMinutes(s);
     const conf = (s.confidence?.level||"").toLowerCase();
+    const terms = keyPhrase(`${s.headline} ${s.tldr}`).slice(0, 2);
     return `
       <div class="story-card" data-id="${esc(s.id)}" data-date="${esc(date)}"
            data-region="${esc(region)}" role="button" tabindex="0">
@@ -1116,6 +1117,12 @@ async function renderHome(date) {
           </div>
           <h2 class="card-headline">${esc(s.headline)}</h2>
           ${s.tldr ? `<p class="card-tldr">${esc(s.tldr)}</p>` : ""}
+          <div class="card-tags">
+            ${terms.map(t => `<span class="card-tag">${esc(t)}</span>`).join("")}
+          </div>
+          <div class="card-source-bar-wrapper">
+            ${miniSourceBar(s.sources)}
+          </div>
           <div class="card-footer">
             <span class="card-stats">
               ${ICON.clock}<span>${readMin} min</span>
@@ -1125,7 +1132,6 @@ async function renderHome(date) {
             <span class="card-arrow">Deep dive →</span>
           </div>
         </div>
-        ${storyVisual(s, i+1)}
       </div>`;
   }).join("");
 
