@@ -722,10 +722,18 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
         Briefings
       </a>
       <div class="mobile-top-share-bar">
-        <button class="m-share-icon-btn share-native" id="m-share-native" title="Share" aria-label="Share">📱</button>
-        <button class="m-share-icon-btn share-copy" id="m-share-copy" title="Copy Link" aria-label="Copy Link">🔗</button>
-        <button class="m-share-icon-btn share-x" id="m-share-x" title="Share on X" aria-label="Share on X">𝕏</button>
-        <button class="m-share-icon-btn share-wa" id="m-share-wa" title="Share on WhatsApp" aria-label="Share on WhatsApp">💬</button>
+        <button class="m-share-icon-btn share-native" id="m-share-native" title="Share" aria-label="Share">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+        </button>
+        <button class="m-share-icon-btn share-copy" id="m-share-copy" title="Copy Link" aria-label="Copy Link">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        </button>
+        <button class="m-share-icon-btn share-x" id="m-share-x" title="Share on X" aria-label="Share on X">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </button>
+        <button class="m-share-icon-btn share-wa" id="m-share-wa" title="Share on WhatsApp" aria-label="Share on WhatsApp">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.488 1.459 5.416 1.46 5.48-.004 9.938-4.467 9.94-9.948.002-2.65-1.026-5.143-2.897-7.017C17.228 1.776 14.73 .746 12.08.745 6.596.745 2.136 5.207 2.134 10.69c-.001 1.929.501 3.812 1.457 5.417l-.982 3.58 3.674-.963zm11.393-4.504c-.3-.15-1.77-.874-2.043-.973-.272-.1-.47-.15-.668.15-.198.3-.765.973-.938 1.17-.173.198-.346.223-.646.074-.3-.15-1.264-.467-2.41-1.485-.892-.793-1.493-1.773-1.668-2.07-.173-.3-.018-.462.13-.61.135-.133.3-.35.45-.525.15-.173.2-.297.3-.495.1-.198.05-.371-.025-.52-.075-.15-.668-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.568-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.77-.724 2.017-1.424.248-.699.248-1.299.173-1.424-.075-.124-.272-.198-.57-.347z"/></svg>
+        </button>
       </div>
     </div>
 
@@ -997,10 +1005,18 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
       <div class="story-main-inner">
         <!-- Desktop Floating Share Bar -->
         <div class="desktop-floating-share-bar">
-          <button class="d-share-icon-btn share-copy" id="d-share-copy" title="Copy Link" aria-label="Copy Link">🔗</button>
-          <button class="d-share-icon-btn share-x" id="d-share-x" title="Share on X" aria-label="Share on X">𝕏</button>
-          <button class="d-share-icon-btn share-wa" id="d-share-wa" title="Share on WhatsApp" aria-label="Share on WhatsApp">💬</button>
-          <button class="d-share-icon-btn share-li" id="d-share-li" title="Share on LinkedIn" aria-label="Share on LinkedIn">💼</button>
+          <button class="d-share-icon-btn share-copy" id="d-share-copy" title="Copy Link" aria-label="Copy Link">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          </button>
+          <button class="d-share-icon-btn share-x" id="d-share-x" title="Share on X" aria-label="Share on X">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </button>
+          <button class="d-share-icon-btn share-wa" id="d-share-wa" title="Share on WhatsApp" aria-label="Share on WhatsApp">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.488 1.459 5.416 1.46 5.48-.004 9.938-4.467 9.94-9.948.002-2.65-1.026-5.143-2.897-7.017C17.228 1.776 14.73 .746 12.08.745 6.596.745 2.136 5.207 2.134 10.69c-.001 1.929.501 3.812 1.457 5.417l-.982 3.58 3.674-.963zm11.393-4.504c-.3-.15-1.77-.874-2.043-.973-.272-.1-.47-.15-.668.15-.198.3-.765.973-.938 1.17-.173.198-.346.223-.646.074-.3-.15-1.264-.467-2.41-1.485-.892-.793-1.493-1.773-1.668-2.07-.173-.3-.018-.462.13-.61.135-.133.3-.35.45-.525.15-.173.2-.297.3-.495.1-.198.05-.371-.025-.52-.075-.15-.668-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.568-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.77-.724 2.017-1.424.248-.699.248-1.299.173-1.424-.075-.124-.272-.198-.57-.347z"/></svg>
+          </button>
+          <button class="d-share-icon-btn share-li" id="d-share-li" title="Share on LinkedIn" aria-label="Share on LinkedIn">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0z"/></svg>
+          </button>
         </div>
 
         <section class="story-dossier">
