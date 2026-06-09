@@ -3,6 +3,8 @@
 const DATA = "data/";
 const dayCache = {};
 let indexEntries = [];
+const FEEDBACK_ENDPOINT = ""; // Paste your Formspree, Formspark, or Webhook URL here to receive feedback
+
 
 /* ── Helpers ───────────────────────────────────────────────── */
 const $ = id => document.getElementById(id);
@@ -706,17 +708,58 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
   const container = document.createElement("div");
   container.className = "mobile-story-layout";
 
-  const region = (s.region||"global").toLowerCase();
-  const sourceCount = (s.sources||[]).length;
-  const readMin = readMinutes(s);
-  const confScore = confidenceScore(s.confidence?.level);
+  // Build the extra engagement slide
+  const engagementSlide = {
+    id: "share",
+    label: "Share & Feedback",
+    icon: "💬",
+    html: `
+      <div class="slide-body">
+        <div class="slide-section-label"><span class="ssl-icon">💬</span>Engagement</div>
+        <div class="mobile-engagement-card-inner">
+          <h3 class="engagement-title">Share this Analysis</h3>
+          <p class="engagement-subtitle">Keep your network informed with optimized multi-channel sharing.</p>
+          
+          <div class="mobile-share-grid">
+            <button class="mobile-share-btn share-native" id="m-share-native">
+              <span class="share-icon-svg">📱</span>
+              <span>Share Story</span>
+            </button>
+            <button class="mobile-share-btn share-copy" id="m-share-copy">
+              <span class="share-icon-svg">🔗</span>
+              <span>Copy Link</span>
+            </button>
+            <button class="mobile-share-btn share-x" id="m-share-x">
+              <span class="share-icon-svg">𝕏</span>
+              <span>Twitter / X</span>
+            </button>
+            <button class="mobile-share-btn share-wa" id="m-share-wa">
+              <span class="share-icon-svg">💬</span>
+              <span>WhatsApp</span>
+            </button>
+          </div>
 
-  // Group sections (excluding cover)
-  const sectionsHtml = slides.filter(sl => sl.id !== "cover").map(sl => `
-    <div class="mobile-section" id="section-${sl.id}">
-      ${sl.html}
-    </div>
-  `).join("");
+          <div class="mobile-feedback-box" id="m-feedback-box">
+            <h4 class="feedback-title">Was this analysis helpful?</h4>
+            <div class="feedback-options">
+              <button class="m-feedback-btn" data-val="helpful">👍 Yes</button>
+              <button class="m-feedback-btn" data-val="unhelpful">👎 No</button>
+              <button class="m-feedback-btn" data-val="suggestion">📝 Edit Suggestion</button>
+            </div>
+            <div class="feedback-input-area hidden" id="m-feedback-input-area">
+              <textarea id="m-feedback-text" placeholder="Share your feedback or corrections..."></textarea>
+              <button class="feedback-send-btn" id="m-feedback-send">Submit Feedback</button>
+            </div>
+            <div class="feedback-success hidden" id="m-feedback-success">
+              Thank you! Your feedback has been submitted.
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+  };
+
+  const allSlides = [...slides, engagementSlide];
 
   container.innerHTML = `
     <!-- Top breadcrumb/header -->
@@ -728,85 +771,137 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
       <span class="mobile-date">${fmtHeaderDate(date).toUpperCase()}</span>
     </div>
 
-    <div class="mobile-scroll-container">
-      <!-- Cover Section -->
-      <div class="mobile-cover">
-        <div class="mobile-cover-top">
-          <span class="detail-region ${region}">${esc(region.toUpperCase())}</span>
-          ${s.confidence?.level ? `<span class="cover-chip confidence-chip ${s.confidence.level.toLowerCase()}"><span class="cover-chip-dot"></span>${esc(s.confidence.level)} confidence</span>` : ""}
-        </div>
-        <h1 class="mobile-headline">${esc(s.headline)}</h1>
-        <p class="mobile-tldr">${esc(s.tldr)}</p>
+    <!-- Sticky Tab Navigation Bar -->
+    <div class="mobile-tab-bar">
+      ${allSlides.map((sl, i) => `
+        <button class="mobile-tab-item ${i === 0 ? "active" : ""}" data-idx="${i}">
+          <span class="tab-icon">${sl.icon || "·"}</span>
+          <span class="tab-label">${sl.label}</span>
+        </button>
+      `).join("")}
+    </div>
 
-        <div class="mobile-metrics">
-          <div class="m-metric">
-            <span class="m-num">${readMin}</span>
-            <span class="m-lbl">MIN READ</span>
+    <!-- Swipeable Cards Viewport -->
+    <div class="mobile-card-viewport" id="mobile-card-viewport">
+      <div class="mobile-card-wrapper" id="mobile-card-wrapper" style="transform: translateX(0%);">
+        ${allSlides.map((sl, i) => `
+          <div class="mobile-card-slide" data-idx="${i}">
+            <div class="mobile-card-content">
+              ${sl.html}
+            </div>
           </div>
-          <div class="m-metric">
-            <span class="m-num">${sourceCount}</span>
-            <span class="m-lbl">SOURCE${sourceCount !== 1 ? "S" : ""}</span>
-          </div>
-          <div class="m-metric">
-            <span class="m-num">${confScore}%</span>
-            <span class="m-lbl">CONFIDENCE</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Scrollable Sections -->
-      <div class="mobile-sections-list">
-        ${sectionsHtml}
-      </div>
-
-      <!-- Engagement: Share & Feedback Widget -->
-      <div class="mobile-engagement-card">
-        <h3 class="engagement-title">Share this Analysis</h3>
-        <p class="engagement-subtitle">Keep your network informed with optimized multi-channel sharing.</p>
-        
-        <div class="mobile-share-grid">
-          <button class="mobile-share-btn share-native" id="m-share-native">
-            <span class="share-icon-svg">📱</span>
-            <span>Share Story</span>
-          </button>
-          <button class="mobile-share-btn share-copy" id="m-share-copy">
-            <span class="share-icon-svg">🔗</span>
-            <span>Copy Link</span>
-          </button>
-          <button class="mobile-share-btn share-x" id="m-share-x">
-            <span class="share-icon-svg">𝕏</span>
-            <span>Twitter / X</span>
-          </button>
-          <button class="mobile-share-btn share-wa" id="m-share-wa">
-            <span class="share-icon-svg">💬</span>
-            <span>WhatsApp</span>
-          </button>
-        </div>
-
-        <div class="mobile-feedback-box" id="m-feedback-box">
-          <h4 class="feedback-title">Was this analysis helpful?</h4>
-          <div class="feedback-options">
-            <button class="m-feedback-btn" data-val="helpful">👍 Yes</button>
-            <button class="m-feedback-btn" data-val="unhelpful">👎 No</button>
-            <button class="m-feedback-btn" data-val="suggestion">📝 Edit Suggestion</button>
-          </div>
-          <div class="feedback-input-area hidden" id="m-feedback-input-area">
-            <textarea id="m-feedback-text" placeholder="Share your feedback or corrections..."></textarea>
-            <button class="feedback-send-btn" id="m-feedback-send">Submit Feedback</button>
-          </div>
-          <div class="feedback-success hidden" id="m-feedback-success">
-            Thank you! Your feedback has been prefilled in your email client.
-          </div>
-        </div>
-      </div>
-
-      <!-- Navigation footer (Next/Prev story) -->
-      <div class="mobile-footer-nav">
-        ${storyIdx > 0 ? `<a class="mobile-nav-link prev" href="#/story/${date}/${stories[storyIdx-1].id}">← Prev Story</a>` : "<span></span>"}
-        ${storyIdx < stories.length-1 ? `<a class="mobile-nav-link next" href="#/story/${date}/${stories[storyIdx+1].id}">Next Story →</a>` : "<span></span>"}
+        `).join("")}
       </div>
     </div>
+
+    <!-- Footer navigation controls -->
+    <div class="mobile-footer-nav">
+      <button class="mobile-footer-btn prev" id="m-footer-prev">← Exit</button>
+      <div class="mobile-footer-dots">
+        ${allSlides.map((_, i) => `
+          <span class="dot-indicator ${i === 0 ? "active" : ""}" data-idx="${i}"></span>
+        `).join("")}
+      </div>
+      <button class="mobile-footer-btn next" id="m-footer-next">${allSlides[1]?.label || "Next"} →</button>
+    </div>
   `;
+
+  // Swiper state and gesture handlers
+  let activeTabIdx = 0;
+  let startX = 0;
+  let startY = 0;
+
+  const wrapper = container.querySelector("#mobile-card-wrapper");
+  const viewport = container.querySelector("#mobile-card-viewport");
+  const tabs = container.querySelectorAll(".mobile-tab-item");
+  const dots = container.querySelectorAll(".dot-indicator");
+
+  function setActiveTab(idx) {
+    activeTabIdx = Math.max(0, Math.min(allSlides.length - 1, idx));
+    
+    // Update wrapper transform
+    wrapper.style.transform = `translateX(-${activeTabIdx * 100}%)`;
+
+    // Update active tab buttons
+    tabs.forEach((btn, i) => btn.classList.toggle("active", i === activeTabIdx));
+    
+    // Scroll active tab into view in the tab bar
+    const activeTabBtn = tabs[activeTabIdx];
+    activeTabBtn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+
+    // Update dots
+    dots.forEach((dot, i) => dot.classList.toggle("active", i === activeTabIdx));
+
+    // Update footer button labels
+    const prevBtn = container.querySelector("#m-footer-prev");
+    const nextBtn = container.querySelector("#m-footer-next");
+
+    if (activeTabIdx === 0) {
+      prevBtn.textContent = "← Exit";
+    } else {
+      prevBtn.textContent = "← " + allSlides[activeTabIdx - 1].label;
+    }
+
+    if (activeTabIdx === allSlides.length - 1) {
+      nextBtn.textContent = "Next Story →";
+    } else {
+      nextBtn.textContent = allSlides[activeTabIdx + 1].label + " →";
+    }
+  }
+
+  // Swipe events
+  viewport.addEventListener("touchstart", (e) => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  viewport.addEventListener("touchend", (e) => {
+    const diffX = e.changedTouches[0].clientX - startX;
+    const diffY = e.changedTouches[0].clientY - startY;
+
+    // We only swipe if the horizontal movement is greater than vertical movement
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+      if (diffX > 0) {
+        // swipe right -> prev card
+        if (activeTabIdx > 0) {
+          setActiveTab(activeTabIdx - 1);
+        } else {
+          location.hash = `#/day/${date}`;
+        }
+      } else {
+        // swipe left -> next card
+        if (activeTabIdx < allSlides.length - 1) {
+          setActiveTab(activeTabIdx + 1);
+        } else if (storyIdx < stories.length - 1) {
+          location.hash = `#/story/${date}/${stories[storyIdx + 1].id}`;
+        }
+      }
+    }
+  });
+
+  // Tap tabs
+  tabs.forEach(btn => {
+    btn.addEventListener("click", () => {
+      setActiveTab(parseInt(btn.dataset.idx));
+    });
+  });
+
+  // Footer navigation actions
+  container.querySelector("#m-footer-prev").addEventListener("click", () => {
+    if (activeTabIdx > 0) {
+      setActiveTab(activeTabIdx - 1);
+    } else {
+      location.hash = `#/day/${date}`;
+    }
+  });
+
+  container.querySelector("#m-footer-next").addEventListener("click", () => {
+    if (activeTabIdx < allSlides.length - 1) {
+      setActiveTab(activeTabIdx + 1);
+    } else if (storyIdx < stories.length - 1) {
+      location.hash = `#/story/${date}/${stories[storyIdx + 1].id}`;
+    }
+  });
 
   // Wire events
   wireEngagementEvents(container, s);
@@ -867,7 +962,6 @@ function wireEngagementEvents(container, s) {
         url: window.location.href
       }).catch(err => console.log("Error sharing:", err));
     } else {
-      // Fallback: trigger copy link
       container.querySelector(".share-copy")?.click();
     }
   });
@@ -892,9 +986,52 @@ function wireEngagementEvents(container, s) {
 
   feedbackSendBtn?.addEventListener("click", () => {
     const comment = feedbackText ? feedbackText.value : "";
-    const email = "feedback@briefing.app"; // Prefilled feedback recipient
-    const subject = encodeURIComponent(`Briefing Feedback: ${s.headline}`);
-    const body = encodeURIComponent(`Story ID: ${s.id}
+    const feedbackData = {
+      storyId: s.id,
+      storyTitle: s.headline,
+      feedbackType: selectedVal,
+      comment: comment,
+      timestamp: new Date().toISOString()
+    };
+
+    if (feedbackInputArea) feedbackInputArea.classList.add("hidden");
+    if (feedbackOptions) feedbackOptions.style.display = "none";
+
+    const showSuccess = () => {
+      if (feedbackSuccess) feedbackSuccess.classList.remove("hidden");
+    };
+
+    if (FEEDBACK_ENDPOINT) {
+      feedbackSendBtn.disabled = true;
+      feedbackSendBtn.textContent = "Sending...";
+      fetch(FEEDBACK_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(feedbackData)
+      })
+      .then(() => {
+        showSuccess();
+      })
+      .catch(err => {
+        console.error("Error submitting feedback:", err);
+        fallbackMailto(s, selectedVal, comment);
+        showSuccess();
+      });
+    } else {
+      // Mock submit (saves locally and logs to console)
+      const list = JSON.parse(localStorage.getItem("briefing_feedback") || "[]");
+      list.push(feedbackData);
+      localStorage.setItem("briefing_feedback", JSON.stringify(list));
+      console.log("Mock feedback saved to localStorage:", feedbackData);
+      showSuccess();
+    }
+  });
+}
+
+function fallbackMailto(s, selectedVal, comment) {
+  const email = "feedback@briefing.app";
+  const subject = encodeURIComponent(`Briefing Feedback: ${s.headline}`);
+  const body = encodeURIComponent(`Story ID: ${s.id}
 Story Title: ${s.headline}
 Feedback Type: ${selectedVal}
 
@@ -903,13 +1040,7 @@ ${comment}
 
 --
 Submitted via The Briefing`);
-
-    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-
-    if (feedbackInputArea) feedbackInputArea.classList.add("hidden");
-    if (feedbackOptions) feedbackOptions.style.display = "none";
-    if (feedbackSuccess) feedbackSuccess.classList.remove("hidden");
-  });
+  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
 }
 
 /* ══════════════════════════════════════════════════════════════

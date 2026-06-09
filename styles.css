@@ -2285,125 +2285,180 @@ body:has(.deck-container) #site-footer { display: none; }
     letter-spacing: 0.08em;
   }
 
-  /* Scrollable body wrapper */
-  .mobile-scroll-container {
-    flex: 1;
-    padding: 24px 16px 80px;
+  /* Swipeable Tab Navigation Bar */
+  .mobile-tab-bar {
+    position: sticky;
+    top: var(--header-h);
+    left: 0;
+    right: 0;
+    z-index: 85;
     display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  /* Cover Section styles */
-  .mobile-cover {
-    padding-bottom: 24px;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--bg);
     border-bottom: 1px solid var(--rule);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .mobile-tab-bar::-webkit-scrollbar {
+    display: none;
   }
 
-  .mobile-cover-top {
+  .mobile-tab-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--bg-card-h);
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    color: var(--ink-3);
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-tab-item.active {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Viewport and Wrapper */
+  .mobile-card-viewport {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    background: var(--bg-2);
+  }
+
+  .mobile-card-wrapper {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .mobile-card-slide {
+    flex-shrink: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+    padding: 14px;
+  }
+
+  .mobile-card-content {
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: var(--shadow-sm);
+    min-height: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Cover Slide Adjustments */
+  .mobile-card-content .slide-cover {
+    min-height: auto;
+    height: auto;
+    padding-bottom: 0;
+  }
+
+  .mobile-card-content .slide-cover-top {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
 
-  .mobile-headline {
+  .mobile-card-content .slide-headline {
     font-family: var(--serif);
     font-weight: 900;
-    font-size: 28px;
+    font-size: 26px;
     line-height: 1.25;
     color: var(--ink);
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
 
-  .mobile-tldr {
+  .mobile-card-content .slide-tldr {
     font-family: var(--body);
-    font-size: 16px;
+    font-size: 15.5px;
     line-height: 1.6;
     color: var(--ink-2);
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
 
-  .mobile-metrics {
+  .mobile-card-content .cover-meta {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
+    margin-top: 14px;
+    border-top: 1px solid var(--rule);
+    padding-top: 16px;
   }
 
-  .m-metric {
-    background: var(--bg-card);
+  .mobile-card-content .cover-meta-item {
+    background: var(--bg-card-h);
     border: 1px solid var(--rule);
-    border-radius: var(--radius);
-    padding: 10px 6px;
+    border-radius: var(--radius-sm);
+    padding: 8px 4px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 9px;
+  }
+
+  .mobile-card-content .cover-meta-item svg {
+    margin: 0;
+  }
+
+  .mobile-card-content .swipe-hint {
+    margin-top: 20px;
+    font-size: 11px;
+    color: var(--accent);
     text-align: center;
   }
 
-  .m-num {
-    display: block;
-    font-family: var(--sans);
-    font-weight: 800;
-    font-size: 18px;
-    line-height: 1.1;
-    color: var(--ink);
-    margin-bottom: 4px;
-  }
-
-  .m-lbl {
-    display: block;
-    font-family: var(--mono);
-    font-size: 8px;
-    color: var(--ink-3);
-    letter-spacing: 0.05em;
-  }
-
-  /* Mobile section cards */
-  .mobile-sections-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .mobile-section {
-    background: var(--bg-card);
-    border: 1px solid var(--rule);
-    border-radius: 12px;
-    padding: 18px;
-    box-shadow: var(--shadow-sm);
-  }
-
-  /* Styling sub elements inside slide-body to fit nicely on mobile */
-  .mobile-section .slide-body {
+  /* Style tweaks for sections inside cards */
+  .mobile-card-content .slide-body {
     padding: 0;
   }
 
-  .mobile-section .slide-section-label {
+  .mobile-card-content .slide-section-label {
     margin-bottom: 16px;
     font-size: 12px;
   }
 
-  /* Grid details adjustments */
-  .mobile-section .w-list {
+  .mobile-card-content .w-list {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
   }
 
-  .mobile-section .w-item {
+  .mobile-card-content .w-item {
     border-bottom: 1px solid var(--rule);
     padding-bottom: 10px;
   }
 
-  .mobile-section .w-item:last-child {
+  .mobile-card-content .w-item:last-child {
     border-bottom: none;
-    padding-bottom: 0;
   }
 
-  .mobile-section .fc-slide {
+  .mobile-card-content .fc-slide {
     flex-direction: column;
     gap: 16px;
   }
 
-  .mobile-section .fc-half {
+  .mobile-card-content .fc-half {
     width: 100%;
     padding: 0;
     border-right: none;
@@ -2411,76 +2466,89 @@ body:has(.deck-container) #site-footer { display: none; }
     padding-bottom: 14px;
   }
 
-  .mobile-section .fc-half:last-child {
+  .mobile-card-content .fc-half:last-child {
     border-bottom: none;
-    padding-bottom: 0;
   }
 
-  .mobile-section .persp-cards,
-  .mobile-section .region-perspectives {
+  .mobile-card-content .persp-cards,
+  .mobile-card-content .region-perspectives {
     display: flex;
     flex-direction: column;
     gap: 12px;
   }
 
-  .mobile-section .persp-card,
-  .mobile-section .region-card {
+  .mobile-card-content .persp-card,
+  .mobile-card-content .region-card {
     padding: 12px 14px;
   }
 
-  .mobile-section .impact-cards {
+  .mobile-card-content .impact-cards {
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
 
-  .mobile-section .impact-card {
+  .mobile-card-content .impact-card {
     padding: 12px 14px;
   }
 
-  .mobile-section .source-distribution {
+  .mobile-card-content .source-distribution {
     grid-template-columns: 1fr;
     gap: 12px;
   }
 
-  .mobile-section .source-item {
-    padding: 10px 0;
+  .mobile-card-content .source-item {
+    padding: 8px 0;
   }
 
-  .mobile-section .confidence-card {
-    padding: 14px;
+  .mobile-card-content .confidence-card {
+    padding: 12px;
   }
 
-  /* Navigation at the very bottom */
+  /* Dots Indicators & Navigation Footer */
   .mobile-footer-nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 14px;
-    padding-top: 20px;
+    padding: 12px 16px;
+    background: var(--bg);
     border-top: 1px solid var(--rule);
+    flex-shrink: 0;
   }
 
-  .mobile-nav-link {
+  .mobile-footer-btn {
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
     color: var(--accent);
-    padding: 10px 16px;
-    background: var(--bg-card);
-    border: 1px solid var(--rule);
-    border-radius: 20px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    min-width: 90px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .mobile-nav-link.next {
-    background: var(--accent);
-    color: #ffffff;
-    border-color: var(--accent);
+  .mobile-footer-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
   }
-  
-  [data-theme="dark"] .mobile-nav-link.next {
-    color: var(--bg);
+
+  .dot-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--rule);
+    transition: all 0.2s ease;
+  }
+
+  .dot-indicator.active {
+    background: var(--accent);
+    transform: scale(1.3);
   }
 }
 
