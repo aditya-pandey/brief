@@ -712,42 +712,7 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
   const container = document.createElement("div");
   container.className = "mobile-story-layout";
 
-  // Build the extra engagement slide
-  const engagementSlide = {
-    id: "share",
-    label: "Share",
-    icon: "🔗",
-    html: `
-      <div class="slide-body">
-        <div class="slide-section-label"><span class="ssl-icon">🔗</span>Share story</div>
-        <div class="mobile-engagement-card-inner">
-          <h3 class="engagement-title">Share this Analysis</h3>
-          <p class="engagement-subtitle">Keep your network informed with optimized multi-channel sharing.</p>
-          
-          <div class="mobile-share-grid">
-            <button class="mobile-share-btn share-native" id="m-share-native">
-              <span class="share-icon-svg">📱</span>
-              <span>Share Story</span>
-            </button>
-            <button class="mobile-share-btn share-copy" id="m-share-copy">
-              <span class="share-icon-svg">🔗</span>
-              <span>Copy Link</span>
-            </button>
-            <button class="mobile-share-btn share-x" id="m-share-x">
-              <span class="share-icon-svg">𝕏</span>
-              <span>Twitter / X</span>
-            </button>
-            <button class="mobile-share-btn share-wa" id="m-share-wa">
-              <span class="share-icon-svg">💬</span>
-              <span>WhatsApp</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    `
-  };
-
-  const allSlides = [...slides, engagementSlide];
+  const allSlides = slides;
 
   container.innerHTML = `
     <!-- Top breadcrumb/header -->
@@ -756,7 +721,12 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
         Briefings
       </a>
-      <span class="mobile-date">${fmtHeaderDate(date).toUpperCase()}</span>
+      <div class="mobile-top-share-bar">
+        <button class="m-share-icon-btn share-native" id="m-share-native" title="Share" aria-label="Share">📱</button>
+        <button class="m-share-icon-btn share-copy" id="m-share-copy" title="Copy Link" aria-label="Copy Link">🔗</button>
+        <button class="m-share-icon-btn share-x" id="m-share-x" title="Share on X" aria-label="Share on X">𝕏</button>
+        <button class="m-share-icon-btn share-wa" id="m-share-wa" title="Share on WhatsApp" aria-label="Share on WhatsApp">💬</button>
+      </div>
     </div>
 
     <!-- Sticky Tab Navigation Bar -->
@@ -1012,10 +982,6 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
     ${fullWidth.map(sl => `
       <div class="desktop-section desktop-section-full" id="section-${sl.id}">${sl.html}</div>
     `).join("")}`;
-  const buckets = sourceBuckets(s.sources || []);
-  const centerSources = buckets.center + buckets.other;
-  const conf = confidenceScore(s.confidence?.level);
-  const terms = keyPhrase(`${s.headline} ${s.tldr} ${s.strategic_assessment || ""}`).slice(0,4);
 
   const wrap = document.createElement("div");
   wrap.className = "desktop-story-layout";
@@ -1031,31 +997,20 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
       <div class="story-main-inner">
         <section class="story-dossier">
           <div class="dossier-copy">
-            <span class="detail-region ${(s.region||"").toLowerCase()}">${esc((s.region||"").toUpperCase())}</span>
+            <div class="dossier-top-bar">
+              <span class="detail-region ${(s.region||"").toLowerCase()}">${esc((s.region||"").toUpperCase())}</span>
+              <div class="desktop-top-share-bar">
+                <button class="d-share-icon-btn share-copy" id="d-share-copy" title="Copy Link" aria-label="Copy Link">🔗</button>
+                <button class="d-share-icon-btn share-x" id="d-share-x" title="Share on X" aria-label="Share on X">𝕏</button>
+                <button class="d-share-icon-btn share-wa" id="d-share-wa" title="Share on WhatsApp" aria-label="Share on WhatsApp">💬</button>
+                <button class="d-share-icon-btn share-li" id="d-share-li" title="Share on LinkedIn" aria-label="Share on LinkedIn">💼</button>
+              </div>
+            </div>
             <h1 class="detail-headline">${esc(s.headline)}</h1>
             <p class="detail-tldr">${esc(s.tldr)}</p>
           </div>
         </section>
         ${allSections}
-        
-        <!-- Desktop Engagement Card -->
-        <div class="desktop-engagement-card">
-          <h4>Share this Analysis</h4>
-          <div class="desktop-share-buttons">
-            <button class="d-share-btn share-copy" id="d-share-copy">
-              <span>🔗 Copy Link</span>
-            </button>
-            <button class="d-share-btn share-x" id="d-share-x">
-              <span>𝕏 Twitter / X</span>
-            </button>
-            <button class="d-share-btn share-wa" id="d-share-wa">
-              <span>💬 WhatsApp</span>
-            </button>
-            <button class="d-share-btn share-li" id="d-share-li">
-              <span>💼 LinkedIn</span>
-            </button>
-          </div>
-        </div>
 
         <div class="desktop-story-nav">
           ${storyIdx > 0 ? `<a class="story-nav-btn prev" href="#/story/${date}/${stories[storyIdx-1].id}">← ${esc(stories[storyIdx-1].headline.slice(0,50))}…</a>` : "<span></span>"}
