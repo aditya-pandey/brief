@@ -723,7 +723,8 @@
           }
           log("Parsing Markdown source...");
           const frontBlocks = md.split(/\n##\s+(?=(?:Front\s+)?\[?\d+\]?)/i).filter(b => b.trim());
-          for (const block of frontBlocks) {
+          for (let block of frontBlocks) {
+            block = block.trim().replace(/^#+\s*/, "");
             if (!block.match(/^(?:Front\s+)?\[?\d+\]?/i)) continue;
             try {
               const story = parseStory(block, stories.length);
