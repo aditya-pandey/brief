@@ -2332,6 +2332,17 @@ body:has(.deck-container) #site-footer { display: none; }
     width: 100%;
     background: var(--bg-2);
   }
+  .mobile-card-viewport::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(to top, var(--bg-2) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 5;
+  }
 
   .mobile-card-wrapper {
     display: flex;
@@ -2347,14 +2358,14 @@ body:has(.deck-container) #site-footer { display: none; }
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     box-sizing: border-box;
-    padding: 14px;
+    padding: 14px 14px 28px;
   }
 
   .mobile-card-content {
     background: var(--bg-card);
     border: 1px solid var(--rule);
     border-radius: 16px;
-    padding: 18px;
+    padding: 22px 18px 48px;
     box-shadow: var(--shadow-sm);
     min-height: 100%;
     box-sizing: border-box;
@@ -2506,7 +2517,7 @@ body:has(.deck-container) #site-footer { display: none; }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px;
+    padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 12px));
     background: var(--bg);
     border-top: 1px solid var(--rule);
     flex-shrink: 0;
@@ -2514,36 +2525,49 @@ body:has(.deck-container) #site-footer { display: none; }
 
   .mobile-footer-btn {
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     color: var(--accent);
     background: transparent;
     border: none;
     cursor: pointer;
-    min-width: 90px;
+    min-width: 100px;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    letter-spacing: 0.05em;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease;
+  }
+
+  .mobile-footer-btn:active {
+    opacity: 0.6;
   }
 
   .mobile-footer-dots {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     align-items: center;
+    justify-content: center;
   }
 
   .dot-indicator {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    background: var(--rule);
+    background: var(--ink-3);
+    opacity: 0.3;
     transition: all 0.2s ease;
   }
 
   .dot-indicator.active {
     background: var(--accent);
+    opacity: 1;
     transform: scale(1.3);
   }
 }
