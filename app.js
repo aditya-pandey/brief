@@ -992,18 +992,17 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
         <span class="sidebar-date">${fmtHeaderDate(date).toUpperCase()}</span>
       </div>
       <div class="sidebar-list">${toc}</div>
-      <div class="sidebar-share-panel">
-        <span class="sidebar-share-label">SHARE STORY</span>
-        <div class="desktop-top-share-bar">
+    </aside>
+    <div class="story-main">
+      <div class="story-main-inner">
+        <!-- Desktop Floating Share Bar -->
+        <div class="desktop-floating-share-bar">
           <button class="d-share-icon-btn share-copy" id="d-share-copy" title="Copy Link" aria-label="Copy Link">🔗</button>
           <button class="d-share-icon-btn share-x" id="d-share-x" title="Share on X" aria-label="Share on X">𝕏</button>
           <button class="d-share-icon-btn share-wa" id="d-share-wa" title="Share on WhatsApp" aria-label="Share on WhatsApp">💬</button>
           <button class="d-share-icon-btn share-li" id="d-share-li" title="Share on LinkedIn" aria-label="Share on LinkedIn">💼</button>
         </div>
-      </div>
-    </aside>
-    <div class="story-main">
-      <div class="story-main-inner">
+
         <section class="story-dossier">
           <div class="dossier-copy">
             <span class="detail-region ${(s.region||"").toLowerCase()}">${esc((s.region||"").toUpperCase())}</span>

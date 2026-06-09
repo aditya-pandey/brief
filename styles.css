@@ -1838,28 +1838,28 @@ body:has(.deck-container) { overflow: hidden; }
 }
 .sidebar-list { padding: 6px 8px; overflow-y: auto; flex: 1; }
 .sidebar-item {
-  display: flex; align-items: flex-start; gap: 9px;
-  padding: 9px 12px; width: 100%; text-align: left; cursor: pointer;
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 14px; width: 100%; text-align: left; cursor: pointer;
   border: none; background: transparent;
-  border-radius: 10px;
-  margin-bottom: 2px;
-  transition: background .18s ease, box-shadow .18s ease, transform .15s ease;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   font-family: inherit;
+  border-left: 3px solid transparent;
 }
-.sidebar-item:hover { background: var(--bg-card); }
+.sidebar-item:hover {
+  background: var(--bg-card-h);
+  border-left-color: var(--rule);
+}
 .sidebar-item.active {
   background: var(--bg-card);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.6),
-    0 2px 6px rgba(192,57,43,.12),
-    0 1px 2px rgba(0,0,0,.04);
+  border-left-color: var(--accent);
+  box-shadow: var(--shadow-sm);
 }
 [data-theme="dark"] .sidebar-item.active {
   background: var(--bg-card);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.04),
-    0 2px 8px rgba(224,85,69,.18),
-    0 1px 2px rgba(0,0,0,.4);
+  border-left-color: var(--accent);
+  box-shadow: var(--shadow-sm);
 }
 .sidebar-num {
   font-family: var(--mono); font-size: 10px; font-weight: 700;
@@ -2740,22 +2740,33 @@ body:has(.mobile-story-layout) {
   filter: hue-rotate(90deg); /* turns yellow/green-ish visual indicator on copy */
 }
 
-/* Sidebar sharing panel (Desktop) */
-.sidebar-share-panel {
-  padding: 16px;
-  border-top: 1px solid var(--rule);
-  background: var(--bg-2);
+/* Desktop Floating Share Bar */
+.desktop-floating-share-bar {
+  position: fixed;
+  right: 28px;
+  top: 55%;
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  flex-shrink: 0;
+  gap: 12px;
+  background: var(--bg-card);
+  padding: 14px 10px;
+  border-radius: 30px;
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow-md);
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-.sidebar-share-label {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .08em;
-  color: var(--ink-3);
-  font-weight: 600;
-  text-transform: uppercase;
+@media (max-width: 1300px) {
+  /* On narrower screens, dock it to bottom right to avoid overlapping content */
+  .desktop-floating-share-bar {
+    top: auto;
+    bottom: 24px;
+    right: 24px;
+    transform: none;
+    flex-direction: row;
+    padding: 10px 14px;
+  }
 }
