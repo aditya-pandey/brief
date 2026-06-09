@@ -213,9 +213,11 @@ function renderBriefingBoard(payload) {
   const avgRead = Math.round(stories.reduce((n,s)=>n+readMinutes(s),0) / stories.length);
   const lead = stories[0];
   const recap = (payload.recap || []).filter(r => r.front && r.front !== "---").slice(0,4);
+  const hasRecap = recap.length > 0;
+
   return `
-    <section class="briefing-board" aria-label="Daily briefing dashboard">
-      <div class="board-lead">
+    <section class="briefing-board ${hasRecap ? "three-cols" : "two-cols"}" aria-label="Daily briefing dashboard">
+      <div class="board-lead" onclick="location.hash='#/story/${esc(payload.date)}/${esc(lead.id)}'" role="button" tabindex="0" style="cursor: pointer;">
         <div class="board-label">Today's signal</div>
         <h2>${esc(lead.headline)}</h2>
         <p>${esc(lead.tldr)}</p>
@@ -225,16 +227,28 @@ function renderBriefingBoard(payload) {
           <span><strong>${avgRead}</strong> avg min</span>
         </div>
       </div>
-      <div class="board-map">
-        <div class="map-ring">
-          <span class="map-count">${stories.length}</span>
-          <span class="map-caption">briefs</span>
-        </div>
-        <div class="map-bars">
+      <div class="board-map" style="display: flex; flex-direction: column; justify-content: space-between; padding: 22px;">
+        <div class="board-label">Coverage balance</div>
+        <div class="map-bars" style="margin-top: 8px; margin-bottom: 20px;">
           <div class="map-bar"><span>Global</span><b style="width:${(global/stories.length*100).toFixed(0)}%"></b><em>${global}</em></div>
           <div class="map-bar india"><span>India</span><b style="width:${(india/stories.length*100).toFixed(0)}%"></b><em>${india}</em></div>
         </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto;">
+          <div style="background: var(--bg-card-h); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--rule); text-align: center;">
+            <div style="font-family: var(--mono); font-size: 9px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em;">Confidence</div>
+            <div style="font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--ink); margin-top: 4px;">
+              ${(stories.filter(s=> (s.confidence?.level||"").toLowerCase()==="high").length / stories.length * 100).toFixed(0)}% High
+            </div>
+          </div>
+          <div style="background: var(--bg-card-h); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--rule); text-align: center;">
+            <div style="font-family: var(--mono); font-size: 9px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em;">Sources</div>
+            <div style="font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--ink); margin-top: 4px;">
+              ${avgSources} avg
+            </div>
+          </div>
+        </div>
       </div>
+      ${hasRecap ? `
       <div class="board-recap">
         <div class="board-label">Pressure points</div>
         ${recap.map((r,i)=>`
@@ -245,7 +259,7 @@ function renderBriefingBoard(payload) {
               <small>${esc(r.core_threat || r.primary_catalyst || r.horizon || "")}</small>
             </div>
           </div>`).join("")}
-      </div>
+      </div>` : ""}
     </section>`;
 }
 
@@ -689,282 +703,213 @@ function buildSlides(s) {
    MOBILE DECK — swipeable full-screen slides
    ══════════════════════════════════════════════════════════════ */
 function renderMobileDeck(slides, s, date, storyIdx, stories) {
-  let cur = 0;
-  let expanded = false;
-  const cards = mobileBriefingCards(s, slides);
-
-  function renderDots() {
-    return cards.map((card,i)=>`
-      <button class="dot ${i===cur?"active":""}" data-i="${i}" aria-label="${card.label}"></button>
-    `).join("");
-  }
-
-  function renderTopBar() {
-    return `
-      <div class="deck-topbar dossier-topbar">
-        <a class="deck-back" href="#/day/${esc(date)}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg>
-          Stories
-        </a>
-        <div class="deck-progress-track">
-          <div class="deck-progress-fill" style="width:${((cur+1)/cards.length*100).toFixed(1)}%"></div>
-        </div>
-        <div class="deck-slide-label">${cards[cur].label}</div>
-      </div>`;
-  }
-
-  function renderBottomBar() {
-    const hasPrev = cur > 0;
-    const hasNext = cur < cards.length - 1;
-    const prevStory = storyIdx > 0 ? stories[storyIdx-1] : null;
-    const nextStory = storyIdx < stories.length-1 ? stories[storyIdx+1] : null;
-    return `
-      <div class="deck-bottombar dossier-bottombar">
-        <button class="deck-btn deck-prev ${hasPrev?"":"muted"}" id="slide-prev">
-          ${hasPrev ? `← ${cards[cur-1].label}` : (prevStory ? `↑ Prev story` : "")}
-        </button>
-        <div class="deck-dots">${renderDots()}</div>
-        <button class="deck-btn deck-next ${hasNext?"":"muted"}" id="slide-next">
-          ${hasNext ? `${cards[cur+1].label} →` : (nextStory ? `Next story ↓` : "End")}
-        </button>
-      </div>`;
-  }
-
   const container = document.createElement("div");
-  container.className = "deck-container intel-deck-container";
-  container.innerHTML = `
-    ${renderTopBar()}
-    <div class="slide-deck intel-stack" id="slide-deck">
-      ${cards.map((card,i)=>`
-        <div class="slide intel-card ${i===0?"is-active":i===1?"is-next-one":i===2?"is-next-two":"is-away"} tone-${card.tone}" data-idx="${i}">
-          <div class="intel-card-chrome">
-            <span>${esc(card.kicker)}</span>
-            <b>${String(i+1).padStart(2,"0")}/${String(cards.length).padStart(2,"0")}</b>
-          </div>
-          <div class="intel-summary">${card.summary}</div>
-          <div class="intel-deep">
-            <div class="intel-folder-tab">DEEP ANALYSIS</div>
-            ${card.detail}
-          </div>
-          <div class="intel-gesture-hint">
-            <span>Swipe sideways</span>
-            <b></b>
-            <span>Swipe up to unfold</span>
-          </div>
-        </div>`).join("")}
+  container.className = "mobile-story-layout";
+
+  const region = (s.region||"global").toLowerCase();
+  const sourceCount = (s.sources||[]).length;
+  const readMin = readMinutes(s);
+  const confScore = confidenceScore(s.confidence?.level);
+
+  // Group sections (excluding cover)
+  const sectionsHtml = slides.filter(sl => sl.id !== "cover").map(sl => `
+    <div class="mobile-section" id="section-${sl.id}">
+      ${sl.html}
     </div>
-    ${renderBottomBar()}`;
+  `).join("");
 
-  function cardEls() { return container.querySelectorAll(".intel-card"); }
-  function paintStack() {
-    const all = cardEls();
-    all.forEach((el, i) => {
-      el.className = `slide intel-card tone-${cards[i].tone}`;
-      el.style.cssText = "";
-      el.dataset.depth = String(i - cur);
-      if (i === cur) el.classList.add("is-active");
-      else if (i === cur + 1) el.classList.add("is-next-one");
-      else if (i === cur + 2) el.classList.add("is-next-two");
-      else if (i < cur) el.classList.add("is-prev");
-      else el.classList.add("is-away");
-      el.classList.toggle("is-expanded", i === cur && expanded);
-    });
-    container.querySelector(".deck-topbar").outerHTML = renderTopBar();
-    container.querySelector(".deck-bottombar").outerHTML = renderBottomBar();
-    wireButtons();
-  }
+  container.innerHTML = `
+    <!-- Top breadcrumb/header -->
+    <div class="mobile-story-header">
+      <a class="mobile-back" href="#/day/${esc(date)}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+        Briefings
+      </a>
+      <span class="mobile-date">${fmtHeaderDate(date).toUpperCase()}</span>
+    </div>
 
-  function update(newIdx) {
-    const prev = cur;
-    cur = Math.max(0, Math.min(cards.length-1, newIdx));
-    if (cur === prev) return;
-    expanded = false;
-    paintStack();
-  }
+    <div class="mobile-scroll-container">
+      <!-- Cover Section -->
+      <div class="mobile-cover">
+        <div class="mobile-cover-top">
+          <span class="detail-region ${region}">${esc(region.toUpperCase())}</span>
+          ${s.confidence?.level ? `<span class="cover-chip confidence-chip ${s.confidence.level.toLowerCase()}"><span class="cover-chip-dot"></span>${esc(s.confidence.level)} confidence</span>` : ""}
+        </div>
+        <h1 class="mobile-headline">${esc(s.headline)}</h1>
+        <p class="mobile-tldr">${esc(s.tldr)}</p>
 
-  function setExpanded(next) {
-    expanded = next;
-    cardEls().forEach((el, i) => el.classList.toggle("is-expanded", i === cur && expanded));
-  }
+        <div class="mobile-metrics">
+          <div class="m-metric">
+            <span class="m-num">${readMin}</span>
+            <span class="m-lbl">MIN READ</span>
+          </div>
+          <div class="m-metric">
+            <span class="m-num">${sourceCount}</span>
+            <span class="m-lbl">SOURCE${sourceCount !== 1 ? "S" : ""}</span>
+          </div>
+          <div class="m-metric">
+            <span class="m-num">${confScore}%</span>
+            <span class="m-lbl">CONFIDENCE</span>
+          </div>
+        </div>
+      </div>
 
-  function wireButtons() {
-    container.querySelector("#slide-prev")?.addEventListener("click", () => {
-      if (cur > 0) update(cur-1);
-      else if (storyIdx > 0) {
-        location.hash = `#/story/${date}/${stories[storyIdx-1].id}`;
-      }
-    });
-    container.querySelector("#slide-next")?.addEventListener("click", () => {
-      if (cur < cards.length-1) update(cur+1);
-      else if (storyIdx < stories.length-1) {
-        location.hash = `#/story/${date}/${stories[storyIdx+1].id}`;
-      }
-    });
-    container.querySelectorAll(".dot").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const i = parseInt(btn.dataset.i);
-        update(i);
-      });
-    });
-    container.querySelectorAll(".intel-tile").forEach(btn => {
-      btn.addEventListener("click", e => {
-        e.stopPropagation();
-        btn.classList.toggle("is-open");
-      });
-    });
-    container.querySelectorAll(".intel-gesture-hint").forEach(hint => {
-      hint.addEventListener("click", e => {
-        e.stopPropagation();
-        if (hint.closest(".intel-card")?.classList.contains("is-active")) {
-          setExpanded(!expanded);
-        }
-      });
-    });
-  }
+      <!-- Scrollable Sections -->
+      <div class="mobile-sections-list">
+        ${sectionsHtml}
+      </div>
 
-  wireButtons();
+      <!-- Engagement: Share & Feedback Widget -->
+      <div class="mobile-engagement-card">
+        <h3 class="engagement-title">Share this Analysis</h3>
+        <p class="engagement-subtitle">Keep your network informed with optimized multi-channel sharing.</p>
+        
+        <div class="mobile-share-grid">
+          <button class="mobile-share-btn share-native" id="m-share-native">
+            <span class="share-icon-svg">📱</span>
+            <span>Share Story</span>
+          </button>
+          <button class="mobile-share-btn share-copy" id="m-share-copy">
+            <span class="share-icon-svg">🔗</span>
+            <span>Copy Link</span>
+          </button>
+          <button class="mobile-share-btn share-x" id="m-share-x">
+            <span class="share-icon-svg">𝕏</span>
+            <span>Twitter / X</span>
+          </button>
+          <button class="mobile-share-btn share-wa" id="m-share-wa">
+            <span class="share-icon-svg">💬</span>
+            <span>WhatsApp</span>
+          </button>
+        </div>
 
-  // Live drag-follow swipe with dossier-stack physics.
-  let sx = 0, sy = 0, dragging = false, axis = null;
-  let activeEl = null, neighborEl = null, neighborDir = 0;
+        <div class="mobile-feedback-box" id="m-feedback-box">
+          <h4 class="feedback-title">Was this analysis helpful?</h4>
+          <div class="feedback-options">
+            <button class="m-feedback-btn" data-val="helpful">👍 Yes</button>
+            <button class="m-feedback-btn" data-val="unhelpful">👎 No</button>
+            <button class="m-feedback-btn" data-val="suggestion">📝 Edit Suggestion</button>
+          </div>
+          <div class="feedback-input-area hidden" id="m-feedback-input-area">
+            <textarea id="m-feedback-text" placeholder="Share your feedback or corrections..."></textarea>
+            <button class="feedback-send-btn" id="m-feedback-send">Submit Feedback</button>
+          </div>
+          <div class="feedback-success hidden" id="m-feedback-success">
+            Thank you! Your feedback has been prefilled in your email client.
+          </div>
+        </div>
+      </div>
 
-  container.addEventListener("touchstart", e => {
-    sx = e.touches[0].clientX;
-    sy = e.touches[0].clientY;
-    dragging = true; axis = null;
-    const all = cardEls();
-    activeEl = all[cur];
-    if (activeEl) activeEl.style.transition = "none";
-  }, {passive:true});
+      <!-- Navigation footer (Next/Prev story) -->
+      <div class="mobile-footer-nav">
+        ${storyIdx > 0 ? `<a class="mobile-nav-link prev" href="#/story/${date}/${stories[storyIdx-1].id}">← Prev Story</a>` : "<span></span>"}
+        ${storyIdx < stories.length-1 ? `<a class="mobile-nav-link next" href="#/story/${date}/${stories[storyIdx+1].id}">Next Story →</a>` : "<span></span>"}
+      </div>
+    </div>
+  `;
 
-  container.addEventListener("touchmove", e => {
-    if (!dragging || !activeEl) return;
-    const dx = e.touches[0].clientX - sx;
-    const dy = e.touches[0].clientY - sy;
-    if (axis === null) {
-      if (Math.abs(dx) > 10 || Math.abs(dy) > 10)
-        axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
-    }
-    if (axis !== "x" && axis !== "y") return;
-    if (axis === "y" && expanded && activeEl?.querySelector(".intel-deep")?.scrollTop > 0 && dy > -12) return;
-    e.preventDefault();
-
-    if (axis === "y") {
-      const lift = Math.max(-150, Math.min(120, dy));
-      const pct = Math.min(1, Math.abs(lift) / 140);
-      if (activeEl) {
-        activeEl.style.transform = `translate3d(0, ${lift * .18}px, 0) scale(${1 + pct * .012}) rotateX(${lift < 0 ? -pct * 4 : pct * 3}deg)`;
-        activeEl.style.filter = `brightness(${1 + pct * .05})`;
-      }
-      return;
-    }
-
-    // Resistance at boundaries
-    const goingNext = dx < 0;
-    const canGo = goingNext ? (cur < cards.length-1) : (cur > 0);
-    const resist = canGo ? 1 : 0.32;
-    const offset = dx * resist;
-    const pct = offset / window.innerWidth;
-    const rot = -pct * 14;
-    activeEl.style.transform = `translate3d(${offset}px, 0, 90px) rotateY(${rot}deg) scale(${1 - Math.min(.04, Math.abs(pct) * .07)})`;
-    activeEl.style.opacity = String(1 - Math.min(0.35, Math.abs(pct) * 0.6));
-
-    const newDir = goingNext ? 1 : -1;
-    if (canGo && newDir !== neighborDir) {
-      neighborDir = newDir;
-      const slidesEls = cardEls();
-      const n = slidesEls[cur + newDir];
-      if (neighborEl && neighborEl !== n) { neighborEl.style.cssText = ""; }
-      neighborEl = n;
-      if (neighborEl) {
-        neighborEl.style.transition = "none";
-        neighborEl.style.zIndex = "1";
-        neighborEl.style.opacity = "1";
-      }
-    }
-    if (canGo && neighborEl) {
-      const w = window.innerWidth;
-      const nxOffset = newDir > 0 ? (w * .42 + offset * .42) : (-w * .42 + offset * .42);
-      const nRot = newDir > 0 ? (10 + rot * .35) : (-10 + rot * .35);
-      neighborEl.style.transform = `translate3d(${nxOffset}px, 12px, 20px) rotateY(${nRot}deg) scale(.94)`;
-    }
-  }, {passive:false});
-
-  container.addEventListener("touchend", e => {
-    if (!dragging) return;
-    dragging = false;
-    const dx = e.changedTouches[0].clientX - sx;
-    const dy = e.changedTouches[0].clientY - sy;
-    const wasAxisX = axis === "x";
-    const wasAxisY = axis === "y";
-    axis = null;
-
-    // Re-enable transitions
-    if (activeEl) activeEl.style.transition = "";
-    if (neighborEl) neighborEl.style.transition = "";
-
-    if (wasAxisY) {
-      const threshold = 66;
-      if (dy < -threshold) setExpanded(true);
-      else if (dy > threshold) setExpanded(false);
-      if (activeEl) { activeEl.style.transform = ""; activeEl.style.opacity = ""; activeEl.style.filter = ""; }
-      neighborEl = null; neighborDir = 0; activeEl = null;
-      return;
-    }
-
-    if (!wasAxisX) {
-      if (activeEl) { activeEl.style.transform = ""; activeEl.style.opacity = ""; }
-      return;
-    }
-
-    const threshold = window.innerWidth * 0.22;
-    if (dx < -threshold) {
-      if (cur < cards.length - 1) {
-        if (activeEl) activeEl.style.cssText = "";
-        if (neighborEl) neighborEl.style.cssText = "";
-        update(cur + 1);
-      } else if (storyIdx < stories.length - 1) {
-        location.hash = `#/story/${date}/${stories[storyIdx+1].id}`;
-      } else {
-        if (activeEl) { activeEl.style.transform = ""; activeEl.style.opacity = ""; }
-      }
-    } else if (dx > threshold) {
-      if (cur > 0) {
-        if (activeEl) activeEl.style.cssText = "";
-        if (neighborEl) neighborEl.style.cssText = "";
-        update(cur - 1);
-      } else if (storyIdx > 0) {
-        location.hash = `#/story/${date}/${stories[storyIdx-1].id}`;
-      } else {
-        if (activeEl) { activeEl.style.transform = ""; activeEl.style.opacity = ""; }
-      }
-    } else {
-      // Snap back
-      if (activeEl) { activeEl.style.transform = ""; activeEl.style.opacity = ""; }
-      if (neighborEl) { neighborEl.style.cssText = ""; }
-    }
-    neighborEl = null; neighborDir = 0; activeEl = null;
-  });
-
-  // Arrow keys
-  function onKey(e) {
-    if (e.key==="ArrowRight") {
-      if (cur<cards.length-1) update(cur+1);
-    } else if (e.key==="ArrowLeft") {
-      if (cur>0) update(cur-1);
-    } else if (e.key==="ArrowUp") {
-      setExpanded(true);
-    } else if (e.key==="ArrowDown") {
-      setExpanded(false);
-    } else if (e.key==="Escape") {
-      location.hash=`#/day/${date}`;
-    }
-  }
-  document.addEventListener("keydown", onKey);
-  // Clean up on nav away
-  window.addEventListener("hashchange", () => document.removeEventListener("keydown", onKey), {once:true});
+  // Wire events
+  wireEngagementEvents(container, s);
 
   return container;
+}
+
+function wireEngagementEvents(container, s) {
+  // Share Copy
+  container.querySelectorAll(".share-copy").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const target = e.currentTarget;
+      const url = window.location.href;
+      navigator.clipboard.writeText(url).then(() => {
+        const origText = target.innerHTML;
+        target.innerHTML = target.querySelector("span") ? `<span>✓ Copied!</span>` : `✓ Copied!`;
+        target.classList.add("copied");
+        setTimeout(() => {
+          target.innerHTML = origText;
+          target.classList.remove("copied");
+        }, 2000);
+      });
+    });
+  });
+
+  // Share X
+  container.querySelectorAll(".share-x").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const url = encodeURIComponent(window.location.href);
+      const text = encodeURIComponent(`Check out this deep dive: "${s.headline}" on The Briefing`);
+      window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, "_blank");
+    });
+  });
+
+  // Share WA
+  container.querySelectorAll(".share-wa").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const url = encodeURIComponent(window.location.href);
+      const text = encodeURIComponent(`Check out this deep dive: "${s.headline}" on The Briefing - `);
+      window.open(`https://api.whatsapp.com/send?text=${text}${url}`, "_blank");
+    });
+  });
+
+  // Share LI (for desktop / general)
+  container.querySelectorAll(".share-li").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const url = encodeURIComponent(window.location.href);
+      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, "_blank");
+    });
+  });
+
+  // Native share (mobile only)
+  container.querySelector(".share-native")?.addEventListener("click", () => {
+    if (navigator.share) {
+      navigator.share({
+        title: s.headline,
+        text: `Check out this deep dive on The Briefing: "${s.headline}"`,
+        url: window.location.href
+      }).catch(err => console.log("Error sharing:", err));
+    } else {
+      // Fallback: trigger copy link
+      container.querySelector(".share-copy")?.click();
+    }
+  });
+
+  // Feedback widget
+  const feedbackInputArea = container.querySelector(".feedback-input-area");
+  const feedbackText = container.querySelector("textarea");
+  const feedbackSendBtn = container.querySelector(".feedback-send-btn");
+  const feedbackSuccess = container.querySelector(".feedback-success");
+  const feedbackOptions = container.querySelector(".feedback-options");
+
+  let selectedVal = "";
+
+  container.querySelectorAll(".d-feedback-btn, .m-feedback-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      container.querySelectorAll(".d-feedback-btn, .m-feedback-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedVal = btn.dataset.val;
+      if (feedbackInputArea) feedbackInputArea.classList.remove("hidden");
+    });
+  });
+
+  feedbackSendBtn?.addEventListener("click", () => {
+    const comment = feedbackText ? feedbackText.value : "";
+    const email = "feedback@briefing.app"; // Prefilled feedback recipient
+    const subject = encodeURIComponent(`Briefing Feedback: ${s.headline}`);
+    const body = encodeURIComponent(`Story ID: ${s.id}
+Story Title: ${s.headline}
+Feedback Type: ${selectedVal}
+
+Feedback details:
+${comment}
+
+--
+Submitted via The Briefing`);
+
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+
+    if (feedbackInputArea) feedbackInputArea.classList.add("hidden");
+    if (feedbackOptions) feedbackOptions.style.display = "none";
+    if (feedbackSuccess) feedbackSuccess.classList.remove("hidden");
+  });
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1053,6 +998,45 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
           </div>
         </section>
         ${allSections}
+        
+        <!-- Desktop Engagement Card -->
+        <div class="desktop-engagement-card">
+          <div class="desktop-engagement-inner">
+            <div class="desktop-share-block">
+              <h4>Share this Analysis</h4>
+              <div class="desktop-share-buttons">
+                <button class="d-share-btn share-copy" id="d-share-copy">
+                  <span>🔗 Copy Link</span>
+                </button>
+                <button class="d-share-btn share-x" id="d-share-x">
+                  <span>𝕏 Twitter / X</span>
+                </button>
+                <button class="d-share-btn share-wa" id="d-share-wa">
+                  <span>💬 WhatsApp</span>
+                </button>
+                <button class="d-share-btn share-li" id="d-share-li">
+                  <span>💼 LinkedIn</span>
+                </button>
+              </div>
+            </div>
+            <div class="desktop-feedback-block" id="d-feedback-box">
+              <h4>Feedback & Corrections</h4>
+              <div class="feedback-options">
+                <button class="d-feedback-btn" data-val="helpful">👍 Helpful</button>
+                <button class="d-feedback-btn" data-val="unhelpful">👎 Unhelpful</button>
+                <button class="d-feedback-btn" data-val="suggestion">📝 Suggest Edit</button>
+              </div>
+              <div class="feedback-input-area hidden" id="d-feedback-input-area">
+                <textarea id="d-feedback-text" placeholder="Type your feedback or corrections here..."></textarea>
+                <button class="feedback-send-btn" id="d-feedback-send">Submit Feedback</button>
+              </div>
+              <div class="feedback-success hidden" id="d-feedback-success">
+                Thank you! Feedback details prefilled in your email client.
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="desktop-story-nav">
           ${storyIdx > 0 ? `<a class="story-nav-btn prev" href="#/story/${date}/${stories[storyIdx-1].id}">← ${esc(stories[storyIdx-1].headline.slice(0,50))}…</a>` : "<span></span>"}
           ${storyIdx < stories.length-1 ? `<a class="story-nav-btn next" href="#/story/${date}/${stories[storyIdx+1].id}">${esc(stories[storyIdx+1].headline.slice(0,50))}… →</a>` : "<span></span>"}
@@ -1065,6 +1049,9 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
       location.hash = `#/story/${date}/${btn.dataset.id}`;
     });
   });
+
+  // Wire events for sharing & feedback
+  wireEngagementEvents(wrap, s);
 
   return wrap;
 }
@@ -1083,7 +1070,8 @@ async function renderHome(date) {
 
   const hero = $("hero");
   hero.classList.remove("hidden");
-  $("hero-meta").textContent = fmtLong(date) + " · " + payload.stories.length + " stories" + (isLatest?"":" · Archive");
+  $("hero-title-h1").textContent = fmtLong(date);
+  $("hero-meta").textContent = payload.stories.length + " stories" + (isLatest?"":" · Archive");
 
   const pastBanner = isLatest ? "" : `
     <div class="past-day-banner">
@@ -1091,7 +1079,7 @@ async function renderHome(date) {
       <a href="#">← Today</a>
     </div>`;
 
-  const cards = payload.stories.map((s,i) => {
+  const cards = payload.stories.slice(1).map((s,i) => {
     const region = (s.region||"global").toLowerCase();
     const sourceCount = (s.sources||[]).length;
     const readMin = readMinutes(s);
@@ -1102,7 +1090,7 @@ async function renderHome(date) {
         <div class="card-accent"></div>
         <div class="card-body">
           <div class="card-top">
-            <span class="card-num">${String(i+1).padStart(2,"0")}</span>
+            <span class="card-num">${String(i+2).padStart(2,"0")}</span>
             <span class="card-region">${esc(region.toUpperCase())}</span>
             ${conf ? `<span class="card-conf-chip ${conf}"><span class="card-conf-dot"></span>${esc(s.confidence.level)}</span>` : ""}
           </div>
@@ -1117,7 +1105,7 @@ async function renderHome(date) {
             <span class="card-arrow">Deep dive →</span>
           </div>
         </div>
-        ${storyVisual(s, i)}
+        ${storyVisual(s, i+1)}
       </div>`;
   }).join("");
 
