@@ -14,6 +14,10 @@ function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, c =>
     ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
+function formatMdText(s) {
+  if (!s) return "";
+  return esc(s).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+}
 function leanClass(lean) {
   const l = (lean||"").toLowerCase();
   if (l.includes("left"))  return "lean-left";
@@ -605,8 +609,8 @@ function buildSlides(s) {
   if (ei?.opinion || ei?.analysis) slides.push({ id:"editorial", label:"Expert View", icon:"✦", html:`
     <div class="slide-body">
       <div class="slide-section-label"><span class="ssl-icon">${ICON.quote}</span>Editorial & Expert Insight</div>
-      ${ei.opinion ? `<div class="editorial-block"><div class="editorial-label">Opinion</div><div class="editorial-body">${esc(ei.opinion)}</div></div>` : ""}
-      ${ei.analysis ? `<div class="editorial-block" style="margin-top:16px"><div class="editorial-label">Analysis</div><div class="editorial-body">${esc(ei.analysis)}</div></div>` : ""}
+      ${ei.opinion ? `<div class="editorial-block"><div class="editorial-label">Opinion</div><div class="editorial-body">${formatMdText(ei.opinion)}</div></div>` : ""}
+      ${ei.analysis ? `<div class="editorial-block" style="margin-top:16px"><div class="editorial-label">Analysis</div><div class="editorial-body">${formatMdText(ei.analysis)}</div></div>` : ""}
     </div>`
   });
 
@@ -691,7 +695,7 @@ function buildSlides(s) {
         ${(s.sources||[]).map(src=>`
           <li class="source-item">
             <span class="source-dot ${leanClass(src.lean)}"></span>
-            <a class="source-name" href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.outlet)}</a>
+            <span class="source-name">${esc(src.outlet)}</span>
             <span class="source-meta">${esc(src.lean)} · ${esc(src.region)}</span>
           </li>`).join("")}
       </ul>
@@ -711,11 +715,11 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
   // Build the extra engagement slide
   const engagementSlide = {
     id: "share",
-    label: "Share & Feedback",
-    icon: "💬",
+    label: "Share",
+    icon: "🔗",
     html: `
       <div class="slide-body">
-        <div class="slide-section-label"><span class="ssl-icon">💬</span>Engagement</div>
+        <div class="slide-section-label"><span class="ssl-icon">🔗</span>Share story</div>
         <div class="mobile-engagement-card-inner">
           <h3 class="engagement-title">Share this Analysis</h3>
           <p class="engagement-subtitle">Keep your network informed with optimized multi-channel sharing.</p>
@@ -737,22 +741,6 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
               <span class="share-icon-svg">💬</span>
               <span>WhatsApp</span>
             </button>
-          </div>
-
-          <div class="mobile-feedback-box" id="m-feedback-box">
-            <h4 class="feedback-title">Was this analysis helpful?</h4>
-            <div class="feedback-options">
-              <button class="m-feedback-btn" data-val="helpful">👍 Yes</button>
-              <button class="m-feedback-btn" data-val="unhelpful">👎 No</button>
-              <button class="m-feedback-btn" data-val="suggestion">📝 Edit Suggestion</button>
-            </div>
-            <div class="feedback-input-area hidden" id="m-feedback-input-area">
-              <textarea id="m-feedback-text" placeholder="Share your feedback or corrections..."></textarea>
-              <button class="feedback-send-btn" id="m-feedback-send">Submit Feedback</button>
-            </div>
-            <div class="feedback-success hidden" id="m-feedback-success">
-              Thank you! Your feedback has been submitted.
-            </div>
           </div>
         </div>
       </div>
@@ -966,81 +954,6 @@ function wireEngagementEvents(container, s) {
     }
   });
 
-  // Feedback widget
-  const feedbackInputArea = container.querySelector(".feedback-input-area");
-  const feedbackText = container.querySelector("textarea");
-  const feedbackSendBtn = container.querySelector(".feedback-send-btn");
-  const feedbackSuccess = container.querySelector(".feedback-success");
-  const feedbackOptions = container.querySelector(".feedback-options");
-
-  let selectedVal = "";
-
-  container.querySelectorAll(".d-feedback-btn, .m-feedback-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      container.querySelectorAll(".d-feedback-btn, .m-feedback-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      selectedVal = btn.dataset.val;
-      if (feedbackInputArea) feedbackInputArea.classList.remove("hidden");
-    });
-  });
-
-  feedbackSendBtn?.addEventListener("click", () => {
-    const comment = feedbackText ? feedbackText.value : "";
-    const feedbackData = {
-      storyId: s.id,
-      storyTitle: s.headline,
-      feedbackType: selectedVal,
-      comment: comment,
-      timestamp: new Date().toISOString()
-    };
-
-    if (feedbackInputArea) feedbackInputArea.classList.add("hidden");
-    if (feedbackOptions) feedbackOptions.style.display = "none";
-
-    const showSuccess = () => {
-      if (feedbackSuccess) feedbackSuccess.classList.remove("hidden");
-    };
-
-    if (FEEDBACK_ENDPOINT) {
-      feedbackSendBtn.disabled = true;
-      feedbackSendBtn.textContent = "Sending...";
-      fetch(FEEDBACK_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(feedbackData)
-      })
-      .then(() => {
-        showSuccess();
-      })
-      .catch(err => {
-        console.error("Error submitting feedback:", err);
-        fallbackMailto(s, selectedVal, comment);
-        showSuccess();
-      });
-    } else {
-      // Mock submit (saves locally and logs to console)
-      const list = JSON.parse(localStorage.getItem("briefing_feedback") || "[]");
-      list.push(feedbackData);
-      localStorage.setItem("briefing_feedback", JSON.stringify(list));
-      console.log("Mock feedback saved to localStorage:", feedbackData);
-      showSuccess();
-    }
-  });
-}
-
-function fallbackMailto(s, selectedVal, comment) {
-  const email = "feedback@briefing.app";
-  const subject = encodeURIComponent(`Briefing Feedback: ${s.headline}`);
-  const body = encodeURIComponent(`Story ID: ${s.id}
-Story Title: ${s.headline}
-Feedback Type: ${selectedVal}
-
-Feedback details:
-${comment}
-
---
-Submitted via The Briefing`);
-  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1108,63 +1021,25 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
             <h1 class="detail-headline">${esc(s.headline)}</h1>
             <p class="detail-tldr">${esc(s.tldr)}</p>
           </div>
-          <div class="dossier-graphic">
-            ${storyVisual(s, storyIdx)}
-            <div class="dossier-metrics">
-              <div><strong>${readMinutes(s)}</strong><span>min read</span></div>
-              <div><strong>${s.sources?.length || 0}</strong><span>sources</span></div>
-              <div><strong>${slides.length}</strong><span>angles</span></div>
-            </div>
-            <div class="dossier-spectrum">
-              <span style="height:${Math.max(10,buckets.left*18)}px" class="spec-left"></span>
-              <span style="height:${Math.max(10,centerSources*18)}px" class="spec-center"></span>
-              <span style="height:${Math.max(10,buckets.right*18)}px" class="spec-right"></span>
-            </div>
-            <div class="dossier-confidence">
-              <span>Confidence</span>
-              <b style="width:${conf}%"></b>
-              <em>${esc(s.confidence?.level || "Unknown")}</em>
-            </div>
-            <div class="dossier-tags">${terms.map(t=>`<span>${esc(t)}</span>`).join("")}</div>
-          </div>
         </section>
         ${allSections}
         
         <!-- Desktop Engagement Card -->
         <div class="desktop-engagement-card">
-          <div class="desktop-engagement-inner">
-            <div class="desktop-share-block">
-              <h4>Share this Analysis</h4>
-              <div class="desktop-share-buttons">
-                <button class="d-share-btn share-copy" id="d-share-copy">
-                  <span>🔗 Copy Link</span>
-                </button>
-                <button class="d-share-btn share-x" id="d-share-x">
-                  <span>𝕏 Twitter / X</span>
-                </button>
-                <button class="d-share-btn share-wa" id="d-share-wa">
-                  <span>💬 WhatsApp</span>
-                </button>
-                <button class="d-share-btn share-li" id="d-share-li">
-                  <span>💼 LinkedIn</span>
-                </button>
-              </div>
-            </div>
-            <div class="desktop-feedback-block" id="d-feedback-box">
-              <h4>Feedback & Corrections</h4>
-              <div class="feedback-options">
-                <button class="d-feedback-btn" data-val="helpful">👍 Helpful</button>
-                <button class="d-feedback-btn" data-val="unhelpful">👎 Unhelpful</button>
-                <button class="d-feedback-btn" data-val="suggestion">📝 Suggest Edit</button>
-              </div>
-              <div class="feedback-input-area hidden" id="d-feedback-input-area">
-                <textarea id="d-feedback-text" placeholder="Type your feedback or corrections here..."></textarea>
-                <button class="feedback-send-btn" id="d-feedback-send">Submit Feedback</button>
-              </div>
-              <div class="feedback-success hidden" id="d-feedback-success">
-                Thank you! Feedback details prefilled in your email client.
-              </div>
-            </div>
+          <h4>Share this Analysis</h4>
+          <div class="desktop-share-buttons">
+            <button class="d-share-btn share-copy" id="d-share-copy">
+              <span>🔗 Copy Link</span>
+            </button>
+            <button class="d-share-btn share-x" id="d-share-x">
+              <span>𝕏 Twitter / X</span>
+            </button>
+            <button class="d-share-btn share-wa" id="d-share-wa">
+              <span>💬 WhatsApp</span>
+            </button>
+            <button class="d-share-btn share-li" id="d-share-li">
+              <span>💼 LinkedIn</span>
+            </button>
           </div>
         </div>
 
