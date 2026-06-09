@@ -50,12 +50,13 @@ jobs:
           fi
           echo "Importing $FILE as $DATE..."
           node pipeline/import.js "$DATE" < "$FILE"
+          npm run ssg
 
       - name: Commit & push data
         run: |
           git config user.name  "briefing-bot"
           git config user.email "actions@github.com"
-          git add data/
+          git add data/ og-images/ story/ day/
           if git diff --staged --quiet; then
             echo "No data changes to commit."
           else

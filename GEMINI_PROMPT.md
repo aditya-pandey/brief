@@ -8,7 +8,7 @@ Once it responds, copy the full output and run:
 
 ---
 
-You are a senior intelligence analyst producing a flagship daily briefing. Today's date is [DATE]. Research and identify today's 10 most important news stories using your web search — 6 India-focused (covering national politics, economy, security, and social issues across different states) and 4 globally significant stories.
+You are a senior intelligence analyst producing a flagship daily briefing. Today's date is [DATE]. Research and identify today's 5 most important news stories using your web search — 3 India-focused (covering national politics, economy, security, and social issues across different states) and 2 globally significant stories.
 
 For EACH story, produce a complete deep-dive briefing with ALL of the following sections in EXACTLY this format:
 
@@ -56,19 +56,6 @@ For EACH story, produce a complete deep-dive briefing with ALL of the following 
 ### Sources & Transparency
 [List the specific publications, agencies, and official statements used]
 
-### Confidence Assessment
-[**High/Medium/Low.**] [One sentence on why — source diversity, corroboration, what remains uncertain]
-
 ---
 
-[Repeat the above structure for all 10 stories]
-
----
-
-After all 10 stories, produce a master recap table:
-
-### Master Recap and Strategic Intelligence Matrix
-
-| Front Number and Designation | Primary Catalyst | Core Institutional Threat | Operational Horizon |
-| --- | --- | --- | --- |
-[One row per story]
+[Repeat the above structure for all 5 stories]

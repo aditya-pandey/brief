@@ -38,6 +38,10 @@ function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, c =>
     ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
+function navigate(path) {
+  history.pushState(null, "", path);
+  route();
+}
 function formatMdText(s) {
   if (!s) return "";
   return esc(s).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
@@ -131,6 +135,23 @@ async function loadIndex() {
   const r = await fetch(DATA+"index.json",{cache:"no-store"});
   const raw = await r.json();
   indexEntries = raw.map(x => typeof x==="string" ? {date:x,count:null} : x);
+  
+  const sel = $("archive-select");
+  if (sel) {
+    if (indexEntries.length > 0) {
+      sel.max = indexEntries[0].date;
+      sel.min = indexEntries[indexEntries.length - 1].date;
+    }
+    sel.addEventListener("change", e => {
+      const selected = e.target.value;
+      if (selected && indexEntries.some(x => x.date === selected)) {
+        navigate(`/day/${selected}`);
+      } else if (selected) {
+        alert("No briefing available for this date. Please select a valid date.");
+        e.target.value = "";
+      }
+    });
+  }
   return indexEntries;
 }
 async function loadDay(date) {
@@ -158,23 +179,250 @@ const ICON = {
 };
 
 /* Decorative hero pattern (geometric, story-themed) */
-function heroPattern(region) {
-  const accent = region === "india" ? "#e67e22" : "#c0392b";
-  return `
-    <svg class="cover-pattern" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <defs>
-        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-          <circle cx="1" cy="1" r="1" fill="${accent}" opacity=".22"/>
-        </pattern>
-        <radialGradient id="glow">
-          <stop offset="0%" stop-color="${accent}" stop-opacity=".18"/>
-          <stop offset="60%" stop-color="${accent}" stop-opacity="0"/>
-        </radialGradient>
-      </defs>
-      <rect width="400" height="200" fill="url(#grid)"/>
-      <circle cx="320" cy="40" r="120" fill="url(#glow)"/>
-      <circle cx="60" cy="170" r="90" fill="url(#glow)" opacity=".7"/>
-    </svg>`;
+function hashStr(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0; 
+  }
+  return Math.abs(hash);
+}
+
+function semanticGraphicBg(story) {
+  let hash = Math.abs(hashStr(story.id || story.headline || "default"));
+  function rand() { let x = Math.sin(hash++) * 10000; return x - Math.floor(x); }
+  const bgs = ["#F4F4F5", "#F8FAFC", "#FAF5FF", "#FDF4FF", "#FFFBEB", "#F0FDF4", "#F0F9FF", "#FEF2F2", "#FFF7ED"];
+  return bgs[Math.floor(rand() * bgs.length)];
+}
+
+function semanticGraphic(story, idx = 0) {
+  const text = ((story.headline || "") + " " + (story.tldr || "")).toLowerCase();
+  let hash = Math.abs(hashStr(story.id || story.headline || "default"));
+  function rand() {
+    let x = Math.sin(hash++) * 10000;
+    return x - Math.floor(x);
+  }
+  
+  // Claude-inspired ultra-soft pastel backgrounds
+  const bgs = ["#F4F4F5", "#F8FAFC", "#FAF5FF", "#FDF4FF", "#FFFBEB", "#F0FDF4", "#F0F9FF", "#FEF2F2", "#FFF7ED"];
+  const bg = bgs[Math.floor(rand() * bgs.length)];
+
+  const stroke = "currentColor"; 
+  const sw = "1.5"; 
+  
+  const common = `fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"`;
+
+  const library = {
+    conflict: [
+      // 1. Shattered Circle
+      `<path d="M 100 40 A 60 60 0 0 0 100 160" ${common} />
+       <path d="M 110 40 A 60 60 0 0 1 110 160" ${common} />
+       <polyline points="105,30 90,80 120,120 95,170" ${common} />`,
+      // 2. Abstract Scales
+      `<line x1="100" y1="40" x2="100" y2="160" ${common} />
+       <line x1="50" y1="70" x2="150" y2="70" ${common} />
+       <polygon points="50,70 30,120 70,120" ${common} />
+       <polygon points="150,70 130,120 170,120" ${common} />
+       <line x1="70" y1="160" x2="130" y2="160" ${common} />`,
+      // 3. Clash / Opposing Arrows
+      `<polyline points="40,60 80,100 40,140" ${common} />
+       <polyline points="160,60 120,100 160,140" ${common} />
+       <line x1="100" y1="40" x2="100" y2="160" ${common} stroke-dasharray="4 4"/>`,
+      // 4. Shield
+      `<path d="M 50 60 Q 100 40 150 60 L 150 100 Q 150 150 100 170 Q 50 150 50 100 Z" ${common} />
+       <line x1="100" y1="45" x2="100" y2="170" ${common} />`,
+      // 5. Gavel Abstract
+      `<line x1="60" y1="140" x2="130" y2="70" ${common} />
+       <rect x="120" y="50" width="40" height="20" transform="rotate(45 140 60)" ${common} />
+       <line x1="40" y1="150" x2="80" y2="150" ${common} />`,
+      // 6. Maze / Knot
+      `<polyline points="60,60 140,60 140,140 80,140 80,80 120,80 120,120" ${common} />
+       <line x1="100" y1="100" x2="100" y2="160" ${common} />
+       <line x1="40" y1="100" x2="60" y2="100" ${common} />`,
+      // 7. Broken Pillar
+      `<rect x="80" y="40" width="40" height="120" ${common} />
+       <polygon points="70,100 130,90 130,110 70,120" fill="${bg}" stroke="${bg}" stroke-width="4" />
+       <polyline points="75,100 100,95 125,110" ${common} />`
+    ],
+    economy: [
+      // 1. Ascending Chart
+      `<rect x="50" y="120" width="20" height="40" ${common} />
+       <rect x="90" y="90" width="20" height="70" ${common} />
+       <rect x="130" y="50" width="20" height="110" ${common} />
+       <path d="M 30 140 Q 80 140 100 80 T 170 30" ${common} />
+       <line x1="30" y1="160" x2="170" y2="160" ${common} />`,
+      // 2. Donut / Pie
+      `<circle cx="100" cy="100" r="50" ${common} />
+       <circle cx="100" cy="100" r="25" ${common} />
+       <line x1="100" y1="50" x2="100" y2="75" ${common} />
+       <line x1="143" y1="125" x2="122" y2="112" ${common} />
+       <line x1="57" y1="125" x2="78" y2="112" ${common} />`,
+      // 3. Trade / Exchange
+      `<circle cx="70" cy="100" r="30" ${common} />
+       <circle cx="130" cy="100" r="30" ${common} />
+       <path d="M 70 50 Q 100 30 130 50" ${common} />
+       <polygon points="120,40 135,50 120,60" fill="${stroke}" />
+       <path d="M 130 150 Q 100 170 70 150" ${common} />
+       <polygon points="80,140 65,150 80,160" fill="${stroke}" />`,
+      // 4. Staircase / Steps
+      `<polyline points="40,160 40,130 80,130 80,100 120,100 120,70 160,70 160,40" ${common} />
+       <line x1="40" y1="160" x2="160" y2="160" ${common} />`,
+      // 5. Candlestick / Stock
+      `<line x1="70" y1="40" x2="70" y2="120" ${common} />
+       <rect x="60" y="60" width="20" height="40" fill="${stroke}" />
+       <line x1="130" y1="80" x2="130" y2="160" ${common} />
+       <rect x="120" y="100" width="20" height="40" ${common} />`,
+      // 6. Flow / Curve
+      `<path d="M 40 140 Q 100 140 100 100 T 160 60" ${common} />
+       <path d="M 40 160 Q 100 160 100 120 T 160 80" ${common} stroke-dasharray="4 4" />`,
+    ],
+    tech: [
+      // 1. Orbits / Atom
+      `<ellipse cx="100" cy="100" rx="60" ry="20" transform="rotate(30 100 100)" ${common} />
+       <ellipse cx="100" cy="100" rx="60" ry="20" transform="rotate(150 100 100)" ${common} />
+       <circle cx="100" cy="100" r="6" fill="${stroke}" />
+       <circle cx="50" cy="70" r="3" fill="${stroke}" />
+       <circle cx="150" cy="130" r="3" fill="${stroke}" />`,
+      // 2. CPU / Chip
+      `<rect x="60" y="60" width="80" height="80" rx="4" ${common} />
+       <rect x="80" y="80" width="40" height="40" rx="2" ${common} />
+       <line x1="60" y1="80" x2="40" y2="80" ${common} />
+       <line x1="60" y1="100" x2="40" y2="100" ${common} />
+       <line x1="60" y1="120" x2="40" y2="120" ${common} />
+       <line x1="140" y1="80" x2="160" y2="80" ${common} />
+       <line x1="140" y1="100" x2="160" y2="100" ${common} />
+       <line x1="140" y1="120" x2="160" y2="120" ${common} />
+       <line x1="80" y1="60" x2="80" y2="40" ${common} />
+       <line x1="100" y1="60" x2="100" y2="40" ${common} />
+       <line x1="120" y1="60" x2="120" y2="40" ${common} />
+       <line x1="80" y1="140" x2="80" y2="160" ${common} />
+       <line x1="100" y1="140" x2="100" y2="160" ${common} />
+       <line x1="120" y1="140" x2="120" y2="160" ${common} />`,
+      // 3. Network Constellation
+      `<circle cx="100" cy="100" r="40" ${common} stroke-dasharray="4 4" />
+       <circle cx="100" cy="60" r="5" fill="${stroke}" />
+       <circle cx="65" cy="120" r="5" fill="${stroke}" />
+       <circle cx="135" cy="120" r="5" fill="${stroke}" />
+       <circle cx="100" cy="100" r="3" fill="${stroke}" />
+       <line x1="100" y1="60" x2="100" y2="100" ${common} />
+       <line x1="65" y1="120" x2="100" y2="100" ${common} />
+       <line x1="135" y1="120" x2="100" y2="100" ${common} />
+       <line x1="65" y1="120" x2="135" y2="120" ${common} />`,
+      // 4. Radar / Sonar
+      `<path d="M 40 160 A 120 120 0 0 1 160 40" ${common} />
+       <path d="M 40 160 A 80 80 0 0 1 120 80" ${common} />
+       <path d="M 40 160 A 40 40 0 0 1 80 120" ${common} />
+       <circle cx="40" cy="160" r="6" fill="${stroke}" />
+       <circle cx="110" cy="90" r="4" fill="${stroke}" />`,
+      // 5. Data Blocks
+      `<rect x="60" y="60" width="20" height="20" ${common} />
+       <rect x="90" y="60" width="20" height="20" fill="${stroke}" />
+       <rect x="120" y="60" width="20" height="20" ${common} />
+       <rect x="60" y="90" width="20" height="20" fill="${stroke}" />
+       <rect x="90" y="90" width="20" height="20" ${common} />
+       <rect x="120" y="90" width="20" height="20" fill="${stroke}" />
+       <rect x="60" y="120" width="20" height="20" ${common} />
+       <rect x="90" y="120" width="20" height="20" fill="${stroke}" />
+       <rect x="120" y="120" width="20" height="20" ${common} />`,
+      // 6. Waveform
+      `<polyline points="30,100 60,100 75,60 90,140 105,40 120,120 135,100 170,100" ${common} />`
+    ],
+    politics: [
+      // 1. Institution / Pillars
+      `<polygon points="100,50 40,80 160,80" ${common} />
+       <rect x="50" y="80" width="10" height="60" ${common} />
+       <rect x="80" y="80" width="10" height="60" ${common} />
+       <rect x="110" y="80" width="10" height="60" ${common} />
+       <rect x="140" y="80" width="10" height="60" ${common} />
+       <rect x="30" y="140" width="140" height="10" ${common} />`,
+      // 2. Globe / Geopolitics
+      `<circle cx="100" cy="100" r="50" ${common} />
+       <ellipse cx="100" cy="100" rx="20" ry="50" ${common} />
+       <line x1="50" y1="100" x2="150" y2="100" ${common} />
+       <line x1="100" y1="40" x2="100" y2="160" ${common} />`,
+      // 3. Podium / Speech
+      `<rect x="80" y="80" width="40" height="60" ${common} />
+       <rect x="70" y="140" width="60" height="10" ${common} />
+       <line x1="100" y1="80" x2="100" y2="50" ${common} />
+       <circle cx="100" cy="45" r="5" fill="${stroke}" />
+       <line x1="90" y1="90" x2="110" y2="90" ${common} />
+       <line x1="90" y1="100" x2="110" y2="100" ${common} />`,
+      // 4. Monument / Dome
+      `<path d="M 60 100 A 40 40 0 0 1 140 100" ${common} />
+       <rect x="50" y="100" width="100" height="20" ${common} />
+       <rect x="40" y="120" width="120" height="10" ${common} />
+       <line x1="100" y1="60" x2="100" y2="40" ${common} />`,
+      // 5. Meeting / Table
+      `<line x1="40" y1="100" x2="160" y2="100" ${common} stroke-width="3" />
+       <circle cx="70" cy="70" r="10" ${common} />
+       <circle cx="100" cy="70" r="10" fill="${stroke}" />
+       <circle cx="130" cy="70" r="10" ${common} />
+       <circle cx="70" cy="130" r="10" fill="${stroke}" />
+       <circle cx="100" cy="130" r="10" ${common} />
+       <circle cx="130" cy="130" r="10" fill="${stroke}" />`,
+      // 6. Flags / Banners
+      `<line x1="40" y1="50" x2="160" y2="50" ${common} />
+       <polygon points="60,50 100,50 80,120" ${common} />
+       <polygon points="110,50 150,50 130,140" fill="${stroke}" opacity="0.8"/>`
+    ],
+    balance: [
+      // 1. Zen Stones
+      `<circle cx="100" cy="130" r="30" ${common} />
+       <circle cx="100" cy="80" r="20" ${common} />
+       <circle cx="100" cy="45" r="15" ${common} />
+       <line x1="40" y1="160" x2="160" y2="160" ${common} />`,
+      // 2. Horizon
+      `<circle cx="100" cy="100" r="50" ${common} />
+       <line x1="30" y1="100" x2="170" y2="100" ${common} />
+       <line x1="60" y1="110" x2="140" y2="110" ${common} />
+       <line x1="80" y1="120" x2="120" y2="120" ${common} />`,
+      // 3. Interlocking Rings
+      `<circle cx="85" cy="100" r="40" ${common} />
+       <circle cx="115" cy="100" r="40" ${common} />
+       <path d="M 100 63 L 100 137" ${common} stroke-dasharray="2 4"/>`,
+      // 4. Hourglass / Infinity
+      `<polygon points="60,60 140,60 100,100" ${common} />
+       <polygon points="60,140 140,140 100,100" ${common} />
+       <line x1="80" y1="120" x2="120" y2="120" ${common} stroke-dasharray="2 2" />`,
+      // 5. Sunrise
+      `<path d="M 60 120 A 40 40 0 0 1 140 120" ${common} />
+       <line x1="30" y1="120" x2="170" y2="120" ${common} />
+       <line x1="100" y1="80" x2="100" y2="60" ${common} />
+       <line x1="128" y1="92" x2="142" y2="78" ${common} />
+       <line x1="72" y1="92" x2="58" y2="78" ${common} />`,
+      // 6. Pendulum
+      `<line x1="100" y1="40" x2="100" y2="140" ${common} stroke-dasharray="4 4" />
+       <circle cx="100" cy="140" r="15" fill="${stroke}" />
+       <path d="M 60 140 A 40 40 0 0 0 140 140" ${common} />`
+    ]
+  };
+
+  const categories = {
+    conflict: ["strike", "war", "conflict", "tension", "crisis", "attack", "threat", "protest", "violence", "court", "lawsuit", "invalidates", "clash", "friction", "strains", "rejects"],
+    economy: ["economy", "market", "funding", "growth", "bank", "trade", "tax", "fee", "investment", "price", "billion", "rupee", "dollar"],
+    tech: ["tech", "ai", "space", "science", "digital", "data", "software", "apple", "google", "meta", "cyber"],
+    politics: ["election", "vote", "president", "minister", "law", "policy", "government", "parliament", "senate", "ruling", "judge", "diplomatic"]
+  };
+
+  let activeTheme = "balance";
+  let maxMatches = 0;
+  for (const [theme, words] of Object.entries(categories)) {
+    let matches = 0;
+    words.forEach(w => { if (text.includes(w)) matches++; });
+    if (matches > maxMatches) {
+      maxMatches = matches;
+      activeTheme = theme;
+    }
+  }
+
+  const icons = library[activeTheme];
+  const icon = icons[(idx + Math.floor(hash % 3)) % icons.length];
+  
+  return `<div class="cover-pattern" aria-hidden="true" style="--pastel-bg:${bg}; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+    <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet" style="width:100%; height:100%; max-width:240px; max-height:240px; padding: 24px;">
+      ${icon}
+    </svg>
+  </div>`;
 }
 
 /* Source distribution: stacked horizontal bar */
@@ -223,50 +471,15 @@ function storyVisual(story, idx = 0) {
   const angle = Math.round(conf * 3.6);
   const terms = keyPhrase(`${story.headline} ${story.tldr}`).slice(0,2);
   return `
-    <div class="story-viz ${region}" aria-hidden="true">
-      <div class="viz-orbit" style="--score:${angle}deg">
-        <span class="viz-core">${String(idx+1).padStart(2,"0")}</span>
-      </div>
-      ${miniSourceBar(sources)}
-      <div class="viz-tags">
-        <span>${esc(region)}</span>
-        ${terms.map(t => `<span>${esc(t)}</span>`).join("")}
+    <div class="story-viz ${region}" aria-hidden="true" style="overflow:hidden; position:relative; width: 100%; height: 180px; min-height: 180px; border-bottom: 1px solid var(--rule);">
+      ${semanticGraphic(story, idx)}
+      <div style="position:absolute; bottom:12px; right:12px; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); color:#fff; padding:4px 8px; border-radius:4px; font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.05em;">
+        STORY ${String(idx+1).padStart(2,"0")}
       </div>
     </div>`;
 }
 
-function renderBriefingBoard(payload) {
-  const stories = payload.stories || [];
-  if (!stories.length) return "";
-  const india = stories.filter(s => (s.region||"").toLowerCase()==="india").length;
-  const global = stories.length - india;
-  const avgSources = Math.round(stories.reduce((n,s)=>n+(s.sources?.length||0),0) / stories.length);
-  const avgRead = Math.round(stories.reduce((n,s)=>n+readMinutes(s),0) / stories.length);
-  const lead = stories[0];
-  const recap = (payload.recap || []).filter(r => r.front && r.front !== "---").slice(0,4);
-  const hasRecap = recap.length > 0;
 
-  return `
-    <section class="briefing-board ${hasRecap ? "two-cols" : "one-col"}" aria-label="Daily briefing dashboard">
-      <div class="board-lead" onclick="location.hash='#/story/${esc(payload.date)}/${esc(lead.id)}'" role="button" tabindex="0" style="cursor: pointer;">
-        <div class="board-label">Today's signal</div>
-        <h2>${esc(lead.headline)}</h2>
-        <p>${esc(lead.tldr)}</p>
-      </div>
-      ${hasRecap ? `
-      <div class="board-recap">
-        <div class="board-label">Pressure points</div>
-        ${recap.map((r,i)=>`
-          <div class="recap-row">
-            <span class="recap-index">${String(i+1).padStart(2,"0")}</span>
-            <div>
-              <strong>${esc(r.front.replace(/^\d+:\s*/, ""))}</strong>
-              <small>${esc(r.core_threat || r.primary_catalyst || r.horizon || "")}</small>
-            </div>
-          </div>`).join("")}
-      </div>` : ""}
-    </section>`;
-}
 
 /* Sentiment detection for impact text (heuristic) */
 function impactSentiment(text) {
@@ -457,47 +670,50 @@ function mobileBriefingCards(story, slides) {
 /* ══════════════════════════════════════════════════════════════
    SLIDE BUILDER — each section becomes a self-contained slide
    ══════════════════════════════════════════════════════════════ */
-function buildSlides(s) {
+function buildSlides(s, date) {
   const slides = [];
   const region = (s.region||"global").toLowerCase();
-  const confLevel = (s.confidence?.level||"").toLowerCase();
   const sourceCount = (s.sources||[]).length;
-  // Reading time: ~200 wpm on body content
   const readMin = readMinutes(s);
 
-  // 1 · Cover — hero pattern + meta strip
+  // 1 · Cover
   slides.push({ id:"cover", label:"Overview", icon:"◉", html:`
     <div class="slide-cover">
-      ${heroPattern(region)}
+      <div class="slide-cover-visual" style="background-color: ${semanticGraphicBg(s)};">
+        ${semanticGraphic(s, 0)}
+      </div>
       <div class="slide-cover-content">
         <div class="slide-cover-top">
           <span class="detail-region ${region}">${esc(region.toUpperCase())}</span>
         </div>
         <h1 class="slide-headline">${esc(s.headline)}</h1>
-        <p class="slide-tldr">${esc(s.tldr)}</p>
         <div class="cover-meta">
           <span class="cover-meta-item">${ICON.clock}<span>${readMin} min read</span></span>
-          <span class="cover-meta-item">${ICON.link}<span>${sourceCount} source${sourceCount!==1?"s":""}</span></span>
-          <span class="cover-meta-item">${ICON.hex}<span>12 angles</span></span>
+          <span class="cover-meta-item">${ICON.link}<span>${sourceCount} sources</span></span>
         </div>
+        
+        <div class="editorial-block" style="margin-top: 24px; padding: 16px; background: var(--bg-card-h); border: 1px solid var(--rule); border-radius: var(--radius-sm);">
+          <div class="editorial-label">TL;DR</div>
+          <p class="slide-prose" style="margin-top: 8px; font-size: 15px;">${esc(s.tldr)}</p>
+        </div>
+        
+        ${s.simple_explanation ? `
+        <div class="editorial-block" style="margin-top: 16px; padding: 16px; background: var(--bg-card-h); border: 1px solid var(--rule); border-radius: var(--radius-sm);">
+          <div class="editorial-label">In Plain English</div>
+          <p class="slide-prose" style="margin-top: 8px; font-size: 15px;">${esc(s.simple_explanation)}</p>
+        </div>` : ""}
+        
         <div class="swipe-hint">Swipe ← to explore deep dive</div>
       </div>
     </div>`
   });
 
-  // 2 · 5W1H — with glyph badges per question
+  // 2. Situational Analysis (5W1H)
   const sa = s.situational_analysis;
-  const wIcons = {
-    "WHAT":  "▣",  // square — the thing itself
-    "WHY":   "?",
-    "WHO":   "◉",  // who/agent
-    "WHEN":  "⏱",
-    "WHERE": "⌖",  // crosshair
-    "HOW":   "⚙",
-  };
-  if (sa) slides.push({ id:"5w1h", label:"Situation", icon:"⬡", html:`
+  const wIcons = { "WHAT":"▣", "WHY":"?", "WHO":"◉", "WHEN":"⏱", "WHERE":"⌖", "HOW":"⚙" };
+  if (sa) slides.push({ id:"situational", label:"Situational Analysis", icon:"⬡", html:`
     <div class="slide-body">
-      <div class="slide-section-label"><span class="ssl-icon">${ICON.hex}</span>5W1H · Situation</div>
+      <div class="slide-section-label"><span class="ssl-icon">${ICON.hex}</span>Situational Analysis (5W1H)</div>
       <div class="w-list">
         ${[["WHAT",sa.what],["WHY",sa.why],["WHO",sa.who],["WHEN",sa.when],["WHERE",sa.where],["HOW",sa.how]]
           .filter(([,v])=>v).map(([k,v])=>`
@@ -512,50 +728,21 @@ function buildSlides(s) {
     </div>`
   });
 
-  // 3 · Strategic Assessment
-  if (s.strategic_assessment) slides.push({ id:"strategic", label:"Strategy", icon:"◈", html:`
-    <div class="slide-body">
-      <div class="slide-section-label"><span class="ssl-icon">${ICON.chess}</span>Strategic Assessment</div>
-      <p class="slide-prose">${esc(s.strategic_assessment)}</p>
-    </div>`
-  });
-
-  // 4 · Perspectives — visual political spectrum
+  // 3. Perspective Matrix
   const pm = s.perspective_matrix;
-  if (pm) {
-    const spectrum = [
-      { cls:"lean-left",   label:"Progressive", short:"L", view:pm.left_leaning },
-      { cls:"lean-center", label:"Moderate",    short:"C", view:pm.center },
-      { cls:"lean-right",  label:"Conservative",short:"R", view:pm.right_leaning },
-    ].filter(p => p.view);
+  const ei = s.editorial_expert_insight;
+  if (pm || ei) {
     const regional = [
-      { cls:"region-in", label:"Indian media",       glyph:"IN", view:pm.indian_media },
-      { cls:"region-wi", label:"Western / Intl",     glyph:"WW", view:pm.western_international||pm.global_media },
+      { cls:"region-in", label:"Indian View",       glyph:"IN", view:pm?.indian_media },
+      { cls:"region-wi", label:"International View", glyph:"WW", view:pm?.western_international||pm?.global_media },
     ].filter(p => p.view);
+    const polLeft = pm?.left_leaning;
+    const polRight = pm?.right_leaning;
+    const expert = ei?.analysis;
 
-    slides.push({ id:"perspectives", label:"Perspectives", icon:"⊞", html:`
+    slides.push({ id:"perspectives", label:"Perspective Matrix", icon:"⊞", html:`
     <div class="slide-body">
       <div class="slide-section-label"><span class="ssl-icon">${ICON.scale}</span>Perspective Matrix</div>
-
-      ${spectrum.length ? `
-      <div class="spectrum-wrap">
-        <div class="spectrum-axis">
-          <span class="spectrum-tag lean-left">LEFT</span>
-          <div class="spectrum-bar"></div>
-          <span class="spectrum-tag lean-right">RIGHT</span>
-        </div>
-        <div class="persp-cards">
-          ${spectrum.map(p => `
-            <div class="persp-card ${p.cls}">
-              <div class="persp-card-top">
-                <span class="persp-glyph ${p.cls}">${p.short}</span>
-                <span class="persp-label ${p.cls}">${p.label}</span>
-              </div>
-              <div class="persp-card-body">${esc(p.view)}</div>
-            </div>`).join("")}
-        </div>
-      </div>` : ""}
-
       ${regional.length ? `
       <div class="region-perspectives">
         ${regional.map(p => `
@@ -567,50 +754,44 @@ function buildSlides(s) {
             <div class="region-card-body">${esc(p.view)}</div>
           </div>`).join("")}
       </div>` : ""}
+      
+      ${polLeft || polRight ? `
+      <div class="editorial-block" style="margin-top: 24px;">
+        <div class="editorial-label">Political Narratives</div>
+        <div class="fc-slide" style="margin-top: 12px; gap: 12px;">
+          ${polLeft ? `<div class="fc-half facts" style="border:1px solid var(--rule);"><div class="fc-title" style="color:var(--ink);">Left-Leaning</div><p style="font-size:14px; margin:0;">${esc(polLeft)}</p></div>` : ""}
+          ${polRight ? `<div class="fc-half facts" style="border:1px solid var(--rule);"><div class="fc-title" style="color:var(--ink);">Right-Leaning</div><p style="font-size:14px; margin:0;">${esc(polRight)}</p></div>` : ""}
+        </div>
+      </div>` : ""}
+
+      ${expert ? `
+      <div class="editorial-block" style="margin-top: 24px;">
+        <div class="editorial-label">Expert Analysis</div>
+        <div class="editorial-body" style="margin-top: 8px;">${formatMdText(expert)}</div>
+      </div>` : ""}
     </div>`
     });
   }
 
-  // 5 · Facts vs Claims
+  // 4. Facts vs Claims
   const fc = s.facts_vs_claims;
-  if (fc) slides.push({ id:"facts", label:"Facts vs Claims", icon:"⊛", html:`
+  if (fc) slides.push({ id:"facts", label:"Facts & Claims", icon:"⊛", html:`
     <div class="slide-body">
-      <div class="slide-section-label"><span class="ssl-icon">${ICON.fact}</span>Facts vs Claims</div>
+      <div class="slide-section-label"><span class="ssl-icon">${ICON.fact}</span>Facts & Contested Claims</div>
       <div class="fc-slide">
         <div class="fc-half facts">
           <div class="fc-title">✓ Verified Facts</div>
           <ul>${(fc.facts||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
         </div>
         <div class="fc-half claims">
-          <div class="fc-title">⚠ Claims</div>
+          <div class="fc-title">⚠ Claims / Disputed Narratives</div>
           <ul>${(fc.claims||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
         </div>
       </div>
     </div>`
   });
 
-  // 6 · Blind Spot
-  if (s.blind_spot) slides.push({ id:"blindspot", label:"Blind Spot", icon:"⚑", html:`
-    <div class="slide-body">
-      <div class="slide-section-label"><span class="ssl-icon">${ICON.eye}</span>Blind Spot</div>
-      <div class="blindspot">
-        <span class="blindspot-icon">⚑ What coverage missed</span>
-        ${esc(s.blind_spot)}
-      </div>
-    </div>`
-  });
-
-  // 7 · Editorial & Expert
-  const ei = s.editorial_expert_insight;
-  if (ei?.opinion || ei?.analysis) slides.push({ id:"editorial", label:"Expert View", icon:"✦", html:`
-    <div class="slide-body">
-      <div class="slide-section-label"><span class="ssl-icon">${ICON.quote}</span>Editorial & Expert Insight</div>
-      ${ei.opinion ? `<div class="editorial-block"><div class="editorial-label">Opinion</div><div class="editorial-body">${formatMdText(ei.opinion)}</div></div>` : ""}
-      ${ei.analysis ? `<div class="editorial-block" style="margin-top:16px"><div class="editorial-label">Analysis</div><div class="editorial-body">${formatMdText(ei.analysis)}</div></div>` : ""}
-    </div>`
-  });
-
-  // 8 · Stakeholder Impact — visual sentiment cards
+  // 5. Impact Analysis
   const arrowSvg = {
     up:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 14 12 8 18 14"/></svg>`,
     down:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 10 12 16 18 10"/></svg>`,
@@ -618,7 +799,7 @@ function buildSlides(s) {
   };
   if (s.stakeholder_impact?.length) slides.push({ id:"impact", label:"Impact", icon:"◎", html:`
     <div class="slide-body">
-      <div class="slide-section-label"><span class="ssl-icon">${ICON.impact}</span>Stakeholder Impact</div>
+      <div class="slide-section-label"><span class="ssl-icon">${ICON.impact}</span>Impact Analysis</div>
       <div class="impact-cards">
         ${(s.stakeholder_impact||[]).map(o=>{
           const sent = impactSentiment(o.impact);
@@ -627,7 +808,6 @@ function buildSlides(s) {
             <div class="impact-card-head">
               <span class="impact-arrow sent-${sent.dir}">${arrowSvg[sent.dir]}</span>
               <span class="impact-stakeholder">${esc(o.stakeholder)}</span>
-              <span class="impact-sent-tag sent-${sent.dir}">${sent.label}</span>
             </div>
             <div class="impact-card-body">${esc(o.impact)}</div>
           </div>`;
@@ -636,58 +816,44 @@ function buildSlides(s) {
     </div>`
   });
 
-  // 9 · Context
-  if (s.context_background) slides.push({ id:"context", label:"Context", icon:"⊙", html:`
+  // 6. Historical Context
+  if (s.context_background || s.timeline?.length) slides.push({ id:"context", label:"Historical Context", icon:"⊙", html:`
     <div class="slide-body">
-      <div class="slide-section-label"><span class="ssl-icon">${ICON.timeline}</span>Context & Background</div>
-      <p class="slide-prose">${esc(s.context_background)}</p>
-    </div>`
-  });
-
-  // 10 · Timeline
-  if (s.timeline?.length) slides.push({ id:"timeline", label:"Timeline", icon:"⊗", html:`
-    <div class="slide-body">
-      <div class="slide-section-label"><span class="ssl-icon">${ICON.clock}</span>Timeline</div>
+      <div class="slide-section-label"><span class="ssl-icon">${ICON.timeline}</span>Historical Context</div>
+      ${s.context_background ? `<p class="slide-prose" style="margin-bottom:24px;">${esc(s.context_background)}</p>` : ""}
+      ${s.timeline?.length ? `
       <div class="timeline-list">
-        ${(s.timeline||[]).map(o=>`
+        ${s.timeline.map(o=>`
           <div class="tl-item">
             <div class="tl-when">${esc(o.when)}</div>
             <div class="tl-event">${esc(o.event)}</div>
           </div>`).join("")}
-      </div>
+      </div>` : ""}
     </div>`
   });
 
-  // 11 · Plain Terms
-  if (s.simple_explanation) slides.push({ id:"simple", label:"Plain Terms", icon:"💡", html:`
+  // 7. Blind Spots & Sources
+  slides.push({ id:"blindspot", label:"Blind Spots", icon:"⚑", html:`
     <div class="slide-body">
-      <div class="slide-section-label"><span class="ssl-icon">${ICON.bulb}</span>In Plain Terms</div>
-      <div class="simple-explanation">
-        <span class="simple-icon-svg">${ICON.bulb}</span>
-        <div class="simple-body">${esc(s.simple_explanation)}</div>
+      <div class="slide-section-label"><span class="ssl-icon">${ICON.eye}</span>Blind Spots & Sources</div>
+      ${s.blind_spot ? `
+      <div class="blindspot" style="margin-bottom: 32px;">
+        <span class="blindspot-icon">⚑ Underreported Angles</span>
+        ${esc(s.blind_spot)}
+      </div>` : ""}
+      
+      <div class="editorial-block">
+        <div class="editorial-label" style="margin-bottom:12px;">Sources Used</div>
+        ${sourceDistribution(s.sources)}
+        <ul class="sources-list" style="margin-top: 16px;">
+          ${(s.sources||[]).map(src=>`
+            <li class="source-item">
+              <span class="source-dot ${leanClass(src.lean)}"></span>
+              <span class="source-name">${esc(src.outlet)}</span>
+              <span class="source-meta">${esc(src.lean)} · ${esc(src.region)}</span>
+            </li>`).join("")}
+        </ul>
       </div>
-    </div>`
-  });
-
-  // 12 · Sources + Confidence — with visual meter
-  const sourceConfLevel = (s.confidence?.level||"").toLowerCase();
-  const confFill = sourceConfLevel === "high" ? 100 : sourceConfLevel === "medium" ? 60 : sourceConfLevel === "low" ? 25 : 0;
-  slides.push({ id:"sources", label:"Sources", icon:"⊕", html:`
-    <div class="slide-body">
-      <div class="slide-section-label"><span class="ssl-icon">${ICON.link}</span>Sources & Transparency</div>
-      ${s.confidence?.notes ? `
-        <div class="confidence-card">
-          <div class="confidence-notes" style="margin-top: 0;">${esc(s.confidence.notes)}</div>
-        </div>` : ""}
-      ${sourceDistribution(s.sources)}
-      <ul class="sources-list">
-        ${(s.sources||[]).map(src=>`
-          <li class="source-item">
-            <span class="source-dot ${leanClass(src.lean)}"></span>
-            <span class="source-name">${esc(src.outlet)}</span>
-            <span class="source-meta">${esc(src.lean)} · ${esc(src.region)}</span>
-          </li>`).join("")}
-      </ul>
     </div>`
   });
 
@@ -706,7 +872,7 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
   container.innerHTML = `
     <!-- Top breadcrumb/header -->
     <div class="mobile-story-header">
-      <a class="mobile-back" href="#/day/${esc(date)}">
+      <a class="mobile-back" href="/day/${esc(date)}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
         Briefings
       </a>
@@ -837,7 +1003,7 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
           setActiveTab(activeTabIdx - 1);
         } else {
           trackEvent("navigate_swipe", "Mobile Deep Dive", "Swipe Exit Briefings");
-          location.hash = `#/day/${date}`;
+          navigate(`/day/${date}`);
         }
       } else {
         // swipe left -> next card
@@ -846,7 +1012,7 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
           setActiveTab(activeTabIdx + 1);
         } else if (storyIdx < stories.length - 1) {
           trackEvent("navigate_swipe", "Mobile Deep Dive", "Swipe Next Briefing", stories[storyIdx + 1].headline);
-          location.hash = `#/story/${date}/${stories[storyIdx + 1].id}`;
+          navigate(`/story/${date}/${stories[storyIdx + 1].id}`);
         }
       }
     }
@@ -868,7 +1034,7 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
       setActiveTab(activeTabIdx - 1);
     } else {
       trackEvent("navigate_button", "Mobile Deep Dive", "Exit Button");
-      location.hash = `#/day/${date}`;
+      navigate(`/day/${date}`);
     }
   });
 
@@ -878,7 +1044,7 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
       setActiveTab(activeTabIdx + 1);
     } else if (storyIdx < stories.length - 1) {
       trackEvent("navigate_button", "Mobile Deep Dive", "Next Briefing Button", stories[storyIdx + 1].headline);
-      location.hash = `#/story/${date}/${stories[storyIdx + 1].id}`;
+      navigate(`/story/${date}/${stories[storyIdx + 1].id}`);
     }
   });
 
@@ -956,8 +1122,8 @@ function wireEngagementEvents(container, s) {
    DESKTOP LAYOUT — sidebar + scrollable sections
    ══════════════════════════════════════════════════════════════ */
 function renderDesktopLayout(slides, s, date, storyIdx, stories) {
-  const toc = stories.map((st,i)=>`
-    <button class="sidebar-item ${i===storyIdx?"active":""}"
+  const toc = stories.slice(0, 5).map((st, i) => `
+    <button class="sidebar-item ${i === storyIdx ? 'active' : ''}" 
             data-id="${esc(st.id)}" aria-label="${esc(st.headline)}">
       <span class="sidebar-num">${String(i+1).padStart(2,"0")}</span>
       <span class="sidebar-title">${esc(st.headline)}</span>
@@ -966,11 +1132,9 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
   // Cover slide is shown as headline+tldr above; skip it in the section list.
   // Magazine layout: top is 2-col flex masonry, deep sections span full width.
   const sections = slides.filter(sl => sl.id !== "cover");
-  // Sections that read better at full width:
-  const fullWidthIds = new Set(["blindspot","context","simple","sources"]);
+  const fullWidthIds = new Set(["context","blindspot"]);
   // Estimated content density per section type for balanced 2-col distribution
-  const weight = { "5w1h": 6, "perspectives": 5, "facts": 3, "editorial": 3,
-                   "impact": 3, "timeline": 3, "strategic": 2 };
+  const weight = { "exec_summary": 3, "situational": 6, "perspectives": 6, "facts": 3, "impact": 4, "context": 4, "blindspot": 4 };
   const grid = sections.filter(s => !fullWidthIds.has(s.id));
   const fullWidth = sections.filter(s => fullWidthIds.has(s.id));
 
@@ -1000,7 +1164,7 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
   wrap.innerHTML = `
     <aside class="story-sidebar">
       <div class="sidebar-hdr">
-        <a class="sidebar-back" href="#">← Home</a>
+        <a class="sidebar-back" href="/">← Home</a>
         <span class="sidebar-date">${fmtHeaderDate(date).toUpperCase()}</span>
       </div>
       <div class="sidebar-list">${toc}</div>
@@ -1024,17 +1188,25 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
         </div>
 
         <section class="story-dossier">
+          <div class="desktop-cover-visual" style="background-color: ${semanticGraphicBg(s)}; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+            ${semanticGraphic(s, 0)}
+          </div>
           <div class="dossier-copy">
             <span class="detail-region ${(s.region||"").toLowerCase()}">${esc((s.region||"").toUpperCase())}</span>
             <h1 class="detail-headline">${esc(s.headline)}</h1>
             <p class="detail-tldr">${esc(s.tldr)}</p>
+            ${s.simple_explanation ? `
+            <div class="editorial-block" style="margin-top: 24px; max-width: 68ch;">
+              <div class="editorial-label">In Plain English</div>
+              <p class="slide-prose" style="margin-top: 8px;">${esc(s.simple_explanation)}</p>
+            </div>` : ""}
           </div>
         </section>
         ${allSections}
 
         <div class="desktop-story-nav">
-          ${storyIdx > 0 ? `<a class="story-nav-btn prev" href="#/story/${date}/${stories[storyIdx-1].id}">← ${esc(stories[storyIdx-1].headline.slice(0,50))}…</a>` : "<span></span>"}
-          ${storyIdx < stories.length-1 ? `<a class="story-nav-btn next" href="#/story/${date}/${stories[storyIdx+1].id}">${esc(stories[storyIdx+1].headline.slice(0,50))}… →</a>` : "<span></span>"}
+          ${storyIdx > 0 ? `<a class="story-nav-btn prev" href="/story/${date}/${stories[storyIdx-1].id}">← ${esc(stories[storyIdx-1].headline.slice(0,50))}…</a>` : "<span></span>"}
+          ${storyIdx < Math.min(stories.length, 5)-1 ? `<a class="story-nav-btn next" href="/story/${date}/${stories[storyIdx+1].id}">${esc(stories[storyIdx+1].headline.slice(0,50))}… →</a>` : "<span></span>"}
         </div>
       </div>
     </div>`;
@@ -1042,7 +1214,7 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
   wrap.querySelectorAll(".sidebar-item").forEach(btn => {
     btn.addEventListener("click", () => {
       trackEvent("navigate_sidebar", "Desktop Sidebar", btn.dataset.id);
-      location.hash = `#/story/${date}/${btn.dataset.id}`;
+      navigate(`/story/${date}/${btn.dataset.id}`);
     });
   });
 
@@ -1079,44 +1251,34 @@ async function renderHome(date) {
   const hero = $("hero");
   hero.classList.remove("hidden");
   $("hero-title-h1").textContent = fmtLong(date);
-  $("hero-meta").textContent = payload.stories.length + " stories" + (isLatest?"":" · Archive");
+  $("hero-meta").textContent = isLatest ? "The 5 Stories That Matter Today" : "Curated Daily Briefings · Archive";
 
   const pastBanner = isLatest ? "" : `
     <div class="past-day-banner">
       <span>📅 Viewing archive for ${fmtLong(date)}</span>
-      <a href="#">← Today</a>
+      <a href="/">← Today</a>
     </div>`;
 
-  const cards = payload.stories.slice(1).map((s,i) => {
+  const cards = payload.stories.slice(0, 5).map((s,i) => {
     const region = (s.region||"global").toLowerCase();
-    const sourceCount = (s.sources||[]).length;
     const readMin = readMinutes(s);
-    const conf = (s.confidence?.level||"").toLowerCase();
-    const terms = keyPhrase(`${s.headline} ${s.tldr}`).slice(0, 2);
     return `
       <div class="story-card" data-id="${esc(s.id)}" data-date="${esc(date)}"
            data-region="${esc(region)}" role="button" tabindex="0">
+        ${storyVisual(s, i)}
         <div class="card-accent"></div>
         <div class="card-body">
           <div class="card-top">
-            <span class="card-num">${String(i+2).padStart(2,"0")}</span>
+            <span class="card-num">${String(i+1).padStart(2,"0")}</span>
             <span class="card-region">${esc(region.toUpperCase())}</span>
           </div>
           <h2 class="card-headline">${esc(s.headline)}</h2>
           ${s.tldr ? `<p class="card-tldr">${esc(s.tldr)}</p>` : ""}
-          <div class="card-tags">
-            ${terms.map(t => `<span class="card-tag">${esc(t)}</span>`).join("")}
-          </div>
-          <div class="card-source-bar-wrapper">
-            ${miniSourceBar(s.sources)}
-          </div>
           <div class="card-footer">
             <span class="card-stats">
               ${ICON.clock}<span>${readMin} min</span>
-              <span class="card-stats-sep">·</span>
-              ${ICON.link}<span>${sourceCount} source${sourceCount!==1?"s":""}</span>
             </span>
-            <span class="card-arrow">Deep dive →</span>
+            <span class="card-arrow">Open Briefing →</span>
           </div>
         </div>
       </div>`;
@@ -1125,7 +1287,6 @@ async function renderHome(date) {
   app.innerHTML = `
     <div class="stories-section">
       ${pastBanner}
-      ${renderBriefingBoard(payload)}
       <div class="stories-grid">${cards}</div>
     </div>
     ${renderTimeMachine(date)}`;
@@ -1133,7 +1294,7 @@ async function renderHome(date) {
   app.querySelectorAll(".story-card").forEach(card => {
     const go = () => {
       trackEvent("click_brief_card", "Home Grid", card.dataset.id);
-      location.hash=`#/story/${card.dataset.date}/${card.dataset.id}`;
+      navigate(`/story/${card.dataset.date}/${card.dataset.id}`);
     };
     card.onclick = go;
     card.onkeydown = e => { if(e.key==="Enter"||e.key===" ") go(); };
@@ -1141,13 +1302,13 @@ async function renderHome(date) {
   app.querySelectorAll(".tm-card").forEach(btn => {
     btn.onclick = () => {
       trackEvent("click_time_machine", "Time Machine", btn.dataset.date);
-      location.hash=`#/day/${btn.dataset.date}`;
+      navigate(`/day/${btn.dataset.date}`);
     };
   });
   app.querySelector(".past-day-banner a")?.addEventListener("click", e => {
     e.preventDefault();
     trackEvent("click_archive_banner_back", "Home Grid", "Back to Today");
-    location.hash="";
+    navigate("/");
   });
 
   stopProgress();
@@ -1194,7 +1355,7 @@ async function renderStory(date, id) {
   $("header-date").textContent = fmtHeaderDate(date).toUpperCase();
   $("hero").classList.add("hidden");
 
-  const slides = buildSlides(s);
+  const slides = buildSlides(s, date);
   const isMobile = window.innerWidth < 768;
 
   app.innerHTML = "";
@@ -1209,13 +1370,13 @@ async function renderStory(date, id) {
 
 /* ── Router ────────────────────────────────────────────────── */
 async function route() {
-  const h = location.hash.slice(1);
+  const p = location.pathname.replace(/\/+$/, "") || "/";
   app.innerHTML=`<div class="loading-screen"><div class="spinner"></div></div>`;
   $("hero").classList.add("hidden");
   stopProgress();
   try {
-    const m = h.match(/^\/story\/([^/]+)\/(.+)$/);
-    const d = h.match(/^\/day\/([^/]+)$/);
+    const m = p.match(/^\/story\/([^/]+)\/(.+)$/);
+    const d = p.match(/^\/day\/([^/]+)$/);
     if (m) return await renderStory(decodeURIComponent(m[1]), decodeURIComponent(m[2]));
     if (d) return await renderHome(decodeURIComponent(d[1]));
     return await renderHome(null);
@@ -1225,5 +1386,13 @@ async function route() {
   }
 }
 
-window.addEventListener("hashchange", route);
+window.addEventListener("popstate", route);
+document.body.addEventListener("click", e => {
+  const a = e.target.closest("a");
+  if (a && a.href && a.href.startsWith(window.location.origin) && !a.hasAttribute("target")) {
+    e.preventDefault();
+    history.pushState(null, "", a.href);
+    route();
+  }
+});
 route();

@@ -7,3 +7,6 @@ venv/
 node_modules/
 .cache/
 .claude/
+scratch/
+test.js
+

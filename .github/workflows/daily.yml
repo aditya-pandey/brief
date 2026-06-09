@@ -33,13 +33,13 @@ jobs:
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           # GROQ_MODEL: openai/gpt-oss-120b   # optional override
-        run: node pipeline/generate.js
+        run: npm run generate
 
       - name: Commit & push if changed
         run: |
           git config user.name  "briefing-bot"
           git config user.email "actions@github.com"
-          git add data/
+          git add data/ og-images/ story/ day/
           if git diff --staged --quiet; then
             echo "No changes to commit."
           else

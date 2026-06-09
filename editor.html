@@ -646,12 +646,7 @@
         }
       }
 
-      const confRaw = sec["confidence assessment"] || sec["confidence"] || "";
-      const confMatch = confRaw.match(/\*\*(high|medium|low)\*\*/i) || confRaw.match(/^(high|medium|low)\b/i);
-      const confidence = {
-        level: confMatch ? confMatch[1].charAt(0).toUpperCase() + confMatch[1].slice(1).toLowerCase() : "Medium",
-        notes: stripMd(confRaw.replace(/\*\*(high|medium|low)\*\*\.?\s*/i, "")).slice(0, 300),
-      };
+
 
       const headline = stripMd(rawTitle);
       const allText = [tldr, situational_analysis.what, situational_analysis.where, headline].join(" ");
@@ -672,7 +667,6 @@
         context_background,
         timeline,
         simple_explanation,
-        confidence,
         sources,
       };
     }
@@ -1030,13 +1024,7 @@
           
           <!-- Sources -->
           <div class="section">
-            <div class="sec-label">Sources & Confidence</div>
-            <div class="confidence-card" style="margin-bottom: 16px;">
-              <div class="confidence-head">
-                <span class="confidence-label">Confidence: <strong>${story.confidence?.level || "Medium"}</strong></span>
-              </div>
-              <div class="confidence-notes" style="font-size: 14px;">${story.confidence?.notes || ""}</div>
-            </div>
+            <div class="sec-label">Sources Used</div>
             <div class="section-card">
               <ul class="sources-list">
                 ${sources.map(src => `

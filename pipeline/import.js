@@ -203,13 +203,7 @@ function parseStory(frontBlock, index) {
     }
   }
 
-  // Confidence
-  const confRaw = sec["confidence assessment"] || sec["confidence"] || "";
-  const confMatch = confRaw.match(/\*\*(high|medium|low)\*\*/i) || confRaw.match(/^(high|medium|low)\b/i);
-  const confidence = {
-    level: confMatch ? confMatch[1].charAt(0).toUpperCase() + confMatch[1].slice(1).toLowerCase() : "Medium",
-    notes: stripMd(confRaw.replace(/\*\*(high|medium|low)\*\*\.?\s*/i, "")).slice(0, 300),
-  };
+
 
   // Headline — use raw title from front header
   const headline = stripMd(rawTitle);
@@ -233,31 +227,11 @@ function parseStory(frontBlock, index) {
     context_background,
     timeline,
     simple_explanation,
-    confidence,
     sources,
   };
 }
 
-// ── Master recap parser ────────────────────────────────────────────────────────
 
-function parseRecap(md) {
-  const tableMatch = md.match(/\|.*Primary Catalyst[\s\S]+?(?=\n\n|$)/i);
-  if (!tableMatch) return [];
-  const rows = [];
-  for (const line of tableMatch[0].split("\n")) {
-    if (line.startsWith("|---") || line.toLowerCase().includes("primary catalyst")) continue;
-    const cells = line.split("|").map(c => stripMd(c.trim())).filter(Boolean);
-    if (cells.length >= 3) {
-      rows.push({
-        front:            cells[0],
-        primary_catalyst: cells[1],
-        core_threat:      cells[2],
-        horizon:          cells[3] || "",
-      });
-    }
-  }
-  return rows;
-}
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 
@@ -310,20 +284,16 @@ function run() {
     process.exit(1);
   }
 
-  // Parse the master recap table if present
-  const recap = parseRecap(input);
-
   const payload = {
     date:         today,
     generated_at: new Date().toISOString(),
     source:       "gemini-app",
-    recap,
     stories,
   };
 
   mkdirSync(DATA_DIR, { recursive: true });
   writeFileSync(outPath, JSON.stringify(payload, null, 2));
-  console.log(`\n   wrote ${outPath} (${stories.length} stories${recap.length ? ", recap table included" : ""})`);
+  console.log(`\n   wrote ${outPath} (${stories.length} stories)`);
 
   refreshIndex();
   console.log("== Done ==");
