@@ -2508,7 +2508,7 @@ body:has(.deck-container) #site-footer { display: none; }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 24px calc(24px + env(safe-area-inset-bottom, 16px));
+    padding: 10px 20px calc(14px + env(safe-area-inset-bottom, 10px));
     background: var(--bg-card);
     border-top: 1px solid var(--rule);
     flex-shrink: 0;
@@ -2517,8 +2517,8 @@ body:has(.deck-container) #site-footer { display: none; }
   }
 
   .mobile-footer-btn {
-    width: 44px;
-    height: 44px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     border: 1px solid var(--rule);
     background: var(--bg);
@@ -2728,20 +2728,25 @@ body:has(.mobile-story-layout) {
 .mobile-top-share-bar {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .m-share-icon-btn {
   border: none;
   background: transparent;
   color: var(--accent);
-  font-size: 17px;
+  font-size: 15px;
   cursor: pointer;
-  padding: 6px;
+  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: opacity 0.2s ease;
+}
+
+.m-share-icon-btn svg {
+  width: 14px !important;
+  height: 14px !important;
 }
 
 .m-share-icon-btn:active {
