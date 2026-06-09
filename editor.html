@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Briefing — Admin Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Admin Portal extensions */
+    .admin-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 24px 16px 80px;
+    }
+    .admin-card {
+      background: var(--bg-card);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 24px;
+    }
+    .admin-title {
+      font-family: var(--serif);
+      font-weight: 900;
+      font-size: 28px;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+    .admin-subtitle {
+      font-family: var(--sans);
+      font-size: 13px;
+      color: var(--ink-3);
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--ink-2);
+      font-weight: 600;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .input-textarea {
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 14px;
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 250px;
+      width: 100%;
+      resize: vertical;
+      line-height: 1.5;
+    }
+    .input-text, .input-date {
+      font-family: var(--sans);
+      font-size: 14px;
+      padding: 10px 12px;
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--ink);
+      width: 100%;
+    }
+    .input-text-mono {
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+    .input-textarea:focus, .input-text:focus, .input-date:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .btn {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding: 12px 20px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background .15s, transform .1s;
+    }
+    .btn:hover {
+      background: var(--accent-2);
+    }
+    .btn:disabled {
+      background: var(--rule);
+      color: var(--ink-3);
+      cursor: not-allowed;
+    }
+    .btn-secondary {
+      background: var(--bg-2);
+      color: var(--ink);
+      border: 1px solid var(--rule);
+    }
+    .btn-secondary:hover {
+      background: var(--rule);
+    }
+    .tab-container {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 10px 12px;
+      background: none;
+      border: none;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-3);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      white-space: nowrap;
+    }
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+    }
+    /* Settings panel */
+    .settings-panel {
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-bottom: 20px;
+      background: var(--bg-card-h);
+    }
+    .settings-header {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .settings-header.active {
+      margin-bottom: 14px;
+    }
+    /* Publish logging console */
+    .console-log {
+      background: #0f1216;
+      color: #39ff14;
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      max-height: 180px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      border: 1px solid #303844;
+      line-height: 1.5;
+    }
+    .console-line {
+      margin-bottom: 4px;
+    }
+    .console-line.err {
+      color: #ff3333;
+    }
+
+    @media (max-width: 600px) {
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .admin-card {
+        padding: 16px;
+      }
+      .admin-title {
+        font-size: 24px;
+      }
+      .btn {
+        width: 100%;
+      }
+      .button-group {
+        flex-direction: column;
+      }
+    }
+
+    /* Preview Modal */
+    .preview-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .preview-modal-content {
+      background: var(--bg);
+      color: var(--ink);
+      width: 100%;
+      max-width: 900px;
+      height: 90vh;
+      border-radius: var(--radius);
+      border: 1px solid var(--rule);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: zoomIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .preview-modal-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--rule);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-card-h);
+      flex-shrink: 0;
+    }
+    .preview-modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    @keyframes zoomIn {
+      from { transform: scale(0.96); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Sticky nav ─────────────────────────────── -->
+  <header id="site-header">
+    <div class="header-inner">
+      <a class="wordmark" href="index.html">The Briefing</a>
+      <div class="header-right">
+        <a href="index.html" class="back-link" style="margin-bottom: 0; font-size: 11px;">View Site</a>
+        <button id="theme-toggle" aria-label="Toggle dark mode">
+          <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Admin Container ────────────────────────── -->
+  <main class="admin-container">
+    <div class="admin-card">
+      <h1 class="admin-title">Admin Briefing Portal</h1>
+      <p class="admin-subtitle">Paste the Gemini briefing or JSON to automatically commit updates to your GitHub repository.</p>
+
+      <!-- GitHub Configuration Panel -->
+      <div class="settings-panel">
+        <div class="settings-header" onclick="toggleSettings()">
+          <span>GitHub Sync Configuration</span>
+          <span id="settings-toggle-icon">▼</span>
+        </div>
+        <div id="settings-fields">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="gh-owner">Repository Owner (GitHub Username)</label>
+              <input type="text" id="gh-owner" class="input-text" placeholder="e.g. aditya-pandey" />
+            </div>
+            <div class="form-group">
+              <label for="gh-repo">Repository Name</label>
+              <input type="text" id="gh-repo" class="input-text" placeholder="e.g. brief" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="gh-token">Personal Access Token (fine-grained or classic with 'repo' scope)</label>
+            <input type="password" id="gh-token" class="input-text input-text-mono" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+          </div>
+          <button class="btn btn-secondary" onclick="saveSettings()">Save Configuration</button>
+        </div>
+      </div>
+
+      <div class="tab-container">
+        <button class="tab-btn active" onclick="switchTab('markdown')">GEMINI MARKDOWN</button>
+        <button class="tab-btn" onclick="switchTab('json')">RAW JSON</button>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="briefing-date">Target Date</label>
+          <input type="date" id="briefing-date" class="input-date" />
+        </div>
+      </div>
+
+      <!-- Tab 1: Markdown Parser -->
+      <div id="pane-markdown" class="tab-pane active">
+        <div class="form-group">
+          <label for="raw-markdown">Paste Gemini Output</label>
+          <textarea id="raw-markdown" class="input-textarea" placeholder="Paste the full markdown output returned by the Gemini app daily briefing prompt..."></textarea>
+        </div>
+      </div>
+
+      <!-- Tab 2: Raw JSON -->
+      <div id="pane-json" class="tab-pane">
+        <div class="form-group">
+          <label for="raw-json">Paste Briefing JSON</label>
+          <textarea id="raw-json" class="input-textarea" placeholder="Paste the daily briefing JSON payload directly..."></textarea>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-top: 12px;">
+        <button class="btn" id="btn-parse" onclick="runPipeline(false)">Parse & Preview</button>
+        <button class="btn" id="btn-publish" onclick="runPipeline(true)" style="background: var(--green);">Publish to GitHub</button>
+      </div>
+    </div>
+
+    <!-- Logger Console -->
+    <div id="logger-section" style="display: none;">
+      <h2 class="admin-title" style="font-size: 18px; margin-bottom: 12px; font-family: var(--mono); letter-spacing: 0.05em;">Console Output</h2>
+      <div class="console-log" id="console-log"></div>
+    </div>
+
+    <!-- Preview Results -->
+    <div id="results-section" class="import-results" style="display: none;">
+      <h2 class="admin-title" style="font-size: 20px; margin-bottom: 16px;">Briefing Cards Preview</h2>
+      <div class="stories-section">
+        <div id="preview-stories" class="stories-grid"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── Footer ────────────────────────────────── -->
+  <footer id="site-footer">
+    <div class="footer-inner">
+      <span class="footer-brand">The Briefing</span>
+      <span class="footer-copy">Update and maintain daily intelligence reports seamlessly.</span>
+    </div>
+  </footer>
+
+  <script>
+    // Theme setup matching app.js
+    const saved = localStorage.getItem("theme");
+    if (saved) document.documentElement.setAttribute("data-theme", saved);
+    document.getElementById("theme-toggle").onclick = () => {
+      const next = document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("theme", next);
+    };
+
+    // Set today's date as default
+    document.getElementById("briefing-date").value = new Date().toISOString().slice(0, 10);
+
+    // Load Configuration Settings
+    function loadSettings() {
+      // Auto detect from URL if hosted on github.io
+      const host = window.location.hostname;
+      const path = window.location.pathname;
+      let detectedOwner = "";
+      let detectedRepo = "";
+
+      if (host.endsWith("github.io")) {
+        detectedOwner = host.split(".")[0];
+        const parts = path.split("/").filter(Boolean);
+        if (parts.length > 0) {
+          detectedRepo = parts[0];
+        }
+      }
+
+      document.getElementById("gh-owner").value = localStorage.getItem("gh-owner") || detectedOwner;
+      document.getElementById("gh-repo").value = localStorage.getItem("gh-repo") || detectedRepo;
+      document.getElementById("gh-token").value = localStorage.getItem("gh-token") || "";
+
+      // Hide settings fields if configuration already exists
+      if (localStorage.getItem("gh-token")) {
+        document.getElementById("settings-fields").style.display = "none";
+        document.getElementById("settings-toggle-icon").textContent = "▲";
+      }
+    }
+    loadSettings();
+
+    function toggleSettings() {
+      const fields = document.getElementById("settings-fields");
+      const icon = document.getElementById("settings-toggle-icon");
+      if (fields.style.display === "none") {
+        fields.style.display = "block";
+        icon.textContent = "▼";
+      } else {
+        fields.style.display = "none";
+        icon.textContent = "▲";
+      }
+    }
+
+    function saveSettings() {
+      localStorage.setItem("gh-owner", document.getElementById("gh-owner").value.trim());
+      localStorage.setItem("gh-repo", document.getElementById("gh-repo").value.trim());
+      localStorage.setItem("gh-token", document.getElementById("gh-token").value.trim());
+      alert("Configuration saved successfully!");
+      toggleSettings();
+    }
+
+    // Logger helpers
+    function log(msg, isErr = false) {
+      const cons = document.getElementById("console-log");
+      const line = document.createElement("div");
+      line.className = "console-line" + (isErr ? " err" : "");
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      cons.appendChild(line);
+      cons.scrollTop = cons.scrollHeight;
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+      document.querySelectorAll(".tab-pane").forEach(pane => pane.classList.remove("active"));
+
+      if (tab === "markdown") {
+        document.querySelector(".tab-btn:nth-child(1)").classList.add("active");
+        document.getElementById("pane-markdown").classList.add("active");
+      } else {
+        document.querySelector(".tab-btn:nth-child(2)").classList.add("active");
+        document.getElementById("pane-json").classList.add("active");
+      }
+    }
+
+    // Parse utilities (reused from import.js)
+    function slug(text) {
+      return text.toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 60) || "story";
+    }
+
+    function stripMd(s = "") {
+      return s
+        .replace(/\*\*([^*]+)\*\*/g, "$1")
+        .replace(/\*([^*]+)\*/g, "$1")
+        .replace(/^#+\s*/gm, "")
+        .trim();
+    }
+
+    function parseSections(md) {
+      const map = {};
+      const parts = md.split(/\n###\s+/);
+      for (const part of parts) {
+        const nl = part.indexOf("\n");
+        if (nl === -1) continue;
+        const key = part.slice(0, nl).trim().toLowerCase();
+        const body = part.slice(nl + 1).trim();
+        map[key] = body;
+      }
+      return map;
+    }
+
+    function parseBullets(text = "") {
+      const result = {};
+      const lines = text.split("\n");
+      let lastKey = null;
+      for (const line of lines) {
+        const m = line.match(/^\*\s+\*\*([^*:]+)[*:]+\*?\*?\s*(.*)/);
+        if (m) {
+          lastKey = m[1].trim().toLowerCase();
+          result[lastKey] = stripMd(m[2].trim());
+        } else if (lastKey && line.trim() && !line.startsWith("*")) {
+          result[lastKey] += " " + stripMd(line.trim());
+        }
+      }
+      return result;
+    }
+
+    function parseBulletList(text = "") {
+      return text.split("\n")
+        .map(l => l.replace(/^\*+\s*/, "").trim())
+        .filter(l => l.length > 2)
+        .map(stripMd);
+    }
+
+    function detectRegion(title = "", content = "") {
+      const combined = (title + " " + content).toLowerCase();
+      const indiaSignals = [
+        "india", "indian", "delhi", "mumbai", "modi", "bjp", "congress",
+        "rupee", "₹", "nda", "lok sabha", "rajya sabha", "supreme court of india",
+        "rbi", "isro", "neet", "iit", "ias", "ips", "kerala", "maharashtra",
+        "rajasthan", "gujarat", "tamil", "bengal", "assam", "manipur", "punjab",
+        "andhra", "telangana", "karnataka", "odisha", "jharkhand", "chhattisgarh",
+        "uttarakhand", "himachal", "jammu", "kashmir", "northeast india",
+      ];
+      const hits = indiaSignals.filter(s => combined.includes(s)).length;
+      return hits >= 2 ? "india" : "global";
+    }
+
+    function parseStory(frontBlock, index) {
+      // Clean up start and match "Front N: Title" or "N. Title"
+      const cleanBlock = frontBlock.trim().replace(/^#+\s*/, "");
+      const titleMatch = cleanBlock.match(/^(?:Front\s+)?\[?\d+\]?[:.]?\s*(.+)/i);
+      const rawTitle = titleMatch ? titleMatch[1].trim() : `Story ${index + 1}`;
+      const sec = parseSections(frontBlock);
+
+      const tldr = stripMd(sec["tl;dr"] || sec["tldr"] || "");
+
+      const w = parseBullets(sec["5w1h breakdown"] || sec["5w1h"] || "");
+      const situational_analysis = {
+        what:  w["what"]  || "",
+        why:   w["why"]   || "",
+        who:   w["who"]   || "",
+        when:  w["when & where"] || w["when"]  || "",
+        where: w["where"] || w["when & where"] || "",
+        how:   w["how"]   || "",
+      };
+
+      const strategic_assessment = stripMd(sec["strategic assessment"] || sec["impact analysis"] || "");
+
+      const pmRaw = sec["multi-perspective coverage"] || sec["perspective matrix"] || "";
+      const pm = parseBullets(pmRaw);
+      const perspective_matrix = {
+        western_international: pm["western / international media view"] || pm["western/international"] || pm["international"] || "",
+        indian_media:          pm["indian media view"] || pm["indian media"] || "",
+        left_leaning:          pm["left-leaning narrative"] || pm["left-leaning"] || pm["left"] || "",
+        center:                pm["center narrative"] || pm["center"] || pm["centrist"] || "",
+        right_leaning:         pm["right-leaning narrative"] || pm["right-leaning"] || pm["right"] || "",
+      };
+
+      // Fallback for paragraph-based perspective layouts
+      if (!perspective_matrix.western_international && !perspective_matrix.indian_media) {
+        const paragraphs = pmRaw.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+        if (paragraphs.length >= 1) perspective_matrix.western_international = paragraphs[0];
+        if (paragraphs.length >= 2) perspective_matrix.indian_media = paragraphs[1];
+        if (paragraphs.length >= 3) {
+          const p3 = paragraphs[2];
+          const rightIndex = p3.toLowerCase().indexOf("right-leaning");
+          if (rightIndex > 0) {
+            perspective_matrix.left_leaning = p3.slice(0, rightIndex).trim();
+            perspective_matrix.right_leaning = p3.slice(rightIndex).trim();
+          } else {
+            perspective_matrix.left_leaning = p3;
+          }
+        }
+      }
+
+      const fvRaw = sec["key facts vs claims"] || sec["facts vs claims"] || "";
+      const fvBullets = parseBullets(fvRaw);
+      const facts_vs_claims = {
+        facts:  fvBullets["facts"] ? [fvBullets["facts"]] :
+                parseBulletList((fvRaw.match(/\*\*facts[^:]*\*\*[:\n]+([\s\S]*?)(?=\*\*|$)/i) || [])[1] || ""),
+        claims: fvBullets["claims / disputed points"] || fvBullets["claims"] ?
+                [fvBullets["claims / disputed points"] || fvBullets["claims"]] :
+                parseBulletList((fvRaw.match(/\*\*claims[^:]*\*\*[:\n]+([\s\S]*?)(?=\*\*|$)/i) || [])[1] || ""),
+      };
+
+      const blind_spot = stripMd(
+        sec["blind spots / underreported angles"] ||
+        sec["blind spot"] ||
+        sec["underreported angles"] || ""
+      );
+
+      const eiRaw = sec["editorial & expert insight"] || sec["editorial and expert insight"] || "";
+      const ei = parseBullets(eiRaw);
+      const editorial_expert_insight = {
+        opinion:  ei["opinion"]  || "",
+        analysis: ei["analysis"] || "",
+      };
+
+      // Fallback for editorial insight paragraphs/blockquotes
+      if (!editorial_expert_insight.opinion && !editorial_expert_insight.analysis) {
+        const cleanEi = eiRaw.replace(/^>\s*/gm, "").trim();
+        if (cleanEi.toLowerCase().includes("analysis:")) {
+          const parts = cleanEi.split(/analysis:/i);
+          if (parts[0].toLowerCase().includes("opinion:")) {
+            editorial_expert_insight.opinion = parts[0].replace(/opinion:/i, "").trim();
+          }
+          editorial_expert_insight.analysis = parts[1].trim();
+        } else if (cleanEi.toLowerCase().includes("opinion:")) {
+          editorial_expert_insight.opinion = cleanEi.replace(/opinion:/i, "").trim();
+        } else {
+          editorial_expert_insight.analysis = cleanEi;
+        }
+      }
+
+      const impactRaw = sec["impact analysis"] || "";
+      const stakeholder_impact = parseBulletList(impactRaw).map(line => {
+        const colon = line.indexOf(":");
+        if (colon > 0 && colon < 60) {
+          return { stakeholder: line.slice(0, colon).trim(), impact: line.slice(colon + 1).trim() };
+        }
+        return { stakeholder: "General", impact: line };
+      }).filter(x => x.impact);
+
+      const context_background = stripMd(
+        sec["context & background"] ||
+        sec["context and background"] ||
+        sec["background"] || ""
+      );
+
+      const tlRaw = sec["timeline"] || sec["timeline & historical context"] || "";
+      const timeline = parseBulletList(tlRaw).map(line => {
+        const m = line.match(/^([^:–—]+)[:–—]\s*(.*)/);
+        return m ? { when: m[1].trim(), event: m[2].trim() } : { when: "–", event: line };
+      }).filter(x => x.event);
+
+      const simple_explanation = stripMd(sec["simple explanation"] || "");
+
+      const sourcesRaw = sec["sources & transparency"] || sec["sources and transparency"] || "";
+      const sources = [];
+      const knownOutlets = [
+        "al jazeera", "bbc", "reuters", "the hindu", "indian express", "ndtv",
+        "times of india", "hindustan times", "india today", "opindia", "the guardian",
+        "dw", "new york times", "washington post", "bloomberg", "financial times",
+        "haaretz", "associated press", "ap ", "miami herald", "the economist",
+        "business standard", "mint", "economic times", "scroll", "the wire",
+        "first post", "news18", "zee news", "republic", "deccan herald",
+      ];
+      for (const outlet of knownOutlets) {
+        if (sourcesRaw.toLowerCase().includes(outlet)) {
+          const name = outlet.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+          if (!sources.find(s => s.outlet.toLowerCase() === outlet)) {
+            sources.push({ outlet: name, lean: "center", region: "global", title: "", url: "#" });
+          }
+        }
+      }
+
+      const confRaw = sec["confidence assessment"] || sec["confidence"] || "";
+      const confMatch = confRaw.match(/\*\*(high|medium|low)\*\*/i) || confRaw.match(/^(high|medium|low)\b/i);
+      const confidence = {
+        level: confMatch ? confMatch[1].charAt(0).toUpperCase() + confMatch[1].slice(1).toLowerCase() : "Medium",
+        notes: stripMd(confRaw.replace(/\*\*(high|medium|low)\*\*\.?\s*/i, "")).slice(0, 300),
+      };
+
+      const headline = stripMd(rawTitle);
+      const allText = [tldr, situational_analysis.what, situational_analysis.where, headline].join(" ");
+      const region = detectRegion(headline, allText);
+
+      return {
+        id: slug(headline),
+        headline,
+        tldr,
+        region,
+        situational_analysis,
+        strategic_assessment,
+        perspective_matrix,
+        facts_vs_claims,
+        blind_spot,
+        editorial_expert_insight,
+        stakeholder_impact,
+        context_background,
+        timeline,
+        simple_explanation,
+        confidence,
+        sources,
+      };
+    }
+
+    function parseRecap(md) {
+      const tableMatch = md.match(/\|.*Primary Catalyst[\s\S]+?(?=\n\n|$)/i);
+      if (!tableMatch) return [];
+      const rows = [];
+      for (const line of tableMatch[0].split("\n")) {
+        if (line.startsWith("|---") || line.toLowerCase().includes("primary catalyst")) continue;
+        const cells = line.split("|").map(c => stripMd(c.trim())).filter(Boolean);
+        if (cells.length >= 3) {
+          rows.push({
+            front:            cells[0],
+            primary_catalyst: cells[1],
+            core_threat:      cells[2],
+            horizon:          cells[3] || "",
+          });
+        }
+      }
+      return rows;
+    }
+
+    // Pipeline orchestration
+    async function runPipeline(shouldPublish = false) {
+      try {
+        const date = document.getElementById("briefing-date").value;
+        if (!date) {
+          alert("Please select a target date.");
+          return;
+        }
+
+        // 1. Get input
+        let stories = [];
+        let recap = [];
+        const isMd = document.querySelector(".tab-btn:nth-child(1)").classList.contains("active");
+
+        document.getElementById("logger-section").style.display = "block";
+        const cons = document.getElementById("console-log");
+        cons.innerHTML = "";
+        log("Initializing processing pipeline...");
+
+        if (isMd) {
+          const md = document.getElementById("raw-markdown").value;
+          if (!md.trim()) {
+            log("Error: Text input is empty.", true);
+            return;
+          }
+          log("Parsing Markdown source...");
+          const frontBlocks = md.split(/\n##\s+(?=(?:Front\s+)?\[?\d+\]?)/i).filter(b => b.trim());
+          for (const block of frontBlocks) {
+            if (!block.match(/^(?:Front\s+)?\[?\d+\]?/i)) continue;
+            try {
+              const story = parseStory(block, stories.length);
+              stories.push(story);
+              log(`Parsed: [${story.region.toUpperCase()}] ${story.headline}`);
+            } catch (err) {
+              log(`Warning: Failed to parse block: ${err.message}`, true);
+            }
+          }
+          recap = parseRecap(md);
+        } else {
+          const rawJson = document.getElementById("raw-json").value;
+          if (!rawJson.trim()) {
+            log("Error: JSON input is empty.", true);
+            return;
+          }
+          try {
+            const payload = JSON.parse(rawJson);
+            stories = payload.stories || [];
+            recap = payload.recap || [];
+            log(`Loaded ${stories.length} stories directly from JSON.`);
+          } catch (err) {
+            log(`Error parsing JSON: ${err.message}`, true);
+            return;
+          }
+        }
+
+        if (stories.length === 0) {
+          log("Error: No stories successfully parsed.", true);
+          return;
+        }
+
+        const payload = {
+          date,
+          generated_at: new Date().toISOString(),
+          source: "gemini-app",
+          recap,
+          stories,
+        };
+
+        // Show live previews
+        displayPreviews(stories);
+        document.getElementById("results-section").style.display = "block";
+
+        if (shouldPublish) {
+          await publishToGitHub(date, payload);
+        }
+      } catch (err) {
+        log(`Fatal error running pipeline: ${err.message}`, true);
+        console.error(err);
+      }
+    }
+
+    function displayPreviews(stories) {
+      currentParsedStories = stories;
+      const container = document.getElementById("preview-stories");
+      container.innerHTML = "";
+      stories.forEach((story, idx) => {
+        const region = (story.region || "global").toLowerCase();
+        const conf = story.confidence?.level?.toLowerCase() || "medium";
+        const card = document.createElement("div");
+        card.className = "story-card";
+        card.dataset.region = region;
+        card.style.cursor = "pointer";
+        card.setAttribute("onclick", `openDeepDive(${idx})`);
+        card.innerHTML = `
+          <div class="card-accent"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="card-num">FRONT ${String(idx + 1).padStart(2, "0")}</span>
+              <span class="card-region">${region}</span>
+              <span class="card-conf-chip ${conf}"><span class="card-conf-dot"></span>${conf}</span>
+            </div>
+            <h3 class="card-headline">${story.headline}</h3>
+            <p class="card-tldr" style="-webkit-line-clamp: none; display: block; overflow: visible;">${story.tldr}</p>
+            <div style="font-family: var(--mono); font-size: 10px; color: var(--accent); margin-top: 8px; font-weight: bold; text-transform: uppercase;">
+              Click card to preview deep dive details &rarr;
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // GitHub API Integrator
+    async function publishToGitHub(date, payload) {
+      const owner = localStorage.getItem("gh-owner");
+      const repo = localStorage.getItem("gh-repo");
+      const token = localStorage.getItem("gh-token");
+
+      if (!owner || !repo || !token) {
+        log("Error: GitHub settings configuration is incomplete. Please fill and save the settings panel above.", true);
+        alert("GitHub configuration missing! Open the panel above to set it.");
+        return;
+      }
+
+      const headers = {
+        "Authorization": `token ${token}`,
+        "Content-Type": "application/json",
+        "Accept": "application/vnd.github.v3+json"
+      };
+
+      log("Authenticating and fetching latest index.json...");
+      let indexData = [];
+      let indexSha = null;
+
+      // 1. Fetch index.json (to get its SHA and current state)
+      try {
+        const indexRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/index.json`, { headers });
+        if (indexRes.ok) {
+          const indexJson = await indexRes.json();
+          indexSha = indexJson.sha;
+          const decodedIndex = atob(indexJson.content.replace(/\s/g, ''));
+          indexData = JSON.parse(decodedIndex);
+          log(`Successfully loaded remote index with ${indexData.length} records.`);
+        } else if (indexRes.status === 404) {
+          log("Notice: index.json not found on remote. Starting a new index.json.");
+        } else {
+          throw new Error(`Failed to load index.json (HTTP ${indexRes.status})`);
+        }
+      } catch (err) {
+        log(`Error: ${err.message}`, true);
+        return;
+      }
+
+      // Update local copy of index.json
+      const existingIdx = indexData.findIndex(x => x.date === date);
+      if (existingIdx >= 0) {
+        indexData[existingIdx].count = payload.stories.length;
+      } else {
+        indexData.push({ date, count: payload.stories.length });
+      }
+      indexData.sort((a, b) => b.date.localeCompare(a.date));
+
+      // 2. Write YYYY-MM-DD.json
+      log(`Writing daily file contents to data/${date}.json...`);
+      let dailyFileSha = null;
+      try {
+        const dailyFileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/${date}.json`, { headers });
+        if (dailyFileRes.ok) {
+          const dailyFileJson = await dailyFileRes.json();
+          dailyFileSha = dailyFileJson.sha;
+          log(`Note: File data/${date}.json already exists. Preparing update.`);
+        }
+      } catch (e) {
+        // file doesn't exist, ignore
+      }
+
+      const dailyBody = {
+        message: `update: add briefing for ${date}`,
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2)))),
+        branch: "main"
+      };
+      if (dailyFileSha) dailyBody.sha = dailyFileSha;
+
+      try {
+        const writeDailyRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/${date}.json`, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify(dailyBody)
+        });
+        if (writeDailyRes.ok) {
+          log(`Success: data/${date}.json written successfully.`);
+        } else {
+          const errBody = await writeDailyRes.json();
+          throw new Error(`Failed to write data/${date}.json: ${errBody.message}`);
+        }
+      } catch (err) {
+        log(`Error: ${err.message}`, true);
+        return;
+      }
+
+      // 3. Write index.json
+      log("Updating remote index.json...");
+      const indexBody = {
+        message: `update: index update for ${date}`,
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(indexData, null, 2)))),
+        branch: "main"
+      };
+      if (indexSha) indexBody.sha = indexSha;
+
+      try {
+        const writeIndexRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/index.json`, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify(indexBody)
+        });
+        if (writeIndexRes.ok) {
+          log("Success: data/index.json updated successfully.");
+          log("Deployment complete! 🚀 GitHub Pages will rebuild and go live in 1-2 minutes.");
+          alert(`Successfully updated briefing for ${date}! The live site will refresh shortly.`);
+        } else {
+          const errBody = await writeIndexRes.json();
+          throw new Error(`Failed to update index.json: ${errBody.message}`);
+        }
+      } catch (err) {
+        log(`Error: ${err.message}`, true);
+      }
+    }
+
+    // Modal triggers & template
+    let currentParsedStories = [];
+
+    function openDeepDive(idx) {
+      const story = currentParsedStories[idx];
+      if (!story) return;
+
+      const sa = story.situational_analysis || {};
+      const pm = story.perspective_matrix || {};
+      const fc = story.facts_vs_claims || {};
+      const ei = story.editorial_expert_insight || {};
+      const sources = story.sources || [];
+
+      let factsLi = (fc.facts || []).map(f => `<li>${f}</li>`).join("");
+      let claimsLi = (fc.claims || []).map(c => `<li>${c}</li>`).join("");
+
+      const modalBody = document.getElementById("preview-modal-body");
+      modalBody.innerHTML = `
+        <div class="detail-wrap" style="padding: 0; max-width: 100%;">
+          <h1 class="detail-headline" style="font-size: 32px; line-height: 1.15; margin-bottom: 16px;">${story.headline}</h1>
+          <div class="detail-tldr" style="margin-bottom: 32px; font-size: 17px; line-height: 1.55;">${story.tldr}</div>
+          
+          <!-- 5W1H -->
+          <div class="section">
+            <div class="sec-label">5W1H · Situation</div>
+            <div class="section-card w-grid">
+              <div class="w-cell"><div class="w-key">What</div><div class="w-val">${sa.what || "—"}</div></div>
+              <div class="w-cell"><div class="w-key">Why</div><div class="w-val">${sa.why || "—"}</div></div>
+              <div class="w-cell"><div class="w-key">Who</div><div class="w-val">${sa.who || "—"}</div></div>
+              <div class="w-cell"><div class="w-key">When</div><div class="w-val">${sa.when || "—"}</div></div>
+              <div class="w-cell"><div class="w-key">Where</div><div class="w-val">${sa.where || "—"}</div></div>
+              <div class="w-cell"><div class="w-key">How</div><div class="w-val">${sa.how || "—"}</div></div>
+            </div>
+          </div>
+          
+          <!-- Strategic Assessment -->
+          <div class="section">
+            <div class="sec-label">Strategic Assessment</div>
+            <div class="section-card assessment-body">
+              ${story.strategic_assessment || "—"}
+            </div>
+          </div>
+          
+          <!-- Perspectives -->
+          <div class="section">
+            <div class="sec-label">Perspective Matrix</div>
+            <div class="section-card matrix">
+              ${pm.western_international ? `<div class="matrix-row"><div class="matrix-key scope">Western / Intl</div><div class="matrix-val">${pm.western_international}</div></div>` : ""}
+              ${pm.indian_media ? `<div class="matrix-row"><div class="matrix-key scope">Indian Media</div><div class="matrix-val">${pm.indian_media}</div></div>` : ""}
+              ${pm.left_leaning ? `<div class="matrix-row"><div class="matrix-key lean-left">Left Leaning</div><div class="matrix-val">${pm.left_leaning}</div></div>` : ""}
+              ${pm.center ? `<div class="matrix-row"><div class="matrix-key lean-center">Centrist</div><div class="matrix-val">${pm.center}</div></div>` : ""}
+              ${pm.right_leaning ? `<div class="matrix-row"><div class="matrix-key lean-right">Right Leaning</div><div class="matrix-val">${pm.right_leaning}</div></div>` : ""}
+            </div>
+          </div>
+          
+          <!-- Facts vs Claims -->
+          <div class="section">
+            <div class="sec-label">Facts vs Claims</div>
+            <div class="section-card fc-grid">
+              <div class="fc-col facts">
+                <div class="fc-title">✓ Verified Facts</div>
+                <ul class="fc-list">${factsLi || "<li>No verified facts parsed</li>"}</ul>
+              </div>
+              <div class="fc-col claims">
+                <div class="fc-title">⚠ Claims</div>
+                <ul class="fc-list">${claimsLi || "<li>No claims parsed</li>"}</ul>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Blind Spot -->
+          ${story.blind_spot ? `
+          <div class="section">
+            <div class="blindspot">
+              <span class="blindspot-icon">⚑ What coverage missed</span>
+              ${story.blind_spot}
+            </div>
+          </div>` : ""}
+          
+          <!-- Editorial & Expert Insight -->
+          <div class="section">
+            <div class="sec-label">Editorial & Expert Insight</div>
+            <div class="section-card assessment-body" style="padding: 22px 24px;">
+              ${ei.opinion ? `<p style="margin-bottom: 12px;"><strong>Opinion:</strong> ${ei.opinion}</p>` : ""}
+              ${ei.analysis ? `<p><strong>Analysis:</strong> ${ei.analysis}</p>` : ""}
+            </div>
+          </div>
+          
+          <!-- Stakeholder Impact -->
+          <div class="section">
+            <div class="sec-label">Stakeholder Impact</div>
+            <div class="impact-cards">
+              ${(story.stakeholder_impact || []).map(o => `
+                <div class="impact-card">
+                  <div class="impact-card-head">
+                    <span class="impact-stakeholder">${o.stakeholder}</span>
+                  </div>
+                  <div class="impact-card-body">${o.impact}</div>
+                </div>
+              `).join("") || "<div class='section-card assessment-body'>No stakeholder impact data parsed</div>"}
+            </div>
+          </div>
+          
+          <!-- Sources -->
+          <div class="section">
+            <div class="sec-label">Sources & Confidence</div>
+            <div class="confidence-card" style="margin-bottom: 16px;">
+              <div class="confidence-head">
+                <span class="confidence-label">Confidence: <strong>${story.confidence?.level || "Medium"}</strong></span>
+              </div>
+              <div class="confidence-notes" style="font-size: 14px;">${story.confidence?.notes || ""}</div>
+            </div>
+            <div class="section-card">
+              <ul class="sources-list">
+                ${sources.map(src => `
+                  <li class="source-item">
+                    <span class="source-name">${src.outlet}</span>
+                    <span class="source-meta">${src.lean || "center"} · ${src.region || "global"}</span>
+                  </li>
+                `).join("") || "<li class='source-item'>No sources found</li>"}
+              </ul>
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById("preview-modal").style.display = "flex";
+    }
+
+    function closeDeepDive() {
+      document.getElementById("preview-modal").style.display = "none";
+    }
+  </script>
+
+  <!-- Preview Modal Overlay -->
+  <div id="preview-modal" class="preview-modal">
+    <div class="preview-modal-content">
+      <div class="preview-modal-header">
+        <h3 class="admin-title" style="font-size: 18px; margin-bottom: 0; font-family: var(--sans);">Deep Dive Preview</h3>
+        <button class="btn btn-secondary" style="padding: 6px 14px; font-size: 10px;" onclick="closeDeepDive()">Close Preview</button>
+      </div>
+      <div class="preview-modal-body" id="preview-modal-body"></div>
+    </div>
+  </div>
+</body>
+</html>
