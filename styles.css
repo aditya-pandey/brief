@@ -128,7 +128,7 @@ img { max-width: 100%; display: block; }
   padding: 36px 24px 28px;
 }
 .hero.hidden { display: none; }
-.hero-inner { max-width: 860px; margin: 0 auto; }
+.hero-inner { max-width: 1312px; margin: 0 auto; }
 .hero-kicker {
   font-family: var(--mono); font-size: 11px; letter-spacing: .24em;
   text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
