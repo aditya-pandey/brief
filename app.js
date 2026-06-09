@@ -6,7 +6,10 @@ let indexEntries = [];
 const FEEDBACK_ENDPOINT = ""; // Paste your Formspree, Formspark, or Webhook URL here to receive feedback
 
 /* ── Analytics tracking helpers ──────────────────────────────── */
-function trackPageView(path) {
+function trackPageView(path, title) {
+  if (title) {
+    document.title = title;
+  }
   if (typeof gtag === "function") {
     gtag("config", "G-602K6P5H7B", {
       page_path: path,
@@ -1066,6 +1069,11 @@ async function renderHome(date) {
 
   const payload = await loadDay(date);
   const isLatest = date === indexEntries[0]?.date;
+
+  const pageTitle = isLatest ? "The Briefing — Daily News, Decoded" : `The Briefing — Archive ${fmtHeaderDate(date)}`;
+  const pagePath = isLatest ? "/" : `/#/day/${date}`;
+  trackPageView(pagePath, pageTitle);
+
   $("header-date").textContent = fmtHeaderDate(date).toUpperCase();
 
   const hero = $("hero");
@@ -1179,6 +1187,10 @@ async function renderStory(date, id) {
   if (storyIdx === -1) { app.innerHTML=`<div class="error-state">Story not found.</div>`; return; }
   const s = stories[storyIdx];
 
+  const pageTitle = `The Briefing | ${s.headline}`;
+  const pagePath = `/#/story/${date}/${id}`;
+  trackPageView(pagePath, pageTitle);
+
   $("header-date").textContent = fmtHeaderDate(date).toUpperCase();
   $("hero").classList.add("hidden");
 
@@ -1204,7 +1216,6 @@ async function route() {
   try {
     const m = h.match(/^\/story\/([^/]+)\/(.+)$/);
     const d = h.match(/^\/day\/([^/]+)$/);
-    trackPageView(h || "/");
     if (m) return await renderStory(decodeURIComponent(m[1]), decodeURIComponent(m[2]));
     if (d) return await renderHome(decodeURIComponent(d[1]));
     return await renderHome(null);
