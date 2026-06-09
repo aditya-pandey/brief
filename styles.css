@@ -555,7 +555,7 @@ img { max-width: 100%; display: block; }
 /* Headline + tldr */
 .detail-headline {
   font-family: var(--serif); font-weight: 900;
-  font-size: clamp(28px, 4.5vw, 48px);
+  font-size: clamp(24px, 4vw, 38px);
   line-height: 1.06; letter-spacing: -.025em;
   color: var(--ink); margin-bottom: 20px;
 }
@@ -1896,7 +1896,7 @@ body:has(.deck-container) { overflow: hidden; }
   padding: 10px 0;
 }
 .story-main-inner .detail-headline {
-  font-size: clamp(31px, 3.8vw, 54px);
+  font-size: clamp(28px, 3.2vw, 42px);
   margin-bottom: 16px;
 }
 .story-main-inner .detail-tldr {
@@ -2738,4 +2738,24 @@ body:has(.mobile-story-layout) {
 
 .m-share-icon-btn.copied {
   filter: hue-rotate(90deg); /* turns yellow/green-ish visual indicator on copy */
+}
+
+/* Sidebar sharing panel (Desktop) */
+.sidebar-share-panel {
+  padding: 16px;
+  border-top: 1px solid var(--rule);
+  background: var(--bg-2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.sidebar-share-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .08em;
+  color: var(--ink-3);
+  font-weight: 600;
+  text-transform: uppercase;
 }
