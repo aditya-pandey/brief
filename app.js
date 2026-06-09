@@ -222,7 +222,7 @@ function renderBriefingBoard(payload) {
   const hasRecap = recap.length > 0;
 
   return `
-    <section class="briefing-board ${hasRecap ? "three-cols" : "two-cols"}" aria-label="Daily briefing dashboard">
+    <section class="briefing-board ${hasRecap ? "two-cols" : "one-col"}" aria-label="Daily briefing dashboard">
       <div class="board-lead" onclick="location.hash='#/story/${esc(payload.date)}/${esc(lead.id)}'" role="button" tabindex="0" style="cursor: pointer;">
         <div class="board-label">Today's signal</div>
         <h2>${esc(lead.headline)}</h2>
@@ -231,27 +231,6 @@ function renderBriefingBoard(payload) {
           <span><strong>${stories.length}</strong> stories</span>
           <span><strong>${avgSources}</strong> avg sources</span>
           <span><strong>${avgRead}</strong> avg min</span>
-        </div>
-      </div>
-      <div class="board-map" style="display: flex; flex-direction: column; justify-content: space-between; padding: 22px;">
-        <div class="board-label">Coverage balance</div>
-        <div class="map-bars" style="margin-top: 8px; margin-bottom: 20px;">
-          <div class="map-bar"><span>Global</span><b style="width:${(global/stories.length*100).toFixed(0)}%"></b><em>${global}</em></div>
-          <div class="map-bar india"><span>India</span><b style="width:${(india/stories.length*100).toFixed(0)}%"></b><em>${india}</em></div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto;">
-          <div style="background: var(--bg-card-h); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--rule); text-align: center;">
-            <div style="font-family: var(--mono); font-size: 9px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em;">Confidence</div>
-            <div style="font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--ink); margin-top: 4px;">
-              ${(stories.filter(s=> (s.confidence?.level||"").toLowerCase()==="high").length / stories.length * 100).toFixed(0)}% High
-            </div>
-          </div>
-          <div style="background: var(--bg-card-h); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--rule); text-align: center;">
-            <div style="font-family: var(--mono); font-size: 9px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em;">Sources</div>
-            <div style="font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--ink); margin-top: 4px;">
-              ${avgSources} avg
-            </div>
-          </div>
         </div>
       </div>
       ${hasRecap ? `

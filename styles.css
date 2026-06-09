@@ -184,11 +184,11 @@ img { max-width: 100%; display: block; }
   margin: 0 0 24px;
   align-items: stretch;
 }
-.briefing-board.three-cols {
-  grid-template-columns: minmax(0, 1.2fr) minmax(260px, .75fr) minmax(280px, .9fr);
-}
 .briefing-board.two-cols {
-  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 1fr);
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr);
+}
+.briefing-board.one-col {
+  grid-template-columns: 1fr;
 }
 .board-lead,
 .board-map,
