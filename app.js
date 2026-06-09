@@ -5,6 +5,27 @@ const dayCache = {};
 let indexEntries = [];
 const FEEDBACK_ENDPOINT = ""; // Paste your Formspree, Formspark, or Webhook URL here to receive feedback
 
+/* ── Analytics tracking helpers ──────────────────────────────── */
+function trackPageView(path) {
+  if (typeof gtag === "function") {
+    gtag("config", "G-602K6P5H7B", {
+      page_path: path,
+      page_title: document.title || "The Briefing"
+    });
+  }
+}
+
+function trackEvent(action, category, label, value = null) {
+  if (typeof gtag === "function") {
+    const params = {
+      event_category: category,
+      event_label: label
+    };
+    if (value !== null) params.value = value;
+    gtag("event", action, params);
+  }
+}
+
 
 /* ── Helpers ───────────────────────────────────────────────── */
 const $ = id => document.getElementById(id);
@@ -78,6 +99,7 @@ $("theme-toggle").onclick = () => {
   const next = document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", next);
   localStorage.setItem("theme", next);
+  trackEvent("theme_toggle", "Preferences", next);
 };
 
 /* ── Progress bar ──────────────────────────────────────────── */
@@ -227,11 +249,6 @@ function renderBriefingBoard(payload) {
         <div class="board-label">Today's signal</div>
         <h2>${esc(lead.headline)}</h2>
         <p>${esc(lead.tldr)}</p>
-        <div class="board-stat-row">
-          <span><strong>${stories.length}</strong> stories</span>
-          <span><strong>${avgSources}</strong> avg sources</span>
-          <span><strong>${avgRead}</strong> avg min</span>
-        </div>
       </div>
       ${hasRecap ? `
       <div class="board-recap">
@@ -354,7 +371,6 @@ function mobileBriefingCards(story, slides) {
         <p>${esc(story.tldr)}</p>
         <div class="intel-metrics">
           <div style="--p:${threatScore}%"><span>Threat</span><strong>${threatScore}</strong></div>
-          <div style="--p:${confidence}%"><span>Confidence</span><strong>${confidence}</strong></div>
           <div style="--p:${impactScore}%"><span>Impact</span><strong>${impactScore}</strong></div>
         </div>`,
       detail: `
@@ -453,8 +469,6 @@ function buildSlides(s) {
       <div class="slide-cover-content">
         <div class="slide-cover-top">
           <span class="detail-region ${region}">${esc(region.toUpperCase())}</span>
-          ${confLevel ? `<span class="cover-chip confidence-chip ${confLevel}">
-            <span class="cover-chip-dot"></span>${esc(s.confidence.level)} confidence</span>` : ""}
         </div>
         <h1 class="slide-headline">${esc(s.headline)}</h1>
         <p class="slide-tldr">${esc(s.tldr)}</p>
@@ -658,16 +672,9 @@ function buildSlides(s) {
   slides.push({ id:"sources", label:"Sources", icon:"⊕", html:`
     <div class="slide-body">
       <div class="slide-section-label"><span class="ssl-icon">${ICON.link}</span>Sources & Transparency</div>
-      ${s.confidence ? `
+      ${s.confidence?.notes ? `
         <div class="confidence-card">
-          <div class="confidence-head">
-            <span class="confidence-label">Confidence</span>
-            <span class="confidence-badge ${sourceConfLevel}">${esc(s.confidence.level)}</span>
-          </div>
-          <div class="confidence-meter">
-            <div class="confidence-meter-fill ${sourceConfLevel}" style="width:${confFill}%"></div>
-          </div>
-          <div class="confidence-notes">${esc(s.confidence.notes)}</div>
+          <div class="confidence-notes" style="margin-top: 0;">${esc(s.confidence.notes)}</div>
         </div>` : ""}
       ${sourceDistribution(s.sources)}
       <ul class="sources-list">
@@ -1063,7 +1070,6 @@ async function renderHome(date) {
           <div class="card-top">
             <span class="card-num">${String(i+2).padStart(2,"0")}</span>
             <span class="card-region">${esc(region.toUpperCase())}</span>
-            ${conf ? `<span class="card-conf-chip ${conf}"><span class="card-conf-dot"></span>${esc(s.confidence.level)}</span>` : ""}
           </div>
           <h2 class="card-headline">${esc(s.headline)}</h2>
           ${s.tldr ? `<p class="card-tldr">${esc(s.tldr)}</p>` : ""}
@@ -1094,15 +1100,23 @@ async function renderHome(date) {
     ${renderTimeMachine(date)}`;
 
   app.querySelectorAll(".story-card").forEach(card => {
-    const go = () => { location.hash=`#/story/${card.dataset.date}/${card.dataset.id}`; };
+    const go = () => {
+      trackEvent("click_brief_card", "Home Grid", card.dataset.id);
+      location.hash=`#/story/${card.dataset.date}/${card.dataset.id}`;
+    };
     card.onclick = go;
     card.onkeydown = e => { if(e.key==="Enter"||e.key===" ") go(); };
   });
   app.querySelectorAll(".tm-card").forEach(btn => {
-    btn.onclick = () => { location.hash=`#/day/${btn.dataset.date}`; };
+    btn.onclick = () => {
+      trackEvent("click_time_machine", "Time Machine", btn.dataset.date);
+      location.hash=`#/day/${btn.dataset.date}`;
+    };
   });
   app.querySelector(".past-day-banner a")?.addEventListener("click", e => {
-    e.preventDefault(); location.hash="";
+    e.preventDefault();
+    trackEvent("click_archive_banner_back", "Home Grid", "Back to Today");
+    location.hash="";
   });
 
   stopProgress();
@@ -1167,6 +1181,7 @@ async function route() {
   try {
     const m = h.match(/^\/story\/([^/]+)\/(.+)$/);
     const d = h.match(/^\/day\/([^/]+)$/);
+    trackPageView(h || "/");
     if (m) return await renderStory(decodeURIComponent(m[1]), decodeURIComponent(m[2]));
     if (d) return await renderHome(decodeURIComponent(d[1]));
     return await renderHome(null);

@@ -1525,7 +1525,7 @@ img { max-width: 100%; display: block; }
   }
   .intel-metrics {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
     gap: 7px;
     margin-top: auto;
   }
@@ -2446,14 +2446,6 @@ body:has(.deck-container) #site-footer { display: none; }
 
   .mobile-card-content .fc-half {
     width: 100%;
-    padding: 0;
-    border-right: none;
-    border-bottom: 1px solid var(--rule);
-    padding-bottom: 14px;
-  }
-
-  .mobile-card-content .fc-half:last-child {
-    border-bottom: none;
   }
 
   .mobile-card-content .persp-cards,
