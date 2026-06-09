@@ -89,7 +89,7 @@ img { max-width: 100%; display: block; }
   transition: background .25s, border-color .25s;
 }
 .header-inner {
-  max-width: 1200px; margin: 0 auto; padding: 0 24px;
+  max-width: 1360px; margin: 0 auto; padding: 0 24px;
   height: 100%; display: flex; align-items: center; justify-content: space-between;
 }
 .wordmark {
