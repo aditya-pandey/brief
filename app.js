@@ -784,13 +784,17 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
 
     <!-- Footer navigation controls -->
     <div class="mobile-footer-nav">
-      <button class="mobile-footer-btn prev" id="m-footer-prev">← Exit</button>
+      <button class="mobile-footer-btn prev" id="m-footer-prev" aria-label="Exit">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
       <div class="mobile-footer-dots">
         ${allSlides.map((_, i) => `
           <span class="dot-indicator ${i === 0 ? "active" : ""}" data-idx="${i}"></span>
         `).join("")}
       </div>
-      <button class="mobile-footer-btn next" id="m-footer-next">${allSlides[1]?.label || "Next"} →</button>
+      <button class="mobile-footer-btn next" id="m-footer-next" aria-label="Next">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
     </div>
   `;
 
@@ -803,6 +807,12 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
   const viewport = container.querySelector("#mobile-card-viewport");
   const tabs = container.querySelectorAll(".mobile-tab-item");
   const dots = container.querySelectorAll(".dot-indicator");
+
+  // SVG Icons
+  const CHEVRON_LEFT = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>`;
+  const CHEVRON_RIGHT = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+  const EXIT_ICON = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+  const NEXT_STORY_ICON = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>`;
 
   function setActiveTab(idx) {
     activeTabIdx = Math.max(0, Math.min(allSlides.length - 1, idx));
@@ -820,20 +830,24 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
     // Update dots
     dots.forEach((dot, i) => dot.classList.toggle("active", i === activeTabIdx));
 
-    // Update footer button labels
+    // Update footer button icons
     const prevBtn = container.querySelector("#m-footer-prev");
     const nextBtn = container.querySelector("#m-footer-next");
 
     if (activeTabIdx === 0) {
-      prevBtn.textContent = "← Exit";
+      prevBtn.innerHTML = EXIT_ICON;
+      prevBtn.setAttribute("aria-label", "Exit");
     } else {
-      prevBtn.textContent = "← " + allSlides[activeTabIdx - 1].label;
+      prevBtn.innerHTML = CHEVRON_LEFT;
+      prevBtn.setAttribute("aria-label", "Previous");
     }
 
     if (activeTabIdx === allSlides.length - 1) {
-      nextBtn.textContent = "Next Story →";
+      nextBtn.innerHTML = NEXT_STORY_ICON;
+      nextBtn.setAttribute("aria-label", "Next Story");
     } else {
-      nextBtn.textContent = allSlides[activeTabIdx + 1].label + " →";
+      nextBtn.innerHTML = CHEVRON_RIGHT;
+      nextBtn.setAttribute("aria-label", "Next");
     }
   }
 

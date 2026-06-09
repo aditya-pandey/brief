@@ -2517,41 +2517,40 @@ body:has(.deck-container) #site-footer { display: none; }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px calc(28px + env(safe-area-inset-bottom, 16px));
-    background: var(--bg);
+    padding: 16px 24px calc(24px + env(safe-area-inset-bottom, 16px));
+    background: var(--bg-card);
     border-top: 1px solid var(--rule);
     flex-shrink: 0;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
   .mobile-footer-btn {
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--rule);
+    background: var(--bg);
     color: var(--accent);
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    white-space: nowrap;
-    letter-spacing: 0.05em;
-    padding: 8px 0;
     display: flex;
     align-items: center;
-    transition: opacity 0.2s ease;
-    flex: 1;
-    max-width: 110px;
-  }
-
-  .mobile-footer-btn.prev {
-    justify-content: flex-start;
-  }
-
-  .mobile-footer-btn.next {
-    justify-content: flex-end;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: var(--shadow-sm);
+    padding: 0;
+    flex-shrink: 0;
   }
 
   .mobile-footer-btn:active {
-    opacity: 0.6;
+    transform: scale(0.9);
+    background: var(--rule);
+    color: var(--ink);
+  }
+
+  .mobile-footer-btn svg {
+    stroke: currentColor;
+    transition: stroke 0.2s ease;
   }
 
   .mobile-footer-dots {
@@ -2559,7 +2558,10 @@ body:has(.deck-container) #site-footer { display: none; }
     gap: 8px;
     align-items: center;
     justify-content: center;
-    flex: 2;
+    flex-grow: 1;
+    margin: 0 16px;
+    max-width: 60%;
+    overflow: hidden;
   }
 
   .dot-indicator {
