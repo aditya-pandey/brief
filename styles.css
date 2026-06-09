@@ -2517,7 +2517,7 @@ body:has(.deck-container) #site-footer { display: none; }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 12px));
+    padding: 16px 20px calc(28px + env(safe-area-inset-bottom, 16px));
     background: var(--bg);
     border-top: 1px solid var(--rule);
     flex-shrink: 0;
@@ -2532,17 +2532,22 @@ body:has(.deck-container) #site-footer { display: none; }
     background: transparent;
     border: none;
     cursor: pointer;
-    min-width: 100px;
-    text-align: center;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     letter-spacing: 0.05em;
-    padding: 8px 12px;
+    padding: 8px 0;
     display: flex;
     align-items: center;
-    justify-content: center;
     transition: opacity 0.2s ease;
+    flex: 1;
+    max-width: 110px;
+  }
+
+  .mobile-footer-btn.prev {
+    justify-content: flex-start;
+  }
+
+  .mobile-footer-btn.next {
+    justify-content: flex-end;
   }
 
   .mobile-footer-btn:active {
@@ -2554,6 +2559,7 @@ body:has(.deck-container) #site-footer { display: none; }
     gap: 8px;
     align-items: center;
     justify-content: center;
+    flex: 2;
   }
 
   .dot-indicator {
