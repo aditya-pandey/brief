@@ -2549,6 +2549,7 @@ body:has(.deck-container) #site-footer { display: none; }
   }
 
   .mobile-footer-btn svg {
+    display: block;
     stroke: currentColor;
     transition: stroke 0.2s ease;
   }
@@ -2565,6 +2566,7 @@ body:has(.deck-container) #site-footer { display: none; }
   }
 
   .dot-indicator {
+    display: block;
     width: 7px;
     height: 7px;
     border-radius: 50%;
