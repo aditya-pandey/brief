@@ -830,15 +830,19 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
       if (diffX > 0) {
         // swipe right -> prev card
         if (activeTabIdx > 0) {
+          trackEvent("navigate_swipe", "Mobile Deep Dive", "Prev Slide", allSlides[activeTabIdx - 1].label);
           setActiveTab(activeTabIdx - 1);
         } else {
+          trackEvent("navigate_swipe", "Mobile Deep Dive", "Swipe Exit Briefings");
           location.hash = `#/day/${date}`;
         }
       } else {
         // swipe left -> next card
         if (activeTabIdx < allSlides.length - 1) {
+          trackEvent("navigate_swipe", "Mobile Deep Dive", "Next Slide", allSlides[activeTabIdx + 1].label);
           setActiveTab(activeTabIdx + 1);
         } else if (storyIdx < stories.length - 1) {
+          trackEvent("navigate_swipe", "Mobile Deep Dive", "Swipe Next Briefing", stories[storyIdx + 1].headline);
           location.hash = `#/story/${date}/${stories[storyIdx + 1].id}`;
         }
       }
@@ -848,23 +852,29 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
   // Tap tabs
   tabs.forEach(btn => {
     btn.addEventListener("click", () => {
-      setActiveTab(parseInt(btn.dataset.idx));
+      const idx = parseInt(btn.dataset.idx);
+      trackEvent("navigate_tab", "Mobile Deep Dive", allSlides[idx].label);
+      setActiveTab(idx);
     });
   });
 
   // Footer navigation actions
   container.querySelector("#m-footer-prev").addEventListener("click", () => {
     if (activeTabIdx > 0) {
+      trackEvent("navigate_button", "Mobile Deep Dive", "Prev Slide Button", allSlides[activeTabIdx - 1].label);
       setActiveTab(activeTabIdx - 1);
     } else {
+      trackEvent("navigate_button", "Mobile Deep Dive", "Exit Button");
       location.hash = `#/day/${date}`;
     }
   });
 
   container.querySelector("#m-footer-next").addEventListener("click", () => {
     if (activeTabIdx < allSlides.length - 1) {
+      trackEvent("navigate_button", "Mobile Deep Dive", "Next Slide Button", allSlides[activeTabIdx + 1].label);
       setActiveTab(activeTabIdx + 1);
     } else if (storyIdx < stories.length - 1) {
+      trackEvent("navigate_button", "Mobile Deep Dive", "Next Briefing Button", stories[storyIdx + 1].headline);
       location.hash = `#/story/${date}/${stories[storyIdx + 1].id}`;
     }
   });
@@ -881,6 +891,7 @@ function wireEngagementEvents(container, s) {
     btn.addEventListener("click", (e) => {
       const target = e.currentTarget;
       const url = window.location.href;
+      trackEvent("share_action", "Engagement", "Copy Link", s.headline);
       navigator.clipboard.writeText(url).then(() => {
         const origText = target.innerHTML;
         target.innerHTML = target.querySelector("span") ? `<span>✓ Copied!</span>` : `✓ Copied!`;
@@ -898,6 +909,7 @@ function wireEngagementEvents(container, s) {
     btn.addEventListener("click", () => {
       const url = encodeURIComponent(window.location.href);
       const text = encodeURIComponent(`Check out this deep dive: "${s.headline}" on The Briefing`);
+      trackEvent("share_action", "Engagement", "Twitter X", s.headline);
       window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, "_blank");
     });
   });
@@ -907,6 +919,7 @@ function wireEngagementEvents(container, s) {
     btn.addEventListener("click", () => {
       const url = encodeURIComponent(window.location.href);
       const text = encodeURIComponent(`Check out this deep dive: "${s.headline}" on The Briefing - `);
+      trackEvent("share_action", "Engagement", "WhatsApp", s.headline);
       window.open(`https://api.whatsapp.com/send?text=${text}${url}`, "_blank");
     });
   });
@@ -915,12 +928,14 @@ function wireEngagementEvents(container, s) {
   container.querySelectorAll(".share-li").forEach(btn => {
     btn.addEventListener("click", () => {
       const url = encodeURIComponent(window.location.href);
+      trackEvent("share_action", "Engagement", "LinkedIn", s.headline);
       window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, "_blank");
     });
   });
 
   // Native share (mobile only)
   container.querySelector(".share-native")?.addEventListener("click", () => {
+    trackEvent("share_action", "Engagement", "Native Share", s.headline);
     if (navigator.share) {
       navigator.share({
         title: s.headline,
@@ -1023,7 +1038,15 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
 
   wrap.querySelectorAll(".sidebar-item").forEach(btn => {
     btn.addEventListener("click", () => {
+      trackEvent("navigate_sidebar", "Desktop Sidebar", btn.dataset.id);
       location.hash = `#/story/${date}/${btn.dataset.id}`;
+    });
+  });
+
+  wrap.querySelectorAll(".story-nav-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const direction = btn.classList.contains("next") ? "Next Story" : "Prev Story";
+      trackEvent("navigate_button", "Desktop Navigation", direction);
     });
   });
 
