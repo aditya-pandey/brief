@@ -51,11 +51,6 @@ class SourceRef(BaseModel):
     url: str
 
 
-class Confidence(BaseModel):
-    level: str = Field(description="High / Medium / Low")
-    notes: str = Field(description="Why — source diversity, corroboration, transparency")
-
-
 class DeepDive(BaseModel):
     """One fully analysed story."""
     headline: str
@@ -67,4 +62,3 @@ class DeepDive(BaseModel):
     blind_spot: str
     stakeholder_impact: list[Stakeholder]
     timeline: list[TimelineEvent]
-    confidence: Confidence

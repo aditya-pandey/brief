@@ -15,8 +15,7 @@ WRITING STANDARDS:
 ACCURACY:
 - Work strictly from the source excerpts provided. Never invent facts, quotes, events, or sources.
 - Clearly distinguish verified facts from contested claims.
-- Where sources disagree, note the disagreement explicitly.
-- The confidence level must reflect actual source diversity and corroboration.`;
+- Where sources disagree, note the disagreement explicitly.`;
 
 export async function analyzeStory(title, articles) {
   const usable = articles.filter(a => a.text);

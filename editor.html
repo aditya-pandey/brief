@@ -119,36 +119,6 @@
     .btn-secondary:hover {
       background: var(--rule);
     }
-    .tab-container {
-      display: flex;
-      gap: 8px;
-      border-bottom: 1px solid var(--rule);
-      margin-bottom: 20px;
-      overflow-x: auto;
-    }
-    .tab-btn {
-      padding: 10px 12px;
-      background: none;
-      border: none;
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--ink-3);
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-      white-space: nowrap;
-    }
-    .tab-btn.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent);
-    }
-    .tab-pane {
-      display: none;
-    }
-    .tab-pane.active {
-      display: block;
-    }
     /* Settings panel */
     .settings-panel {
       border: 1px solid var(--rule);
@@ -309,11 +279,6 @@
         </div>
       </div>
 
-      <div class="tab-container">
-        <button class="tab-btn active" onclick="switchTab('markdown')">GEMINI MARKDOWN</button>
-        <button class="tab-btn" onclick="switchTab('json')">RAW JSON</button>
-      </div>
-
       <div class="form-row">
         <div class="form-group">
           <label for="briefing-date">Target Date</label>
@@ -325,20 +290,9 @@
         </div>
       </div>
 
-      <!-- Tab 1: Markdown Parser -->
-      <div id="pane-markdown" class="tab-pane active">
-        <div class="form-group">
-          <label for="raw-markdown">Paste Gemini Output</label>
-          <textarea id="raw-markdown" class="input-textarea" placeholder="Paste the full markdown output returned by the Gemini app daily briefing prompt..."></textarea>
-        </div>
-      </div>
-
-      <!-- Tab 2: Raw JSON -->
-      <div id="pane-json" class="tab-pane">
-        <div class="form-group">
-          <label for="raw-json">Paste Briefing JSON</label>
-          <textarea id="raw-json" class="input-textarea" placeholder="Paste the daily briefing JSON payload directly..."></textarea>
-        </div>
+      <div class="form-group">
+        <label for="raw-json">Paste Briefing JSON</label>
+        <textarea id="raw-json" class="input-textarea" placeholder="Paste the daily briefing JSON payload directly..."></textarea>
       </div>
 
       <div style="display: flex; gap: 12px; margin-top: 12px;">
@@ -380,11 +334,14 @@
       localStorage.setItem("theme", next);
     };
 
-    // Set today's date as default
-    document.getElementById("briefing-date").value = new Date().toISOString().slice(0, 10);
+    // Set today's date as default (local timezone)
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    document.getElementById("briefing-date").value = `${year}-${month}-${day}`;
 
     // Auto-expanding textareas for better mobile UX
-    const markdownTextarea = document.getElementById("raw-markdown");
     const jsonTextarea = document.getElementById("raw-json");
 
     function autoExpand(el) {
@@ -392,120 +349,8 @@
       el.style.height = (el.scrollHeight + 4) + "px";
     }
 
-    markdownTextarea.addEventListener("input", () => autoExpand(markdownTextarea));
     jsonTextarea.addEventListener("input", () => autoExpand(jsonTextarea));
-    
-    // Trigger auto-expand on focus or paste as well
-    markdownTextarea.addEventListener("focus", () => autoExpand(markdownTextarea));
     jsonTextarea.addEventListener("focus", () => autoExpand(jsonTextarea));
-
-    // Convert pasted rich text/HTML to Markdown dynamically
-    function htmlToMarkdown(html) {
-      const temp = document.createElement("div");
-      temp.innerHTML = html;
-
-      function parseNode(node) {
-        if (node.nodeType === Node.TEXT_NODE) {
-          return node.textContent;
-        }
-        if (node.nodeType !== Node.ELEMENT_NODE) {
-          return "";
-        }
-
-        const tagName = node.tagName.toLowerCase();
-        
-        if (tagName === "tr") {
-          const cells = Array.from(node.querySelectorAll("th, td"));
-          const rowContent = cells.map(cell => parseNode(cell).replace(/\r?\n|\r/g, " ").trim()).join(" | ");
-          let result = `| ${rowContent} |`;
-          
-          const isHeader = cells.length > 0 && (cells.every(c => c.tagName.toLowerCase() === "th") || !node.previousElementSibling);
-          if (isHeader) {
-            const separator = cells.map(() => "---").join(" | ");
-            result += `\n| ${separator} |`;
-          }
-          return `\n${result}\n`;
-        }
-
-        let childrenContent = "";
-        for (const child of node.childNodes) {
-          childrenContent += parseNode(child);
-        }
-
-        const style = node.getAttribute("style") || "";
-        const isBold = style.includes("font-weight: bold") || style.includes("font-weight: 700") || style.includes("font-weight:bold") || style.includes("font-weight:700");
-        const isItalic = style.includes("font-style: italic") || style.includes("font-style:italic");
-
-        let text = childrenContent;
-        if (isBold && tagName !== "strong" && tagName !== "b") {
-          text = `**${text}**`;
-        }
-        if (isItalic && tagName !== "em" && tagName !== "i") {
-          text = `*${text}*`;
-        }
-
-        switch (tagName) {
-          case "h1":
-            return `\n# ${text.trim()}\n\n`;
-          case "h2":
-            return `\n## ${text.trim()}\n\n`;
-          case "h3":
-            return `\n### ${text.trim()}\n\n`;
-          case "strong":
-          case "b":
-            return `**${text}**`;
-          case "em":
-          case "i":
-            return `*${text}*`;
-          case "li":
-            return `\n* ${text.trim()}\n`;
-          case "p":
-          case "div":
-            return `\n${text.trim()}\n\n`;
-          case "br":
-            return "\n";
-          case "ul":
-          case "ol":
-            return `\n${text}\n`;
-          case "a":
-            const href = node.getAttribute("href") || "";
-            return href ? `[${text}](${href})` : text;
-          case "table":
-            return `\n\n${text}\n\n`;
-          case "thead":
-          case "tbody":
-          case "tfoot":
-          case "th":
-          case "td":
-            return text;
-          default:
-            return text;
-        }
-      }
-
-      let markdown = parseNode(temp);
-      return markdown.replace(/\n{3,}/g, "\n\n").trim();
-    }
-
-    markdownTextarea.addEventListener("paste", (e) => {
-      const html = e.clipboardData.getData("text/html");
-      if (html) {
-        e.preventDefault();
-        const markdown = htmlToMarkdown(html);
-        
-        // Insert markdown at current cursor position
-        const start = markdownTextarea.selectionStart;
-        const end = markdownTextarea.selectionEnd;
-        const currentVal = markdownTextarea.value;
-        
-        markdownTextarea.value = currentVal.substring(0, start) + markdown + currentVal.substring(end);
-        
-        // Position cursor after pasted markdown
-        markdownTextarea.selectionStart = markdownTextarea.selectionEnd = start + markdown.length;
-        
-        autoExpand(markdownTextarea);
-      }
-    });
 
     // Load Configuration Settings
     function loadSettings() {
@@ -558,264 +403,12 @@
     // Logger helpers
     function log(msg, isErr = false) {
       const cons = document.getElementById("console-log");
+      if (!cons) return;
       const line = document.createElement("div");
       line.className = "console-line" + (isErr ? " err" : "");
       line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
       cons.appendChild(line);
       cons.scrollTop = cons.scrollHeight;
-    }
-
-    function switchTab(tab) {
-      document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-      document.querySelectorAll(".tab-pane").forEach(pane => pane.classList.remove("active"));
-
-      if (tab === "markdown") {
-        document.querySelector(".tab-btn:nth-child(1)").classList.add("active");
-        document.getElementById("pane-markdown").classList.add("active");
-      } else {
-        document.querySelector(".tab-btn:nth-child(2)").classList.add("active");
-        document.getElementById("pane-json").classList.add("active");
-      }
-    }
-
-    // Parse utilities (reused from import.js)
-    function slug(text) {
-      return text.toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "")
-        .slice(0, 60) || "story";
-    }
-
-    function stripMd(s = "") {
-      return s
-        .replace(/\*\*([^*]+)\*\*/g, "$1")
-        .replace(/\*([^*]+)\*/g, "$1")
-        .replace(/^#+\s*/gm, "")
-        .trim();
-    }
-
-    function parseSections(md) {
-      const map = {};
-      const parts = md.split(/\n###\s+/);
-      for (const part of parts) {
-        const nl = part.indexOf("\n");
-        if (nl === -1) continue;
-        const key = part.slice(0, nl).trim().toLowerCase();
-        const body = part.slice(nl + 1).trim();
-        map[key] = body;
-      }
-      return map;
-    }
-
-    function parseBullets(text = "") {
-      const result = {};
-      const lines = text.split("\n");
-      let lastKey = null;
-      for (const line of lines) {
-        const m = line.match(/^\*\s+\*\*([^*:]+)[*:]+\*?\*?\s*(.*)/);
-        if (m) {
-          lastKey = m[1].trim().toLowerCase();
-          result[lastKey] = stripMd(m[2].trim());
-        } else if (lastKey && line.trim() && !line.startsWith("*")) {
-          result[lastKey] += " " + stripMd(line.trim());
-        }
-      }
-      return result;
-    }
-
-    function parseBulletList(text = "") {
-      return text.split("\n")
-        .map(l => l.replace(/^\*+\s*/, "").trim())
-        .filter(l => l.length > 2)
-        .map(stripMd);
-    }
-
-    function detectRegion(title = "", content = "") {
-      const combined = (title + " " + content).toLowerCase();
-      const indiaSignals = [
-        "india", "indian", "delhi", "mumbai", "modi", "bjp", "congress",
-        "rupee", "₹", "nda", "lok sabha", "rajya sabha", "supreme court of india",
-        "rbi", "isro", "neet", "iit", "ias", "ips", "kerala", "maharashtra",
-        "rajasthan", "gujarat", "tamil", "bengal", "assam", "manipur", "punjab",
-        "andhra", "telangana", "karnataka", "odisha", "jharkhand", "chhattisgarh",
-        "uttarakhand", "himachal", "jammu", "kashmir", "northeast india",
-      ];
-      const hits = indiaSignals.filter(s => combined.includes(s)).length;
-      return hits >= 2 ? "india" : "global";
-    }
-
-    function parseStory(frontBlock, index) {
-      // Clean up start and match "Front N: Title" or "N. Title"
-      const cleanBlock = frontBlock.trim().replace(/^#+\s*/, "");
-      const titleMatch = cleanBlock.match(/^(?:Front|Story|News\s+Report|Report|Briefing)?\s*\[?\d+\]?[:.]?\s*(.+)/i);
-      const rawTitle = titleMatch ? titleMatch[1].trim() : `Story ${index + 1}`;
-      const sec = parseSections(frontBlock);
-
-      const tldr = stripMd(sec["tl;dr"] || sec["tldr"] || "");
-
-      const w = parseBullets(sec["5w1h breakdown"] || sec["5w1h"] || "");
-      const situational_analysis = {
-        what:  w["what"]  || "",
-        why:   w["why"]   || "",
-        who:   w["who"]   || "",
-        when:  w["when & where"] || w["when"]  || "",
-        where: w["where"] || w["when & where"] || "",
-        how:   w["how"]   || "",
-      };
-
-      const strategic_assessment = stripMd(sec["strategic assessment"] || sec["impact analysis"] || "");
-
-      const pmRaw = sec["multi-perspective coverage"] || sec["perspective matrix"] || "";
-      const pm = parseBullets(pmRaw);
-      const perspective_matrix = {
-        western_international: pm["western / international media view"] || pm["western/international"] || pm["international"] || "",
-        indian_media:          pm["indian media view"] || pm["indian media"] || "",
-        left_leaning:          pm["left-leaning narrative"] || pm["left-leaning"] || pm["left"] || "",
-        center:                pm["center narrative"] || pm["center"] || pm["centrist"] || "",
-        right_leaning:         pm["right-leaning narrative"] || pm["right-leaning"] || pm["right"] || "",
-      };
-
-      // Fallback for paragraph-based perspective layouts
-      if (!perspective_matrix.western_international && !perspective_matrix.indian_media) {
-        const paragraphs = pmRaw.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
-        if (paragraphs.length >= 1) perspective_matrix.western_international = paragraphs[0];
-        if (paragraphs.length >= 2) perspective_matrix.indian_media = paragraphs[1];
-        if (paragraphs.length >= 3) {
-          const p3 = paragraphs[2];
-          const rightIndex = p3.toLowerCase().indexOf("right-leaning");
-          if (rightIndex > 0) {
-            perspective_matrix.left_leaning = p3.slice(0, rightIndex).trim();
-            perspective_matrix.right_leaning = p3.slice(rightIndex).trim();
-          } else {
-            perspective_matrix.left_leaning = p3;
-          }
-        }
-      }
-
-      const fvRaw = sec["key facts vs claims"] || sec["facts vs claims"] || "";
-      const fvBullets = parseBullets(fvRaw);
-      const facts_vs_claims = {
-        facts:  fvBullets["facts"] ? [fvBullets["facts"]] :
-                parseBulletList((fvRaw.match(/\*\*facts[^:]*\*\*[:\n]+([\s\S]*?)(?=\*\*|$)/i) || [])[1] || ""),
-        claims: fvBullets["claims / disputed points"] || fvBullets["claims"] ?
-                [fvBullets["claims / disputed points"] || fvBullets["claims"]] :
-                parseBulletList((fvRaw.match(/\*\*claims[^:]*\*\*[:\n]+([\s\S]*?)(?=\*\*|$)/i) || [])[1] || ""),
-      };
-
-      const blind_spot = stripMd(
-        sec["blind spots / underreported angles"] ||
-        sec["blind spot"] ||
-        sec["underreported angles"] || ""
-      );
-
-      const eiRaw = sec["editorial & expert insight"] || sec["editorial and expert insight"] || "";
-      const ei = parseBullets(eiRaw);
-      const editorial_expert_insight = {
-        opinion:  ei["opinion"]  || "",
-        analysis: ei["analysis"] || "",
-      };
-
-      // Fallback for editorial insight paragraphs/blockquotes
-      if (!editorial_expert_insight.opinion && !editorial_expert_insight.analysis) {
-        const cleanEi = eiRaw.replace(/^>\s*/gm, "").trim();
-        if (cleanEi.toLowerCase().includes("analysis:")) {
-          const parts = cleanEi.split(/analysis:/i);
-          if (parts[0].toLowerCase().includes("opinion:")) {
-            editorial_expert_insight.opinion = parts[0].replace(/opinion:/i, "").trim();
-          }
-          editorial_expert_insight.analysis = parts[1].trim();
-        } else if (cleanEi.toLowerCase().includes("opinion:")) {
-          editorial_expert_insight.opinion = cleanEi.replace(/opinion:/i, "").trim();
-        } else {
-          editorial_expert_insight.analysis = cleanEi;
-        }
-      }
-
-      const impactRaw = sec["impact analysis"] || "";
-      const stakeholder_impact = parseBulletList(impactRaw).map(line => {
-        const colon = line.indexOf(":");
-        if (colon > 0 && colon < 60) {
-          return { stakeholder: line.slice(0, colon).trim(), impact: line.slice(colon + 1).trim() };
-        }
-        return { stakeholder: "General", impact: line };
-      }).filter(x => x.impact);
-
-      const context_background = stripMd(
-        sec["context & background"] ||
-        sec["context and background"] ||
-        sec["background"] || ""
-      );
-
-      const tlRaw = sec["timeline"] || sec["timeline & historical context"] || "";
-      const timeline = parseBulletList(tlRaw).map(line => {
-        const m = line.match(/^([^:–—]+)[:–—]\s*(.*)/);
-        return m ? { when: m[1].trim(), event: m[2].trim() } : { when: "–", event: line };
-      }).filter(x => x.event);
-
-      const simple_explanation = stripMd(sec["simple explanation"] || "");
-
-      const sourcesRaw = sec["sources & transparency"] || sec["sources and transparency"] || "";
-      const sources = [];
-      const knownOutlets = [
-        "al jazeera", "bbc", "reuters", "the hindu", "indian express", "ndtv",
-        "times of india", "hindustan times", "india today", "opindia", "the guardian",
-        "dw", "new york times", "washington post", "bloomberg", "financial times",
-        "haaretz", "associated press", "ap ", "miami herald", "the economist",
-        "business standard", "mint", "economic times", "scroll", "the wire",
-        "first post", "news18", "zee news", "republic", "deccan herald",
-      ];
-      for (const outlet of knownOutlets) {
-        if (sourcesRaw.toLowerCase().includes(outlet)) {
-          const name = outlet.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-          if (!sources.find(s => s.outlet.toLowerCase() === outlet)) {
-            sources.push({ outlet: name, lean: "center", region: "global", title: "", url: "#" });
-          }
-        }
-      }
-
-
-
-      const headline = stripMd(rawTitle);
-      const allText = [tldr, situational_analysis.what, situational_analysis.where, headline].join(" ");
-      const region = detectRegion(headline, allText);
-
-      return {
-        id: slug(headline),
-        headline,
-        tldr,
-        region,
-        situational_analysis,
-        strategic_assessment,
-        perspective_matrix,
-        facts_vs_claims,
-        blind_spot,
-        editorial_expert_insight,
-        stakeholder_impact,
-        context_background,
-        timeline,
-        simple_explanation,
-        sources,
-      };
-    }
-
-    function parseRecap(md) {
-      const tableMatch = md.match(/\|.*Primary Catalyst[\s\S]+?(?=\n\n|$)/i);
-      if (!tableMatch) return [];
-      const rows = [];
-      for (const line of tableMatch[0].split("\n")) {
-        if (line.startsWith("|---") || line.toLowerCase().includes("primary catalyst")) continue;
-        const cells = line.split("|").map(c => stripMd(c.trim())).filter(Boolean);
-        if (cells.length >= 3) {
-          rows.push({
-            front:            cells[0],
-            primary_catalyst: cells[1],
-            core_threat:      cells[2],
-            horizon:          cells[3] || "",
-          });
-        }
-      }
-      return rows;
     }
 
     // Pipeline orchestration
@@ -830,48 +423,73 @@
         // 1. Get input
         let stories = [];
         let recap = [];
-        const isMd = document.querySelector(".tab-btn:nth-child(1)").classList.contains("active");
 
         document.getElementById("logger-section").style.display = "block";
         const cons = document.getElementById("console-log");
         cons.innerHTML = "";
         log("Initializing processing pipeline...");
 
-        if (isMd) {
-          const md = document.getElementById("raw-markdown").value;
-          if (!md.trim()) {
-            log("Error: Text input is empty.", true);
-            return;
-          }
-          log("Parsing Markdown source...");
-          const frontBlocks = md.split(/\n##\s+(?=(?:Front|Story|News\s+Report|Report|Briefing)?\s*\[?\d+\]?)/i).filter(b => b.trim());
-          for (let block of frontBlocks) {
-            block = block.trim().replace(/^#+\s*/, "");
-            if (!block.match(/^(?:Front|Story|News\s+Report|Report|Briefing)?\s*\[?\d+\]?/i)) continue;
-            try {
-              const story = parseStory(block, stories.length);
-              stories.push(story);
-              log(`Parsed: [${story.region.toUpperCase()}] ${story.headline}`);
-            } catch (err) {
-              log(`Warning: Failed to parse block: ${err.message}`, true);
+        function repairJson(str) {
+          let result = '';
+          let inString = false;
+          let i = 0;
+          while (i < str.length) {
+            const char = str[i];
+            if (char === '"') {
+              let backslashes = 0;
+              let j = i - 1;
+              while (j >= 0 && str[j] === '\\') {
+                backslashes++;
+                j--;
+              }
+              const isEscaped = (backslashes % 2) === 1;
+              if (!isEscaped) {
+                if (!inString) {
+                  inString = true;
+                  result += char;
+                } else {
+                  let nextNonWhitespace = '';
+                  let k = i + 1;
+                  while (k < str.length) {
+                    const nextChar = str[k];
+                    if (nextChar !== ' ' && nextChar !== '\t' && nextChar !== '\n' && nextChar !== '\r') {
+                      nextNonWhitespace = nextChar;
+                      break;
+                    }
+                    k++;
+                  }
+                  if (nextNonWhitespace === ':' || nextNonWhitespace === ',' || nextNonWhitespace === '}' || nextNonWhitespace === ']' || nextNonWhitespace === '') {
+                    inString = false;
+                    result += char;
+                  } else {
+                    result += '\\"';
+                  }
+                }
+              } else {
+                result += char;
+              }
+            } else {
+              result += char;
             }
+            i++;
           }
-          recap = parseRecap(md);
-        } else {
-          const rawJson = document.getElementById("raw-json").value;
-          if (!rawJson.trim()) {
-            log("Error: JSON input is empty.", true);
-            return;
-          }
-          try {
-            const payload = JSON.parse(rawJson);
-            stories = payload.stories || [];
-            recap = payload.recap || [];
-            log(`Loaded ${stories.length} stories directly from JSON.`);
-          } catch (err) {
-            log(`Error parsing JSON: ${err.message}`, true);
-            return;
-          }
+          return result;
+        }
+
+        const rawJson = document.getElementById("raw-json").value;
+        if (!rawJson.trim()) {
+          log("Error: JSON input is empty.", true);
+          return;
+        }
+        try {
+          const cleanedJson = repairJson(rawJson);
+          const payload = JSON.parse(cleanedJson);
+          stories = payload.stories || [];
+          recap = payload.recap || [];
+          log(`Loaded ${stories.length} stories directly from JSON.`);
+        } catch (err) {
+          log(`Error parsing JSON: ${err.message}`, true);
+          return;
         }
 
         if (stories.length === 0) {
@@ -906,7 +524,6 @@
       container.innerHTML = "";
       stories.forEach((story, idx) => {
         const region = (story.region || "global").toLowerCase();
-        const conf = story.confidence?.level?.toLowerCase() || "medium";
         const card = document.createElement("div");
         card.className = "story-card";
         card.dataset.region = region;
@@ -918,7 +535,6 @@
             <div class="card-top">
               <span class="card-num">FRONT ${String(idx + 1).padStart(2, "0")}</span>
               <span class="card-region">${region}</span>
-              <span class="card-conf-chip ${conf}"><span class="card-conf-dot"></span>${conf}</span>
             </div>
             <h3 class="card-headline">${story.headline}</h3>
             <p class="card-tldr" style="-webkit-line-clamp: none; display: block; overflow: visible;">${story.tldr}</p>

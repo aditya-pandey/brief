@@ -99,20 +99,12 @@ export const DEEP_DIVE_SCHEMA = {
       description: "3–4 sentences explaining this story to a smart 16-year-old with no background — clear, vivid, no jargon",
     },
 
-    confidence: {
-      type: "object",
-      properties: {
-        level: { type: "string", description: "High / Medium / Low" },
-        notes: { type: "string", description: "Why — number of sources, corroboration, what is still uncertain" },
-      },
-      required: ["level","notes"],
-    },
   },
   required: [
     "headline","tldr","situational_analysis","strategic_assessment",
     "perspective_matrix","facts_vs_claims","blind_spot",
     "editorial_expert_insight","stakeholder_impact","context_background",
-    "timeline","simple_explanation","confidence",
+    "timeline","simple_explanation",
   ],
 };
 

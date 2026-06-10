@@ -73,13 +73,7 @@ function readMinutes(story) {
   const wc = JSON.stringify(story).split(/\s+/).length;
   return Math.max(2, Math.round(wc / 220));
 }
-function confidenceScore(level) {
-  const l = (level||"").toLowerCase();
-  if (l === "high") return 92;
-  if (l === "medium") return 64;
-  if (l === "low") return 34;
-  return 50;
-}
+
 function keyPhrase(text = "") {
   const stop = new Set("the a an and or of on in to for by with from as is are was were be been this that into amid against after before over under through it its their".split(" "));
   const words = String(text).toLowerCase().match(/[a-z][a-z-]{3,}/g) || [];
@@ -481,9 +475,7 @@ function miniSourceBar(sources) {
 
 function storyVisual(story, idx = 0) {
   const region = (story.region||"global").toLowerCase();
-  const conf = confidenceScore(story.confidence?.level);
   const sources = story.sources || [];
-  const angle = Math.round(conf * 3.6);
   const terms = keyPhrase(`${story.headline} ${story.tldr}`).slice(0,2);
   return `
     <div class="story-viz ${region}" aria-hidden="true" style="overflow:hidden; position:relative; width: 100%; height: 180px; min-height: 180px; border-bottom: 1px solid var(--rule);">
@@ -579,7 +571,6 @@ function mobileBriefingCards(story, slides) {
     ["benefit","relief","recovery"], ["war","threat","risk","crisis","collapse","breach","strike","inflation"]);
   const impactScore = metricScore(story.stakeholder_impact?.map(x=>x.impact).join(" ") || story.strategic_assessment,
     ["gain","boost","opportunity"], ["risk","threat","loss","collapse","strain","inflation"]);
-  const confidence = confidenceScore(story.confidence?.level);
   const timelineItems = story.timeline?.length ? story.timeline : [
     { when: "Now", event: sa.what || story.tldr },
     { when: "Why", event: sa.why || story.strategic_assessment },
@@ -669,8 +660,8 @@ function mobileBriefingCards(story, slides) {
     },
     {
       id:"sources", label:"Sources", kicker:"SOURCE ANALYSIS", tone:"sources",
-      summary: `<h2>Source Analysis</h2>${sourceDistribution(sources)}<p>${esc(firstSentence(story.confidence?.notes || "Source transparency is available below.", 170))}</p>`,
-      detail: `<h2>Transparency Log</h2><p>${esc(story.confidence?.notes || "")}</p><ul class="mobile-source-list">
+      summary: `<h2>Source Analysis</h2>${sourceDistribution(sources)}<p>Source transparency and outlet leanings are detailed below.</p>`,
+      detail: `<h2>Transparency Log</h2><p>Attributed sources used in this briefing:</p><ul class="mobile-source-list">
         ${sources.map(src=>`<li><span class="${leanClass(src.lean)}"></span><a href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.outlet)}</a><em>${esc(src.lean)} · ${esc(src.region)}</em></li>`).join("")}
       </ul>`
     },
