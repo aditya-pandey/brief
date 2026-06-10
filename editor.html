@@ -379,6 +379,22 @@
     // Set today's date as default
     document.getElementById("briefing-date").value = new Date().toISOString().slice(0, 10);
 
+    // Auto-expanding textareas for better mobile UX
+    const markdownTextarea = document.getElementById("raw-markdown");
+    const jsonTextarea = document.getElementById("raw-json");
+
+    function autoExpand(el) {
+      el.style.height = "auto";
+      el.style.height = (el.scrollHeight + 4) + "px";
+    }
+
+    markdownTextarea.addEventListener("input", () => autoExpand(markdownTextarea));
+    jsonTextarea.addEventListener("input", () => autoExpand(jsonTextarea));
+    
+    // Trigger auto-expand on focus or paste as well
+    markdownTextarea.addEventListener("focus", () => autoExpand(markdownTextarea));
+    jsonTextarea.addEventListener("focus", () => autoExpand(jsonTextarea));
+
     // Load Configuration Settings
     function loadSettings() {
       // Auto detect from URL if hosted on github.io
@@ -520,7 +536,7 @@
     function parseStory(frontBlock, index) {
       // Clean up start and match "Front N: Title" or "N. Title"
       const cleanBlock = frontBlock.trim().replace(/^#+\s*/, "");
-      const titleMatch = cleanBlock.match(/^(?:Front\s+)?\[?\d+\]?[:.]?\s*(.+)/i);
+      const titleMatch = cleanBlock.match(/^(?:Front|Story|News\s+Report|Report|Briefing)?\s*\[?\d+\]?[:.]?\s*(.+)/i);
       const rawTitle = titleMatch ? titleMatch[1].trim() : `Story ${index + 1}`;
       const sec = parseSections(frontBlock);
 
@@ -716,10 +732,10 @@
             return;
           }
           log("Parsing Markdown source...");
-          const frontBlocks = md.split(/\n##\s+(?=(?:Front\s+)?\[?\d+\]?)/i).filter(b => b.trim());
+          const frontBlocks = md.split(/\n##\s+(?=(?:Front|Story|News\s+Report|Report|Briefing)?\s*\[?\d+\]?)/i).filter(b => b.trim());
           for (let block of frontBlocks) {
             block = block.trim().replace(/^#+\s*/, "");
-            if (!block.match(/^(?:Front\s+)?\[?\d+\]?/i)) continue;
+            if (!block.match(/^(?:Front|Story|News\s+Report|Report|Briefing)?\s*\[?\d+\]?/i)) continue;
             try {
               const story = parseStory(block, stories.length);
               stories.push(story);
