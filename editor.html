@@ -469,7 +469,19 @@
                 result += char;
               }
             } else {
-              result += char;
+              if (inString) {
+                if (char === '\n') {
+                  result += '\\n';
+                } else if (char === '\r') {
+                  result += '\\r';
+                } else if (char === '\t') {
+                  result += '\\t';
+                } else {
+                  result += char;
+                }
+              } else {
+                result += char;
+              }
             }
             i++;
           }
