@@ -1383,6 +1383,10 @@ async function renderStory(date, id) {
 /* ── Router ────────────────────────────────────────────────── */
 async function route() {
   const p = location.pathname.replace(/\/+$/, "") || "/";
+  if (p === "/editor") {
+    window.location.href = "/editor.html";
+    return;
+  }
   app.innerHTML=`<div class="loading-screen"><div class="spinner"></div></div>`;
   $("hero").classList.add("hidden");
   stopProgress();
