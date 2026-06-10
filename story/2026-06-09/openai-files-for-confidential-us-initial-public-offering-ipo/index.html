@@ -4,7 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OpenAI Files for Confidential US Initial Public Offering (IPO)</title>
-  <base href="/" />
+  <script>
+    const basePath = (() => {
+      const path = window.location.pathname;
+      const match = path.match(/^(.*?)\/(?:story|day|editor)(?:\/|$)/);
+      if (match) return match[1];
+      return path.replace(/\/+$/, "");
+    })();
+    const base = document.createElement('base');
+    base.href = basePath ? basePath + '/' : '/';
+    document.head.appendChild(base);
+  </script>
   <meta name="description" content="Artificial intelligence leader OpenAI has taken the monumental step of filing for a confidential Initial Public Offering (IPO) in the United States. The company is eyeing a historic trillion-dollar valuation, marking a defining moment for the AI boom." />
   
   <!-- Favicon and Social Share Images -->
@@ -35,7 +45,7 @@
   <!-- ── Sticky nav ─────────────────────────────── -->
   <header id="site-header">
     <div class="header-inner">
-      <a class="wordmark" href="/">The Briefing</a>
+      <a class="wordmark" href="./">The Briefing</a>
       <div class="header-right">
         <div class="header-search">
           <label for="archive-select" class="sr-only">Search by date</label>

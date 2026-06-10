@@ -4,7 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>US Federal Court Invalidates the Trump Administration's $100,000 H-1B Visa Fee Proposal</title>
-  <base href="/" />
+  <script>
+    const basePath = (() => {
+      const path = window.location.pathname;
+      const match = path.match(/^(.*?)\/(?:story|day|editor)(?:\/|$)/);
+      if (match) return match[1];
+      return path.replace(/\/+$/, "");
+    })();
+    const base = document.createElement('base');
+    base.href = basePath ? basePath + '/' : '/';
+    document.head.appendChild(base);
+  </script>
   <meta name="description" content="A US federal judge has struck down President Donald Trump's proposed $100,000 annual fee on H-1B visas, ruling it an unconstitutional tax that bypassed congressional authority." />
   
   <!-- Favicon and Social Share Images -->
@@ -35,7 +45,7 @@
   <!-- ── Sticky nav ─────────────────────────────── -->
   <header id="site-header">
     <div class="header-inner">
-      <a class="wordmark" href="/">The Briefing</a>
+      <a class="wordmark" href="./">The Briefing</a>
       <div class="header-right">
         <div class="header-search">
           <label for="archive-select" class="sr-only">Search by date</label>

@@ -4,7 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SIPRI 2026 Report: India Expands Nuclear Arsenal to 190 Warheads</title>
-  <base href="/" />
+  <script>
+    const basePath = (() => {
+      const path = window.location.pathname;
+      const match = path.match(/^(.*?)\/(?:story|day|editor)(?:\/|$)/);
+      if (match) return match[1];
+      return path.replace(/\/+$/, "");
+    })();
+    const base = document.createElement('base');
+    base.href = basePath ? basePath + '/' : '/';
+    document.head.appendChild(base);
+  </script>
   <meta name="description" content="The Stockholm International Peace Research Institute (SIPRI) has revealed that India has expanded its nuclear arsenal to approximately 190 warheads. The report highlights a broader, troubling trend of global nuclear modernization amid rising regional tensions." />
   
   <!-- Favicon and Social Share Images -->
@@ -35,7 +45,7 @@
   <!-- ── Sticky nav ─────────────────────────────── -->
   <header id="site-header">
     <div class="header-inner">
-      <a class="wordmark" href="/">The Briefing</a>
+      <a class="wordmark" href="./">The Briefing</a>
       <div class="header-right">
         <div class="header-search">
           <label for="archive-select" class="sr-only">Search by date</label>

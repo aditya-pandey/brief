@@ -4,7 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Political Realignment in West Bengal: Faction of 20 TMC MPs Defect to Support NDA</title>
-  <base href="/" />
+  <script>
+    const basePath = (() => {
+      const path = window.location.pathname;
+      const match = path.match(/^(.*?)\/(?:story|day|editor)(?:\/|$)/);
+      if (match) return match[1];
+      return path.replace(/\/+$/, "");
+    })();
+    const base = document.createElement('base');
+    base.href = basePath ? basePath + '/' : '/';
+    document.head.appendChild(base);
+  </script>
   <meta name="description" content="The Trinamool Congress (TMC) faces an unprecedented crisis as a faction of 20 Members of Parliament (MPs) has broken away. The rebel group plans to form a separate bloc to support the ruling National Democratic Alliance (NDA) in New Delhi." />
   
   <!-- Favicon and Social Share Images -->
@@ -35,7 +45,7 @@
   <!-- ── Sticky nav ─────────────────────────────── -->
   <header id="site-header">
     <div class="header-inner">
-      <a class="wordmark" href="/">The Briefing</a>
+      <a class="wordmark" href="./">The Briefing</a>
       <div class="header-right">
         <div class="header-search">
           <label for="archive-select" class="sr-only">Search by date</label>

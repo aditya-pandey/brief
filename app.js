@@ -1,6 +1,12 @@
 /* The Briefing — app.js */
 
 const DATA = "data/";
+const BASE_PATH = (() => {
+  const path = window.location.pathname;
+  const match = path.match(/^(.*?)\/(?:story|day|editor)(?:\/|$)/);
+  if (match) return match[1];
+  return path.replace(/\/+$/, "");
+})();
 const dayCache = {};
 let indexEntries = [];
 const FEEDBACK_ENDPOINT = ""; // Paste your Formspree, Formspark, or Webhook URL here to receive feedback
@@ -154,7 +160,7 @@ async function loadIndex() {
     sel.addEventListener("change", e => {
       const selected = e.target.value;
       if (selected && indexEntries.some(x => x.date === selected)) {
-        navigate(`/day/${selected}`);
+        navigate(`${BASE_PATH}/day/${selected}`);
       } else if (selected) {
         alert("No briefing available for this date. Please select a valid date.");
         e.target.value = "";
@@ -1021,7 +1027,7 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
           setActiveTab(activeTabIdx + 1);
         } else if (storyIdx < stories.length - 1) {
           trackEvent("navigate_swipe", "Mobile Deep Dive", "Swipe Next Briefing", stories[storyIdx + 1].headline);
-          navigate(`/story/${date}/${stories[storyIdx + 1].id}`);
+          navigate(`${BASE_PATH}/story/${date}/${stories[storyIdx + 1].id}`);
         }
       }
     }
@@ -1043,7 +1049,7 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
       setActiveTab(activeTabIdx - 1);
     } else {
       trackEvent("navigate_button", "Mobile Deep Dive", "Exit Button");
-      navigate(`/day/${date}`);
+      navigate(`${BASE_PATH}/day/${date}`);
     }
   });
 
@@ -1053,7 +1059,7 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
       setActiveTab(activeTabIdx + 1);
     } else if (storyIdx < stories.length - 1) {
       trackEvent("navigate_button", "Mobile Deep Dive", "Next Briefing Button", stories[storyIdx + 1].headline);
-      navigate(`/story/${date}/${stories[storyIdx + 1].id}`);
+      navigate(`${BASE_PATH}/story/${date}/${stories[storyIdx + 1].id}`);
     }
   });
 
@@ -1173,7 +1179,7 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
   wrap.innerHTML = `
     <aside class="story-sidebar">
       <div class="sidebar-hdr">
-        <a class="sidebar-back" href="/">← Home</a>
+        <a class="sidebar-back" href="./">← Home</a>
         <span class="sidebar-date">${fmtHeaderDate(date).toUpperCase()}</span>
       </div>
       <div class="sidebar-list">${toc}</div>
@@ -1214,8 +1220,8 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
         ${allSections}
 
         <div class="desktop-story-nav">
-          ${storyIdx > 0 ? `<a class="story-nav-btn prev" href="/story/${date}/${stories[storyIdx-1].id}">← ${esc(stories[storyIdx-1].headline.slice(0,50))}…</a>` : "<span></span>"}
-          ${storyIdx < stories.length - 1 ? `<a class="story-nav-btn next" href="/story/${date}/${stories[storyIdx+1].id}">${esc(stories[storyIdx+1].headline.slice(0,50))}… →</a>` : "<span></span>"}
+          ${storyIdx > 0 ? `<a class="story-nav-btn prev" href="${BASE_PATH}/story/${date}/${stories[storyIdx-1].id}">← ${esc(stories[storyIdx-1].headline.slice(0,50))}…</a>` : "<span></span>"}
+          ${storyIdx < stories.length - 1 ? `<a class="story-nav-btn next" href="${BASE_PATH}/story/${date}/${stories[storyIdx+1].id}">${esc(stories[storyIdx+1].headline.slice(0,50))}… →</a>` : "<span></span>"}
         </div>
       </div>
     </div>`;
@@ -1223,7 +1229,7 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
   wrap.querySelectorAll(".sidebar-item").forEach(btn => {
     btn.addEventListener("click", () => {
       trackEvent("navigate_sidebar", "Desktop Sidebar", btn.dataset.id);
-      navigate(`/story/${date}/${btn.dataset.id}`);
+      navigate(`${BASE_PATH}/story/${date}/${btn.dataset.id}`);
     });
   });
 
@@ -1268,7 +1274,7 @@ async function renderHome(date) {
   const pastBanner = isLatest ? "" : `
     <div class="past-day-banner">
       <span>📅 Viewing archive for ${fmtLong(date)}</span>
-      <a href="/">← Today</a>
+      <a href="./">← Today</a>
     </div>`;
 
   const cards = payload.stories.map((s,i) => {
@@ -1306,7 +1312,7 @@ async function renderHome(date) {
   app.querySelectorAll(".story-card").forEach(card => {
     const go = () => {
       trackEvent("click_brief_card", "Home Grid", card.dataset.id);
-      navigate(`/story/${card.dataset.date}/${card.dataset.id}`);
+      navigate(`${BASE_PATH}/story/${card.dataset.date}/${card.dataset.id}`);
     };
     card.onclick = go;
     card.onkeydown = e => { if(e.key==="Enter"||e.key===" ") go(); };
@@ -1314,13 +1320,13 @@ async function renderHome(date) {
   app.querySelectorAll(".tm-card").forEach(btn => {
     btn.onclick = () => {
       trackEvent("click_time_machine", "Time Machine", btn.dataset.date);
-      navigate(`/day/${btn.dataset.date}`);
+      navigate(`${BASE_PATH}/day/${btn.dataset.date}`);
     };
   });
   app.querySelector(".past-day-banner a")?.addEventListener("click", e => {
     e.preventDefault();
     trackEvent("click_archive_banner_back", "Home Grid", "Back to Today");
-    navigate("/");
+    navigate(`${BASE_PATH}/`);
   });
 
   stopProgress();
@@ -1382,7 +1388,10 @@ async function renderStory(date, id) {
 
 /* ── Router ────────────────────────────────────────────────── */
 async function route() {
-  const p = location.pathname.replace(/\/+$/, "") || "/";
+  let p = location.pathname.replace(/\/+$/, "") || "/";
+  if (BASE_PATH && p.startsWith(BASE_PATH)) {
+    p = p.slice(BASE_PATH.length) || "/";
+  }
   app.innerHTML=`<div class="loading-screen"><div class="spinner"></div></div>`;
   $("hero").classList.add("hidden");
   stopProgress();
