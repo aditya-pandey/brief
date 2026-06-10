@@ -319,6 +319,10 @@
           <label for="briefing-date">Target Date</label>
           <input type="date" id="briefing-date" class="input-date" />
         </div>
+        <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 20px;">
+          <input type="checkbox" id="merge-stories" checked style="width: 18px; height: 18px; cursor: pointer;" />
+          <label for="merge-stories" style="cursor: pointer; user-select: none; font-size: 13px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); font-weight: 600;">Merge/append to existing stories</label>
+        </div>
       </div>
 
       <!-- Tab 1: Markdown Parser -->
@@ -837,9 +841,11 @@
         "Accept": "application/vnd.github.v3+json"
       };
 
-      log("Authenticating and fetching latest index.json...");
+      log("Authenticating and checking repository contents...");
       let indexData = [];
       let indexSha = null;
+      let dailyFileSha = null;
+      const shouldMerge = document.getElementById("merge-stories").checked;
 
       // 1. Fetch index.json (to get its SHA and current state)
       try {
@@ -849,7 +855,7 @@
           indexSha = indexJson.sha;
           const decodedIndex = atob(indexJson.content.replace(/\s/g, ''));
           indexData = JSON.parse(decodedIndex);
-          log(`Successfully loaded remote index with ${indexData.length} records.`);
+          log(`Loaded remote index with ${indexData.length} records.`);
         } else if (indexRes.status === 404) {
           log("Notice: index.json not found on remote. Starting a new index.json.");
         } else {
@@ -860,29 +866,69 @@
         return;
       }
 
-      // Update local copy of index.json
+      // 2. Fetch YYYY-MM-DD.json (if exists) for merging
+      log(`Checking if data/${date}.json exists on remote...`);
+      try {
+        const dailyFileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/${date}.json`, { headers });
+        if (dailyFileRes.ok) {
+          const dailyFileJson = await dailyFileRes.json();
+          dailyFileSha = dailyFileJson.sha;
+          log(`Found existing data/${date}.json.`);
+          if (shouldMerge) {
+            log("Merging new story/stories into existing daily list...");
+            try {
+              const decodedContent = atob(dailyFileJson.content.replace(/\s/g, ''));
+              const existingPayload = JSON.parse(decodedContent);
+              const mergedStories = existingPayload.stories || [];
+              let addedCount = 0;
+              let updatedCount = 0;
+              for (const newStory of payload.stories) {
+                const idx = mergedStories.findIndex(s => s.id === newStory.id || s.headline.trim().toLowerCase() === newStory.headline.trim().toLowerCase());
+                if (idx >= 0) {
+                  mergedStories[idx] = newStory;
+                  updatedCount++;
+                } else {
+                  mergedStories.push(newStory);
+                  addedCount++;
+                }
+              }
+              payload.stories = mergedStories;
+              log(`Merge completed: Added ${addedCount} new, updated ${updatedCount} existing story/stories. Total: ${payload.stories.length} stories.`);
+            } catch (mergeErr) {
+              log(`Warning: Failed to parse existing data file for merge: ${mergeErr.message}. Will overwrite instead.`, true);
+            }
+          } else {
+            log("Merge disabled. Will overwrite the entire file.");
+          }
+        } else if (dailyFileRes.status === 404) {
+          log(`Notice: data/${date}.json does not exist. Creating new briefing.`);
+        }
+      } catch (e) {
+        log(`Notice: Failed to fetch daily file: ${e.message}. Will write as new.`);
+      }
+
+      // 3. Update local copy of index.json count
       const existingIdx = indexData.findIndex(x => x.date === date);
       if (existingIdx >= 0) {
         indexData[existingIdx].count = payload.stories.length;
       } else {
         indexData.push({ date, count: payload.stories.length });
       }
+
+      // Deduplicate the list to ensure we never have multiple entries for the same date
+      const uniqueIndexData = [];
+      const seenDates = new Set();
+      for (const entry of indexData) {
+        if (!seenDates.has(entry.date)) {
+          seenDates.add(entry.date);
+          uniqueIndexData.push(entry);
+        }
+      }
+      indexData = uniqueIndexData;
       indexData.sort((a, b) => b.date.localeCompare(a.date));
 
-      // 2. Write YYYY-MM-DD.json
+      // 4. Build body for YYYY-MM-DD.json
       log(`Writing daily file contents to data/${date}.json...`);
-      let dailyFileSha = null;
-      try {
-        const dailyFileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/${date}.json`, { headers });
-        if (dailyFileRes.ok) {
-          const dailyFileJson = await dailyFileRes.json();
-          dailyFileSha = dailyFileJson.sha;
-          log(`Note: File data/${date}.json already exists. Preparing update.`);
-        }
-      } catch (e) {
-        // file doesn't exist, ignore
-      }
-
       const dailyBody = {
         message: `update: add briefing for ${date}`,
         content: btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2)))),

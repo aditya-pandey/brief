@@ -202,7 +202,7 @@ function generateOgSvg(story, idx = 0) {
   }
 
   const icons = library[activeTheme];
-  const icon = icons[(idx + Math.floor(hash % 3)) % icons.length];
+  const icon = icons[Math.floor(rand() * icons.length)];
   
   // Return a full 1200x630 SVG
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">

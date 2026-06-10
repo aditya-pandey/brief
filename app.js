@@ -134,7 +134,16 @@ async function loadIndex() {
   if (indexEntries.length) return indexEntries;
   const r = await fetch(DATA+"index.json",{cache:"no-store"});
   const raw = await r.json();
-  indexEntries = raw.map(x => typeof x==="string" ? {date:x,count:null} : x);
+  const mapped = raw.map(x => typeof x==="string" ? {date:x,count:null} : x);
+  const unique = [];
+  const seen = new Set();
+  for (const entry of mapped) {
+    if (!seen.has(entry.date)) {
+      seen.add(entry.date);
+      unique.push(entry);
+    }
+  }
+  indexEntries = unique;
   
   const sel = $("archive-select");
   if (sel) {
@@ -416,7 +425,7 @@ function semanticGraphic(story, idx = 0) {
   }
 
   const icons = library[activeTheme];
-  const icon = icons[(idx + Math.floor(hash % 3)) % icons.length];
+  const icon = icons[Math.floor(rand() * icons.length)];
   
   return `<div class="cover-pattern" aria-hidden="true" style="--pastel-bg:${bg}; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
     <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet" style="width:100%; height:100%; max-width:240px; max-height:240px; padding: 24px;">
@@ -1122,7 +1131,7 @@ function wireEngagementEvents(container, s) {
    DESKTOP LAYOUT — sidebar + scrollable sections
    ══════════════════════════════════════════════════════════════ */
 function renderDesktopLayout(slides, s, date, storyIdx, stories) {
-  const toc = stories.slice(0, 5).map((st, i) => `
+  const toc = stories.map((st, i) => `
     <button class="sidebar-item ${i === storyIdx ? 'active' : ''}" 
             data-id="${esc(st.id)}" aria-label="${esc(st.headline)}">
       <span class="sidebar-num">${String(i+1).padStart(2,"0")}</span>
@@ -1206,7 +1215,7 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
 
         <div class="desktop-story-nav">
           ${storyIdx > 0 ? `<a class="story-nav-btn prev" href="/story/${date}/${stories[storyIdx-1].id}">← ${esc(stories[storyIdx-1].headline.slice(0,50))}…</a>` : "<span></span>"}
-          ${storyIdx < Math.min(stories.length, 5)-1 ? `<a class="story-nav-btn next" href="/story/${date}/${stories[storyIdx+1].id}">${esc(stories[storyIdx+1].headline.slice(0,50))}… →</a>` : "<span></span>"}
+          ${storyIdx < stories.length - 1 ? `<a class="story-nav-btn next" href="/story/${date}/${stories[storyIdx+1].id}">${esc(stories[storyIdx+1].headline.slice(0,50))}… →</a>` : "<span></span>"}
         </div>
       </div>
     </div>`;
@@ -1251,7 +1260,10 @@ async function renderHome(date) {
   const hero = $("hero");
   hero.classList.remove("hidden");
   $("hero-title-h1").textContent = fmtLong(date);
-  $("hero-meta").textContent = isLatest ? "The 5 Stories That Matter Today" : "Curated Daily Briefings · Archive";
+  const count = payload.stories.length;
+  $("hero-meta").textContent = isLatest 
+    ? `The ${count} Stor${count === 1 ? "y" : "ies"} That Matter${count === 1 ? "s" : ""} Today` 
+    : `Curated Daily Briefings · Archive (${count} stories)`;
 
   const pastBanner = isLatest ? "" : `
     <div class="past-day-banner">
@@ -1259,7 +1271,7 @@ async function renderHome(date) {
       <a href="/">← Today</a>
     </div>`;
 
-  const cards = payload.stories.slice(0, 5).map((s,i) => {
+  const cards = payload.stories.map((s,i) => {
     const region = (s.region||"global").toLowerCase();
     const readMin = readMinutes(s);
     return `
