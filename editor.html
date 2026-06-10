@@ -399,6 +399,114 @@
     markdownTextarea.addEventListener("focus", () => autoExpand(markdownTextarea));
     jsonTextarea.addEventListener("focus", () => autoExpand(jsonTextarea));
 
+    // Convert pasted rich text/HTML to Markdown dynamically
+    function htmlToMarkdown(html) {
+      const temp = document.createElement("div");
+      temp.innerHTML = html;
+
+      function parseNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          return node.textContent;
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+          return "";
+        }
+
+        const tagName = node.tagName.toLowerCase();
+        
+        if (tagName === "tr") {
+          const cells = Array.from(node.querySelectorAll("th, td"));
+          const rowContent = cells.map(cell => parseNode(cell).replace(/\r?\n|\r/g, " ").trim()).join(" | ");
+          let result = `| ${rowContent} |`;
+          
+          const isHeader = cells.length > 0 && (cells.every(c => c.tagName.toLowerCase() === "th") || !node.previousElementSibling);
+          if (isHeader) {
+            const separator = cells.map(() => "---").join(" | ");
+            result += `\n| ${separator} |`;
+          }
+          return `\n${result}\n`;
+        }
+
+        let childrenContent = "";
+        for (const child of node.childNodes) {
+          childrenContent += parseNode(child);
+        }
+
+        const style = node.getAttribute("style") || "";
+        const isBold = style.includes("font-weight: bold") || style.includes("font-weight: 700") || style.includes("font-weight:bold") || style.includes("font-weight:700");
+        const isItalic = style.includes("font-style: italic") || style.includes("font-style:italic");
+
+        let text = childrenContent;
+        if (isBold && tagName !== "strong" && tagName !== "b") {
+          text = `**${text}**`;
+        }
+        if (isItalic && tagName !== "em" && tagName !== "i") {
+          text = `*${text}*`;
+        }
+
+        switch (tagName) {
+          case "h1":
+            return `\n# ${text.trim()}\n\n`;
+          case "h2":
+            return `\n## ${text.trim()}\n\n`;
+          case "h3":
+            return `\n### ${text.trim()}\n\n`;
+          case "strong":
+          case "b":
+            return `**${text}**`;
+          case "em":
+          case "i":
+            return `*${text}*`;
+          case "li":
+            return `\n* ${text.trim()}\n`;
+          case "p":
+          case "div":
+            return `\n${text.trim()}\n\n`;
+          case "br":
+            return "\n";
+          case "ul":
+          case "ol":
+            return `\n${text}\n`;
+          case "a":
+            const href = node.getAttribute("href") || "";
+            return href ? `[${text}](${href})` : text;
+          case "table":
+            return `\n\n${text}\n\n`;
+          case "thead":
+          case "tbody":
+          case "tfoot":
+          case "th":
+          case "td":
+            return text;
+          default:
+            return text;
+        }
+      }
+
+      let markdown = parseNode(temp);
+      return markdown.replace(/\n{3,}/g, "\n\n").trim();
+    }
+
+    markdownTextarea.addEventListener("paste", (e) => {
+      const html = e.clipboardData.getData("text/html");
+      if (html) {
+        e.preventDefault();
+        const markdown = htmlToMarkdown(html);
+        
+        // Insert markdown at current cursor position
+        const start = markdownTextarea.selectionStart;
+        const end = markdownTextarea.selectionEnd;
+        const currentVal = markdownTextarea.value;
+        
+        markdownTextarea.value = currentVal.substring(0, start) + markdown + currentVal.substring(end);
+        
+        // Position cursor after pasted markdown
+        markdownTextarea.selectionStart = markdownTextarea.selectionEnd = start + markdown.length;
+        
+        autoExpand(markdownTextarea);
+      }
+    });
+
     // Load Configuration Settings
     function loadSettings() {
       // Auto detect from URL if hosted on github.io
