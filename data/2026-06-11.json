@@ -1,36 +1,12 @@
 {
   "date": "2026-06-11",
-  "generated_at": "2026-06-11T01:44:27.210Z",
+  "generated_at": "2026-06-11T03:00:51.201Z",
   "source": "gemini-app",
   "recap": [
-    {
-      "front": "Front 1",
-      "primary_catalyst": "US military strike on commercial vessel Settebello off Oman coast.",
-      "core_threat": "Chilling effect on India-US naval exercises and spiked shipping insurance premiums.",
-      "horizon": "Immediate to medium-term"
-    },
     {
       "front": "Front 2",
       "primary_catalyst": "Internal rebellion by high-profile MPs against centralized TMC party leadership.",
       "core_threat": "Weakened federal opposition weight and frozen local administrative welfare chains.",
-      "horizon": "Immediate to medium-term"
-    },
-    {
-      "front": "Front 3",
-      "primary_catalyst": "Launch of Zoho's proprietary server architecture Nathu La for AI.",
-      "core_threat": "Unsustainable cloud fees and data-sovereignty risks from Western hyper-scalers.",
-      "horizon": "Immediate to medium-term"
-    },
-    {
-      "front": "Front 4",
-      "primary_catalyst": "Second wave of intense US kinetic air strikes inside Iran.",
-      "core_threat": "Full-scale regional conflagration and severe global energy market turbulence.",
-      "horizon": "Immediate to medium-term"
-    },
-    {
-      "front": "Front 5",
-      "primary_catalyst": "Commencement of resettlement census for the Great Nicobar infrastructure project.",
-      "core_threat": "Irreversible ecological destruction, tribal dislocation, and extreme tectonic vulnerability.",
       "horizon": "Immediate to medium-term"
     }
   ],
@@ -132,12 +108,12 @@
     {
       "id": "the-rupture-of-the-trinamool-congress",
       "headline": "The Rupture of the Trinamool Congress",
-      "tldr": "The Trinamool Congress (TMC), which rules West Bengal and serves as a vital anchor of the national opposition alliance, is facing its most severe existential split in a decade. A coordinated internal rebellion led by high-profile MPs has triggered sudden resignations and public defections, deeply fracturing the party's parliamentary strength. While external commentators are misinterpreting this as a simple dispute over party seats, it is actually a structural generational war over who controls the party's massive regional machinery. By the end of this briefing, you will understand how the inner circle's long-brewing resentment against absolute centralization has finally ruptured, permanently altering the balance of power within the national anti-government coalition.",
+      "tldr": "The Trinamool Congress (TMC), which used to rule West Bengal and served as a vital anchor of the national opposition alliance, is facing its most severe existential split in a decade. A coordinated internal rebellion led by high-profile MPs has triggered sudden resignations and public defections, deeply fracturing the party's parliamentary strength. While external commentators are misinterpreting this as a simple dispute over party seats, it is actually a structural generational war over who controls the party's massive regional machinery. By the end of this briefing, you will understand how the inner circle's long-brewing resentment against absolute centralization has finally ruptured, permanently altering the balance of power within the national anti-government coalition.",
       "region": "india",
       "situational_analysis": {
         "what": "A massive political mutiny that manifested in consecutive high-profile resignations from Parliament and simultaneous raids by the West Bengal Criminal Investigation Department (CID) on the party’s central offices. The state apparatus is investigating alleged forged signatures on internal party resolution books that rebels used to challenge the leadership.",
         "why": "The immediate trigger was the systemic sidelining of senior leaders and regional satraps by a highly centralized management structure overseen by Abhishek Banerjee. The rebels declared that internal democracy had been completely replaced by a corporate-style high command that insulated the supreme leader from the ground reality of her own party.",
-        "who": "Mamata Banerjee, the Chief Minister of West Bengal and supreme leader of the TMC, alongside her nephew and national general secretary, Abhishek Banerjee. The rebel faction includes at least 20 Members of Parliament, prominent among them Rajya Sabha MP Sushmita Dev and Sukhendu Sekhar Roy, both of whom have resigned their legislative seats.",
+        "who": "Mamata Banerjee, the former Chief Minister of West Bengal and supreme leader of the TMC, alongside her nephew and national general secretary, Abhishek Banerjee. The rebel faction includes at least 20 Members of Parliament, prominent among them Rajya Sabha MP Sushmita Dev and Sukhendu Sekhar Roy, both of whom have resigned their legislative seats.",
         "when": "The crisis peaked between June 8 and June 10, 2026, when the resignations were made public and the CID raids occurred. High-stakes crisis talks occurred in New Delhi on June 10, 2026, between rebel managers and senior national leaders.",
         "where": "The political theater is split between Kolkata, the administrative heart of the TMC’s power, and New Delhi, where rebel leaders are negotiating potential alignments with national opposition figures.",
         "how": "The rebellion was executed quietly over several months, culminating in a coordinated refusal to attend key party strategy sessions, followed by formal letters of resignation submitted directly to the Chairman of the Rajya Sabha, bypassing party channels entirely to prevent internal containment."
@@ -282,14 +258,14 @@
           "outlet": "India Today",
           "lean": "center",
           "region": "india",
-          "title": "Technology Desk: Detailed the technical specifications of the Nathu La server launch and Zoho’s infrastructure goals.",
+          "title": "Technology Desk: Detailed the technical specifications of the Nathu La server launch and Zohoâs infrastructure goals.",
           "url": ""
         },
         {
           "outlet": "The Indian Express",
           "lean": "center",
           "region": "india",
-          "title": "Business Section: Provided analysis on Sridhar Vembu’s corporate philosophy and warnings regarding AI infrastructure consolidation.",
+          "title": "Business Section: Provided analysis on Sridhar Vembuâs corporate philosophy and warnings regarding AI infrastructure consolidation.",
           "url": ""
         },
         {
@@ -337,13 +313,13 @@
         ],
         "claims": [
           "The US administration claims it is successfully destroying core command loops and minimizing civilian collateral damage through high-precision targeting profiles.",
-          "Unknown: The exact casualty figures within the IRGC leadership cadre and the remaining operational readiness of Iran’s underground ballistic missile silos remain entirely unverified due to intense information blockades on both sides."
+          "Unknown: The exact casualty figures within the IRGC leadership cadre and the remaining operational readiness of Iranâs underground ballistic missile silos remain entirely unverified due to intense information blockades on both sides."
         ]
       },
       "blind_spot": "While global analysts are transfixed by the immediate military exchanges, the catastrophic blind spot of this conflict is the total lack of institutional crisis management infrastructure. During the Cold War, Washington and Moscow maintained hotlines and explicit signaling mechanisms to prevent tactical miscalculations from becoming global nuclear wars. Today, there are no active, direct diplomatic channels between Washington and Tehran. Communications routed through third-party embassies take hours to process. In a war driven by hypersonic missiles and automated drone swarms, an architectural delay in communication means that a technical malfunction or a misidentified target cannot be explained or walked back, leaving both sides at the mercy of automated escalatory logic.",
       "editorial_expert_insight": {
         "opinion": "The most terrifying realization is that Washington appears to have no clearly defined political end-state; the strategy is purely kinetic, operating on the flawed assumption that sufficient military pressure will force a proud, heavily armed state to simply surrender its regional position without firing its most destructive weapons.",
-        "analysis": "The illusion that the Middle East conflict could be permanently contained through low-level proxy skirmishes is dead. By striking targets inside Iran twice in rapid succession, the United States has crossed a red line that redefines global geopolitics. Middle East scholar Vali Nasr observed that the doctrine of proportional deterrence has been replaced by a policy of regime degradation through attrition — and a cornered state has no incentive to play by rules it did not write."
+        "analysis": "The illusion that the Middle East conflict could be permanently contained through low-level proxy skirmishes is dead. By striking targets inside Iran twice in rapid succession, the United States has crossed a red line that redefines global geopolitics. Middle East scholar Vali Nasr observed that the doctrine of proportional deterrence has been replaced by a policy of regime degradation through attrition â and a cornered state has no incentive to play by rules it did not write."
       },
       "stakeholder_impact": [
         {
@@ -368,7 +344,7 @@
           "outlet": "Hindustan Times",
           "lean": "center",
           "region": "india",
-          "title": "Live World Updates: Confirmed the second wave of strikes and quoted President Trump’s direct warnings.",
+          "title": "Live World Updates: Confirmed the second wave of strikes and quoted President Trumpâs direct warnings.",
           "url": ""
         },
         {
@@ -379,7 +355,7 @@
           "url": ""
         },
         {
-          "outlet": "US Department of Defense / CENTCOM Communiqués",
+          "outlet": "US Department of Defense / CENTCOM CommuniquÃ©s",
           "lean": "center",
           "region": "global",
           "title": "Supplied the official targeting parameters and operational mission definitions.",
@@ -397,7 +373,7 @@
     {
       "id": "the-backlash-over-the-great-nicobar-project",
       "headline": "The Backlash Over the Great Nicobar Project",
-      "tldr": "The Indian government has initiated a sweeping resettlement census across the pristine Great Nicobar Island, moving forward with a massive 81,000 crore investment package designed to construct a transformative transshipment port and defense hub. While the state administration frames this as a vital strategic necessity to counter China’s naval dominance in the Indian Ocean, the project has triggered an intense national and international backlash from environmental scientists and indigenous rights groups. This is not a standard local development dispute; it is an absolute structural collision between raw national security imperatives and irreplaceable ecological and tribal heritage. By the end of this briefing, you will understand how this remote island outpost has become the most contested piece of real estate in India's geopolitical architecture.",
+      "tldr": "The Indian government has initiated a sweeping resettlement census across the pristine Great Nicobar Island, moving forward with a massive 81,000 crore investment package designed to construct a transformative transshipment port and defense hub. While the state administration frames this as a vital strategic necessity to counter Chinaâs naval dominance in the Indian Ocean, the project has triggered an intense national and international backlash from environmental scientists and indigenous rights groups. This is not a standard local development dispute; it is an absolute structural collision between raw national security imperatives and irreplaceable ecological and tribal heritage. By the end of this briefing, you will understand how this remote island outpost has become the most contested piece of real estate in India's geopolitical architecture.",
       "region": "india",
       "situational_analysis": {
         "what": "The formal commencement of a comprehensive resettlement census designed to clear specific geographical zones to make way for a mega-project featuring an international container transshipment terminal, a military-civilian airport, and a localized power plant.",
