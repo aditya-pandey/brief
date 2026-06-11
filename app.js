@@ -362,7 +362,7 @@ function semanticGraphic(story, idx = 0) {
        <rect x="40" y="120" width="120" height="10" ${common} />
        <line x1="100" y1="60" x2="100" y2="40" ${common} />`,
       // 5. Meeting / Table
-      `<line x1="40" y1="100" x2="160" y2="100" ${common} stroke-width="3" />
+      `<line x1="40" y1="100" x2="160" y2="100" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
        <circle cx="70" cy="70" r="10" ${common} />
        <circle cx="100" cy="70" r="10" fill="${stroke}" />
        <circle cx="130" cy="70" r="10" ${common} />
