@@ -260,7 +260,7 @@ async function runSSG() {
       // Provide an absolute URL if HOST is defined, otherwise relative for local testing
       // Social crawlers require absolute URLs for og:image.
       // We will assume a placeholder domain if none provided
-      const domain = process.env.HOST || "https://aditya-pandey.github.io/brief"; 
+      const domain = process.env.HOST || "https://thebriefings.netlify.app"; 
       const ogImage = `${domain}/og-images/${date}/${story.id}.png`;
       
       let storyHtml = rootHtml;
