@@ -63,6 +63,8 @@
       background: var(--bg);
       color: var(--ink);
       min-height: 250px;
+      max-height: 400px;
+      overflow-y: auto;
       width: 100%;
       resize: vertical;
       line-height: 1.5;
@@ -346,7 +348,10 @@
 
     function autoExpand(el) {
       el.style.height = "auto";
-      el.style.height = (el.scrollHeight + 4) + "px";
+      const maxHeight = 400;
+      const targetHeight = el.scrollHeight + 4;
+      el.style.height = Math.min(targetHeight, maxHeight) + "px";
+      el.style.overflowY = targetHeight > maxHeight ? "auto" : "hidden";
     }
 
     jsonTextarea.addEventListener("input", () => autoExpand(jsonTextarea));
