@@ -11,6 +11,13 @@ const dayCache = {};
 let indexEntries = [];
 const FEEDBACK_ENDPOINT = ""; // Paste your Formspree, Formspark, or Webhook URL here to receive feedback
 
+/* ── Flash state variables ── */
+let currentMode = localStorage.getItem("currentMode") || "flash";
+let flashStories = [];
+let activeFlashCategory = "all";
+let currentFlashIndex = 0;
+const flashReadsSessionSet = new Set();
+
 /* ── Analytics tracking helpers ──────────────────────────────── */
 function trackPageView(path, title) {
   if (title) {
@@ -1210,6 +1217,8 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
         </section>
         ${allSections}
 
+        ${renderRelatedFlashCards(s)}
+
         <div class="desktop-story-nav">
           ${storyIdx > 0 ? `<a class="story-nav-btn prev" href="${BASE_PATH}/story/${date}/${stories[storyIdx-1].id}">← ${esc(stories[storyIdx-1].headline.slice(0,50))}…</a>` : "<span></span>"}
           ${storyIdx < stories.length - 1 ? `<a class="story-nav-btn next" href="${BASE_PATH}/story/${date}/${stories[storyIdx+1].id}">${esc(stories[storyIdx+1].headline.slice(0,50))}… →</a>` : "<span></span>"}
@@ -1241,6 +1250,12 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
    HOME PAGE
    ══════════════════════════════════════════════════════════════ */
 async function renderHome(date) {
+  document.body.classList.remove("mode-flash-active");
+  const tf = $("toggle-flash");
+  const tb = $("toggle-briefing");
+  if (tf) tf.classList.remove("active");
+  if (tb) tb.classList.add("active");
+
   await loadIndex();
   if (!date) date = indexEntries[0]?.date;
   if (!date) { app.innerHTML=`<div class="error-state">No briefings yet.</div>`; return; }
@@ -1350,6 +1365,12 @@ function renderTimeMachine(currentDate) {
    STORY ROUTE
    ══════════════════════════════════════════════════════════════ */
 async function renderStory(date, id) {
+  document.body.classList.remove("mode-flash-active");
+  const tf = $("toggle-flash");
+  const tb = $("toggle-briefing");
+  if (tf) tf.classList.remove("active");
+  if (tb) tb.classList.add("active");
+
   await loadIndex();
   const payload = await loadDay(date);
   const stories = payload.stories;
@@ -1365,6 +1386,42 @@ async function renderStory(date, id) {
   $("hero").classList.add("hidden");
 
   const slides = buildSlides(s, date);
+  
+  // Append related Flash slide for mobile
+  const briefCat = getBriefStoryCategory(s);
+  const related = flashStories.filter(fs => fs.cat === briefCat).slice(0, 5);
+  if (related.length > 0) {
+    const cardsHtml = related.map(fs => {
+      const col = getCategoryColor(fs.cat);
+      const rgb = getCategoryColorRgb(fs.cat);
+      return `
+        <div class="related-flash-item" data-id="${esc(fs.id)}" style="background: var(--bg-card-h); margin-bottom: 12px; border: 1px solid var(--rule); border-radius: 12px; padding: 14px; text-align: left;">
+          <div class="related-flash-item-top" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span class="related-flash-item-cat" style="background: rgba(${rgb}, 0.15); color: ${col}; font-family: var(--sans); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 6px; border-radius: 4px;">${esc(FLASH_LABELS[fs.cat] || fs.cat)}</span>
+            <span class="related-flash-item-time" style="font-family: var(--mono); font-size: 9px; color: var(--ink-3);">${esc(fs.ts)}</span>
+          </div>
+          <div class="related-flash-item-headline" style="font-family: var(--serif); font-size: 15px; font-weight: 700; line-height: 1.35; color: var(--ink); margin-bottom: 6px;">${esc(fs.hl)}</div>
+          <div class="related-flash-item-summary" style="font-family: var(--sans); font-size: 12px; color: var(--ink-2); line-height: 1.5; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${esc(fs.body)}</div>
+          <div class="related-flash-item-tap" style="color: ${col}; font-family: var(--sans); font-size: 9px; font-weight: 700; text-transform: uppercase;">Tap to view card &rarr;</div>
+        </div>`;
+    }).join("");
+    
+    slides.push({
+      id: "related-flash",
+      label: "Related Flash",
+      icon: "⚡",
+      html: `
+        <div class="slide-body" style="padding-bottom: 40px; overflow-y: auto; height: 100%;">
+          <div class="slide-section-label" style="display: flex; align-items: center; gap: 8px; font-family: var(--serif); font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 16px;">
+            <span>⚡</span>Related Flash Speed News
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            ${cardsHtml}
+          </div>
+        </div>`
+    });
+  }
+
   const isMobile = window.innerWidth < 768;
 
   app.innerHTML = "";
@@ -1379,24 +1436,819 @@ async function renderStory(date, id) {
 
 /* ── Router ────────────────────────────────────────────────── */
 async function route() {
-  let p = location.pathname.replace(/\/+$/, "") || "/";
+  let p = location.pathname;
+  if (p.endsWith("/index.html")) {
+    p = p.slice(0, -11);
+  }
+  p = p.replace(/\/+$/, "") || "/";
   if (BASE_PATH && p.startsWith(BASE_PATH)) {
     p = p.slice(BASE_PATH.length) || "/";
   }
+  p = p.replace(/\/+$/, "") || "/";
+
   app.innerHTML=`<div class="loading-screen"><div class="spinner"></div></div>`;
   $("hero").classList.add("hidden");
   stopProgress();
   try {
     const m = p.match(/^\/story\/([^/]+)\/(.+)$/);
     const d = p.match(/^\/day\/([^/]+)$/);
+    
+    // Ensure flash.json is preloaded so it's always ready for cross-linking
+    if (flashStories.length === 0) {
+      try { await loadFlash(); } catch(e) { console.error("Preloading flash failed:", e); }
+    }
+    
     if (m) return await renderStory(decodeURIComponent(m[1]), decodeURIComponent(m[2]));
     if (d) return await renderHome(decodeURIComponent(d[1]));
-    return await renderHome(null);
+    
+    if (currentMode === "flash") {
+      return await renderFlashView();
+    } else {
+      return await renderHome(null);
+    }
   } catch(e) {
     stopProgress();
     app.innerHTML=`<div class="error-state">Couldn't load · ${esc(e.message)}</div>`;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   ⚡ FLASH LAYOUT & INTERACTION ENGINE
+   ══════════════════════════════════════════════════════════════ */
+const FLASH_COLORS = {
+  india:    '#FF5722',
+  world:    '#3B82F6',
+  politics: '#8B5CF6',
+  business: '#22C55E',
+  ai:       '#06B6D4',
+  science:  '#F59E0B'
+};
+
+const FLASH_LABELS = {
+  india:    'India',
+  world:    'World',
+  politics: 'Politics',
+  business: 'Business',
+  ai:       'AI & Tech',
+  science: 'Science'
+};
+
+function getCategoryColor(cat) {
+  return FLASH_COLORS[cat] || '#3E3E50';
+}
+
+function getCategoryColorRgb(cat) {
+  const hex = getCategoryColor(cat);
+  if (hex.startsWith('#') && hex.length === 7) {
+    return [
+      parseInt(hex.slice(1, 3), 16),
+      parseInt(hex.slice(3, 5), 16),
+      parseInt(hex.slice(5, 7), 16)
+    ].join(',');
+  }
+  return '62, 62, 80';
+}
+
+function getBriefStoryCategory(s) {
+  const text = ((s.headline || "") + " " + (s.tldr || "") + " " + (s.simple_explanation || "")).toLowerCase();
+  
+  if (text.match(/ai|tech|software|google|meta|apple|microsoft|openai|silicon|computer|digital/)) return "ai";
+  if (text.match(/space|science|satellite|isro|nasa|climate|heatwave|monsoon|temperate|medical|health|virus/)) return "science";
+  if (text.match(/election|vote|parliament|minister|government|court|judge|law|policy|judgement|ruling/)) return "politics";
+  if (text.match(/economy|market|rupee|dollar|billion|million|business|trade|tax|surplus|windfall|sensex|shares|stock/)) return "business";
+  
+  if ((s.region || "").toLowerCase() === "india") return "india";
+  return "world";
+}
+
+async function loadFlash() {
+  if (flashStories.length > 0) return flashStories;
+  const r = await fetch(`${BASE_PATH ? BASE_PATH : "."}/flash.json`, { cache: "no-store" });
+  if (!r.ok) throw new Error("Failed to load Flash stories.");
+  flashStories = await r.json();
+  return flashStories;
+}
+
+function renderFlashCategoryPills() {
+  const cats = [
+    { id: "all", label: "All" },
+    { id: "india", label: "🇮🇳 India" },
+    { id: "world", label: "🌍 World" },
+    { id: "politics", label: "🏛 Politics" },
+    { id: "business", label: "📈 Business" },
+    { id: "ai", label: "🤖 AI & Tech" },
+    { id: "science", label: "🔬 Science" }
+  ];
+  
+  return cats.map(c => {
+    const active = c.id === activeFlashCategory;
+    const col = getCategoryColor(c.id);
+    const rgb = getCategoryColorRgb(c.id);
+    
+    let style = "";
+    if (active) {
+      style = `style="--cat-color: ${col}; --cat-color-rgb: ${rgb};"`;
+    }
+    
+    return `
+      <button class="flash-cat-pill ${active ? 'active' : ''}" data-cat="${c.id}" ${style}>
+        ${c.label}
+      </button>`;
+  }).join("");
+}
+
+function renderFlashDots(total) {
+  const show = Math.min(total, 9);
+  let start = Math.max(0, Math.min(currentFlashIndex - 4, total - show));
+  let dots = [];
+  for (let i = start; i < start + show; i++) {
+    const active = i === currentFlashIndex;
+    dots.push(`
+      <div class="flash-nav-dot ${active ? 'active' : ''}"></div>
+    `);
+  }
+  return dots.join("");
+}
+
+function wireFlashCategories() {
+  const container = $("flash-cats");
+  if (!container) return;
+  container.addEventListener("click", e => {
+    const pill = e.target.closest(".flash-cat-pill");
+    if (pill) {
+      activeFlashCategory = pill.dataset.cat;
+      currentFlashIndex = 0;
+      renderFlashView();
+    }
+  });
+}
+
+function wireFlashNavigation(filtered) {
+  const prevBtn = $("flash-prev");
+  const nextBtn = $("flash-next");
+  const bookmarkBtn = $("flash-bookmark-btn");
+  const goDeeperBtn = $("flash-go-deeper-btn");
+  
+  if (prevBtn) {
+    prevBtn.onclick = () => {
+      navigateFlash(-1, filtered);
+    };
+  }
+  if (nextBtn) {
+    nextBtn.onclick = () => {
+      navigateFlash(1, filtered);
+    };
+  }
+  if (bookmarkBtn) {
+    bookmarkBtn.onclick = () => {
+      const activeStory = filtered[currentFlashIndex];
+      const active = toggleBookmark(activeStory);
+      bookmarkBtn.classList.toggle("saved", active);
+      
+      const col = getCategoryColor(activeStory.cat);
+      bookmarkBtn.style.color = active ? col : "";
+      
+      const svg = bookmarkBtn.querySelector("svg");
+      if (svg) {
+        svg.setAttribute("fill", active ? "currentColor" : "none");
+      }
+      const label = bookmarkBtn.querySelector("span");
+      if (label) {
+        label.textContent = active ? "Saved" : "Save";
+      }
+    };
+  }
+  if (goDeeperBtn) {
+    goDeeperBtn.onclick = () => {
+      const activeStory = filtered[currentFlashIndex];
+      const latestDate = indexEntries[0]?.date;
+      if (latestDate) {
+        // Switch to briefing mode
+        currentMode = "briefing";
+        localStorage.setItem("currentMode", "briefing");
+        document.body.classList.remove("mode-flash-active");
+        
+        // update header nav active tab
+        $("toggle-briefing").classList.add("active");
+        $("toggle-flash").classList.remove("active");
+        
+        navigate(`${BASE_PATH}/story/${latestDate}/${activeStory.id}`);
+      }
+    };
+  }
+}
+
+function navigateFlash(direction, filtered) {
+  const nextIdx = currentFlashIndex + direction;
+  if (nextIdx < 0 || nextIdx >= filtered.length) return;
+  
+  const card = $("flash-card");
+  if (card) {
+    card.style.transition = 'transform 0.22s ease-in, opacity 0.18s ease';
+    card.style.transform  = direction > 0
+      ? 'translateX(-108%) rotate(-5deg)'
+      : 'translateX(108%) rotate(5deg)';
+    card.style.opacity = '0';
+    setTimeout(() => {
+      currentFlashIndex = nextIdx;
+      renderFlashView();
+      // add entrance animation
+      const newCard = $("flash-card");
+      if (newCard) {
+        newCard.style.opacity = '0';
+        newCard.style.transform = 'translateY(10px) scale(0.97)';
+        // trigger reflow
+        newCard.offsetHeight;
+        newCard.style.transition = 'transform 0.26s cubic-bezier(0.22, 0, 0.18, 1), opacity 0.26s ease';
+        newCard.style.transform = '';
+        newCard.style.opacity = '1';
+      }
+    }, 215);
+  } else {
+    currentFlashIndex = nextIdx;
+    renderFlashView();
+  }
+}
+
+let flashDragging = false;
+let flashStartX = 0;
+let flashCurrX = 0;
+let flashCardEl = null;
+
+function attachFlashDrag(filtered) {
+  flashCardEl = $("flash-card");
+  if (!flashCardEl) return;
+  
+  flashCardEl.addEventListener('touchstart', fStart, { passive: true });
+  flashCardEl.addEventListener('touchmove',  fMove,  { passive: false });
+  flashCardEl.addEventListener('touchend',   fEnd);
+  flashCardEl.addEventListener('mousedown',  fStart);
+  
+  function fStart(e) {
+    flashDragging = true;
+    flashCurrX = 0;
+    flashStartX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+    if (flashCardEl) flashCardEl.style.transition = 'none';
+    
+    document.addEventListener('mousemove', fMove);
+    document.addEventListener('mouseup',   fEnd);
+  }
+  
+  function fMove(e) {
+    if (!flashDragging || !flashCardEl) return;
+    if (e.cancelable) e.preventDefault();
+    
+    const x = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+    flashCurrX = x - flashStartX;
+    const rot = flashCurrX * 0.032;
+    flashCardEl.style.transform = `translateX(${flashCurrX}px) rotate(${rot}deg)`;
+    
+    /* Directional tint feedback */
+    const overlayLeft = $("flash-drag-left");
+    const overlayRight = $("flash-drag-right");
+    
+    const intensity = Math.min(Math.abs(flashCurrX) / 160, 1) * 0.18;
+    if (flashCurrX < 0) { // Drag left -> next card
+      if (overlayLeft) {
+        overlayLeft.style.opacity = intensity;
+      }
+      if (overlayRight) {
+        overlayRight.style.opacity = 0;
+      }
+    } else { // Drag right -> prev card
+      if (overlayRight) {
+        overlayRight.style.opacity = intensity;
+      }
+      if (overlayLeft) {
+        overlayLeft.style.opacity = 0;
+      }
+    }
+  }
+  
+  function fEnd() {
+    if (!flashDragging) return;
+    flashDragging = false;
+    
+    document.removeEventListener('mousemove', fMove);
+    document.removeEventListener('mouseup',   fEnd);
+    
+    const overlayLeft = $("flash-drag-left");
+    const overlayRight = $("flash-drag-right");
+    
+    if (overlayLeft) overlayLeft.style.opacity = '0';
+    if (overlayRight) overlayRight.style.opacity = '0';
+    
+    const THRESH = 72;
+    if (flashCurrX < -THRESH) {
+      if (currentFlashIndex < filtered.length - 1) {
+        navigateFlash(1, filtered);
+      } else {
+        snapBack();
+      }
+    } else if (flashCurrX > THRESH) {
+      if (currentFlashIndex > 0) {
+        navigateFlash(-1, filtered);
+      } else {
+        snapBack();
+      }
+    } else {
+      snapBack();
+    }
+  }
+  
+  function snapBack() {
+    if (flashCardEl) {
+      flashCardEl.style.transition = 'transform 0.32s cubic-bezier(0.25, 0, 0.2, 1)';
+      flashCardEl.style.transform = '';
+    }
+  }
+}
+
+async function trackViewCount(storyId) {
+  const isFirstView = !flashReadsSessionSet.has(storyId);
+  if (isFirstView) {
+    flashReadsSessionSet.add(storyId);
+  }
+  
+  // Fallback local storage count
+  let localReads = {};
+  try {
+    localReads = JSON.parse(localStorage.getItem("flash_reads_fallback") || "{}");
+  } catch(e) {}
+  
+  if (isFirstView) {
+    localReads[storyId] = (localReads[storyId] || 0) + 1;
+    localStorage.setItem("flash_reads_fallback", JSON.stringify(localReads));
+  }
+  
+  let views = localReads[storyId] || 0;
+  
+  // Try CountAPI xyz
+  try {
+    const namespace = "thebriefing-flash";
+    if (isFirstView) {
+      // Increment
+      const res = await fetch(`https://api.countapi.xyz/hit/${namespace}/${storyId}`).catch(() => null);
+      if (res && res.ok) {
+        const data = await res.json();
+        views = data.value;
+      }
+    } else {
+      // Get
+      const res = await fetch(`https://api.countapi.xyz/get/${namespace}/${storyId}`).catch(() => null);
+      if (res && res.ok) {
+        const data = await res.json();
+        views = data.value;
+      }
+    }
+  } catch (err) {
+    console.warn("CountAPI failed, using local fallback count:", err);
+  }
+  
+  return views;
+}
+
+function showToast(message) {
+  const container = $("toast-container");
+  if (!container) return;
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = message;
+  container.appendChild(toast);
+  // Remove after animation completes
+  setTimeout(() => {
+    toast.remove();
+  }, 2600);
+}
+
+function toggleBookmark(story) {
+  let saved = getSavedStories();
+  const idx = saved.findIndex(s => s.id === story.id);
+  if (idx >= 0) {
+    saved.splice(idx, 1);
+    localStorage.setItem("flash_saved", JSON.stringify(saved));
+    showToast("Removed from bookmarks");
+    return false; // not saved
+  } else {
+    saved.push(story);
+    localStorage.setItem("flash_saved", JSON.stringify(saved));
+    showToast("Saved to bookmarks");
+    return true; // saved
+  }
+}
+
+function getSavedStories() {
+  try {
+    return JSON.parse(localStorage.getItem("flash_saved") || "[]");
+  } catch(e) {
+    return [];
+  }
+}
+
+function renderSavedStoriesList() {
+  const listEl = $("saved-stories-list");
+  if (!listEl) return;
+  const saved = getSavedStories();
+  if (saved.length === 0) {
+    listEl.innerHTML = `
+      <div class="saved-empty-state">
+        <div class="saved-empty-icon">◦</div>
+        <div class="saved-empty-text">No saved stories yet.</div>
+      </div>`;
+    return;
+  }
+  
+  listEl.innerHTML = saved.map((s, index) => {
+    const col = getCategoryColor(s.cat);
+    return `
+      <div class="saved-item-card" data-id="${esc(s.id)}" data-cat="${esc(s.cat)}">
+        <button class="saved-item-remove" data-id="${esc(s.id)}" aria-label="Remove bookmark">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <div class="saved-item-top">
+          <span class="saved-item-cat" style="color: ${col};">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
+          <span class="saved-item-date">${esc(s.ts)}</span>
+        </div>
+        <div class="saved-item-headline">${esc(s.hl)}</div>
+      </div>`;
+  }).join("");
+  
+  // Wire click events on cards to open them
+  listEl.querySelectorAll(".saved-item-card").forEach(card => {
+    card.onclick = (e) => {
+      if (e.target.closest(".saved-item-remove")) return; // handled by remove button
+      const storyId = card.dataset.id;
+      // Close modal
+      $("saved-stories-modal").classList.remove("active");
+      // Go to story
+      openFlashStory(storyId);
+    };
+  });
+  
+  // Wire remove buttons
+  listEl.querySelectorAll(".saved-item-remove").forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const storyId = btn.dataset.id;
+      const saved = getSavedStories();
+      const story = saved.find(s => s.id === storyId);
+      if (story) {
+        toggleBookmark(story);
+        renderSavedStoriesList();
+      }
+    };
+  });
+}
+
+function openFlashStory(storyId) {
+  currentMode = "flash";
+  localStorage.setItem("currentMode", "flash");
+  document.body.classList.add("mode-flash-active");
+  
+  // update tabs classes
+  $("toggle-flash").classList.add("active");
+  $("toggle-briefing").classList.remove("active");
+  
+  // Reset category to "all" to make sure the story can be found
+  activeFlashCategory = "all";
+  
+  // Navigate to root to ensure we render flash view
+  navigate(`${BASE_PATH}/`);
+  
+  // Set current flash index
+  const index = flashStories.findIndex(fs => fs.id === storyId);
+  if (index >= 0) {
+    currentFlashIndex = index;
+    renderFlashView();
+  }
+}
+
+function renderRelatedFlashCards(s) {
+  const briefCat = getBriefStoryCategory(s);
+  const related = flashStories.filter(fs => fs.cat === briefCat).slice(0, 5);
+  
+  if (related.length === 0) return "";
+  
+  const cardsHtml = related.map(fs => {
+    const col = getCategoryColor(fs.cat);
+    const rgb = getCategoryColorRgb(fs.cat);
+    return `
+      <div class="related-flash-item" data-id="${esc(fs.id)}">
+        <div class="related-flash-item-top">
+          <span class="related-flash-item-cat" style="background: rgba(${rgb}, 0.15); color: ${col};">${esc(FLASH_LABELS[fs.cat] || fs.cat)}</span>
+          <span class="related-flash-item-time">${esc(fs.ts)}</span>
+        </div>
+        <div class="related-flash-item-headline">${esc(fs.hl)}</div>
+        <div class="related-flash-item-summary">${esc(fs.body)}</div>
+        <div class="related-flash-item-tap" style="color: ${col};">Tap to view card &rarr;</div>
+      </div>`;
+  }).join("");
+
+  return `
+    <div class="briefing-related-flash-section">
+      <h3 class="related-flash-title">⚡ Related Flash Speed News</h3>
+      <div class="related-flash-row">
+        ${cardsHtml}
+      </div>
+    </div>`;
+}
+
+async function renderFlashView() {
+  stopProgress();
+  
+  // Update mode navigation active tab
+  document.body.classList.add("mode-flash-active");
+  $("toggle-flash").classList.add("active");
+  $("toggle-briefing").classList.remove("active");
+  
+  try {
+    await loadFlash();
+  } catch (err) {
+    app.innerHTML = `<div class="error-state">Couldn't load Flash stories · ${esc(err.message)}</div>`;
+    return;
+  }
+  
+  const filtered = activeFlashCategory === "all" 
+    ? flashStories 
+    : flashStories.filter(s => s.cat === activeFlashCategory);
+    
+  const total = filtered.length;
+  currentFlashIndex = Math.max(0, Math.min(total - 1, currentFlashIndex));
+  
+  if (total === 0) {
+    app.innerHTML = `
+      <div class="flash-container">
+        <div class="flash-heading-block">
+          <div class="flash-heading-top">
+            <div class="flash-heading-title">⚡ FLASH</div>
+            <div class="flash-heading-datebar">TODAY'S FLASH</div>
+          </div>
+        </div>
+        
+        <div class="flash-categories-bar" id="flash-cats">
+          ${renderFlashCategoryPills()}
+        </div>
+        
+        <div class="flash-card-stage">
+          <div class="saved-empty-state">
+            <div class="saved-empty-icon">◦</div>
+            <div class="saved-empty-text">No stories available in this category.</div>
+          </div>
+        </div>
+        
+        <div class="flash-progress-track">
+          <div class="flash-progress-fill" style="width: 0%;"></div>
+        </div>
+        
+        <div class="flash-nav-row">
+          <button class="flash-nav-btn" disabled>&larr;</button>
+          <div class="flash-nav-center">
+            <span class="flash-nav-counter">0 / 0</span>
+          </div>
+          <button class="flash-nav-btn" disabled>&rarr;</button>
+        </div>
+      </div>`;
+    
+    wireFlashCategories();
+    return;
+  }
+  
+  const s = filtered[currentFlashIndex];
+  const col = getCategoryColor(s.cat);
+  const rgb = getCategoryColorRgb(s.cat);
+  
+  // Check if saved
+  const saved = getSavedStories();
+  const isSaved = saved.some(fs => fs.id === s.id);
+  
+  // Check if "Go Deeper" is available (story.id exists in today's briefing payload)
+  let showGoDeeper = false;
+  const latestDate = indexEntries[0]?.date;
+  if (latestDate) {
+    try {
+      const todayPayload = dayCache[latestDate] || await loadDay(latestDate);
+      showGoDeeper = todayPayload.stories.some(ts => ts.id === s.id);
+    } catch(e) {}
+  }
+  
+  // Render ghosts
+  const nextStory = filtered[currentFlashIndex + 1];
+  const thirdStory = filtered[currentFlashIndex + 2];
+  
+  const ghost1Html = nextStory 
+    ? `<div class="flash-ghost-card-1" style="--next-cat-color-rgb: ${getCategoryColorRgb(nextStory.cat)}"></div>`
+    : "";
+  const ghost2Html = thirdStory 
+    ? `<div class="flash-ghost-card-2"></div>`
+    : "";
+    
+  // Render Who benefits chips
+  const benefitsHtml = (s.who_benefits || []).map(b => `
+    <div class="flash-benefit-chip" title="${esc(b)}">${esc(b)}</div>
+  `).join("");
+  const benefitsSection = benefitsHtml 
+    ? `<div class="flash-benefits-container">
+         <span class="flash-benefits-label">Benefits:</span>
+         ${benefitsHtml}
+       </div>`
+    : "";
+    
+  // Render views/trending
+  let localReads = {};
+  try {
+    localReads = JSON.parse(localStorage.getItem("flash_reads_fallback") || "{}");
+  } catch(e) {}
+  const initialViews = localReads[s.id] || 1;
+  const isTrending = initialViews >= 1000;
+  
+  app.innerHTML = `
+    <div class="flash-container" style="--cat-color: ${col}; --cat-color-rgb: ${rgb};">
+      <div class="flash-heading-block">
+        <div class="flash-heading-top">
+          <div class="flash-heading-title">⚡ FLASH</div>
+          <div class="flash-heading-datebar">TODAY'S FLASH</div>
+        </div>
+      </div>
+      
+      <div class="flash-categories-bar" id="flash-cats">
+        ${renderFlashCategoryPills()}
+      </div>
+      
+      <div class="flash-card-stage" id="flash-card-stage">
+        ${ghost2Html}
+        ${ghost1Html}
+        
+        <div class="flash-card" id="flash-card">
+          <div class="flash-drag-overlay left" id="flash-drag-left">PREV</div>
+          <div class="flash-drag-overlay right" id="flash-drag-right">NEXT</div>
+          
+          <div class="flash-card-header">
+            <span class="flash-cat-badge">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
+            <span class="flash-time">${esc(s.ts)}</span>
+          </div>
+          
+          <h2 class="flash-headline">${esc(s.hl)}</h2>
+          <hr class="flash-divider" />
+          
+          <div class="flash-summary">
+            <p>${esc(s.body)}</p>
+          </div>
+          
+          <div class="flash-signal-box">
+            <div class="flash-signal-label">Key Fact / Signal</div>
+            <div class="flash-signal-value">${esc(s.fact)}</div>
+          </div>
+          
+          ${benefitsSection}
+          
+          <div class="flash-card-footer">
+            <button class="flash-footer-btn ${isSaved ? 'saved' : ''}" id="flash-bookmark-btn" aria-label="Save story" style="color: ${isSaved ? col : ''}">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="${isSaved ? 'currentColor' : 'none'}" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span>${isSaved ? 'Saved' : 'Save'}</span>
+            </button>
+            
+            <div style="display: flex; align-items: center; gap: 8px;">
+              ${showGoDeeper ? `<span class="flash-go-deeper" id="flash-go-deeper-btn">Go Deeper &rarr;</span>` : ''}
+              
+              <div class="flash-trending-pill" style="opacity: ${isTrending ? 1 : 0.4}">
+                <span>🔥</span>
+                <span id="views-count">${initialViews}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flash-progress-track">
+        <div class="flash-progress-fill" style="width: ${((currentFlashIndex + 1) / total) * 100}%;"></div>
+      </div>
+      
+      <div class="flash-nav-row">
+        <button class="flash-nav-btn" id="flash-prev" ${currentFlashIndex === 0 ? 'disabled' : ''}>&larr;</button>
+        <div class="flash-nav-center">
+          <span class="flash-nav-counter">${currentFlashIndex + 1} / ${total}</span>
+          <div class="flash-dots-container" id="flash-dots">
+            ${renderFlashDots(total)}
+          </div>
+        </div>
+        <button class="flash-nav-btn" id="flash-next" ${currentFlashIndex === total - 1 ? 'disabled' : ''}>&rarr;</button>
+      </div>
+    </div>`;
+    
+  wireFlashCategories();
+  wireFlashNavigation(filtered);
+  attachFlashDrag(filtered);
+  
+  trackViewCount(s.id).then(resolvedViews => {
+    const vc = $("views-count");
+    if (vc) {
+      vc.textContent = resolvedViews;
+    }
+    const pill = document.querySelector(".flash-trending-pill");
+    if (pill) {
+      pill.style.opacity = resolvedViews >= 1000 ? 1 : 0.4;
+    }
+  });
+}
+
+function initModeToggle() {
+  const toggleFlash = $("toggle-flash");
+  const toggleBriefing = $("toggle-briefing");
+  
+  if (toggleFlash) {
+    toggleFlash.onclick = () => {
+      if (currentMode === "flash") return;
+      currentMode = "flash";
+      localStorage.setItem("currentMode", "flash");
+      document.body.classList.add("mode-flash-active");
+      toggleFlash.classList.add("active");
+      toggleBriefing.classList.remove("active");
+      navigate(`${BASE_PATH}/`);
+    };
+  }
+  
+  if (toggleBriefing) {
+    toggleBriefing.onclick = () => {
+      if (currentMode === "briefing") return;
+      currentMode = "briefing";
+      localStorage.setItem("currentMode", "briefing");
+      document.body.classList.remove("mode-flash-active");
+      toggleBriefing.classList.add("active");
+      toggleFlash.classList.remove("active");
+      navigate(`${BASE_PATH}/`);
+    };
+  }
+  
+  // Set initial tab state in header
+  if (currentMode === "flash") {
+    document.body.classList.add("mode-flash-active");
+    if (toggleFlash) toggleFlash.classList.add("active");
+    if (toggleBriefing) toggleBriefing.classList.remove("active");
+  } else {
+    document.body.classList.remove("mode-flash-active");
+    if (toggleFlash) toggleFlash.classList.remove("active");
+    if (toggleBriefing) toggleBriefing.classList.add("active");
+  }
+}
+
+function initSavedStories() {
+  const trigger = $("saved-trigger");
+  const close = $("saved-close");
+  const modal = $("saved-stories-modal");
+  
+  if (trigger) {
+    trigger.onclick = () => {
+      if (modal) {
+        modal.classList.add("active");
+        renderSavedStoriesList();
+      }
+    };
+  }
+  if (close) {
+    close.onclick = () => {
+      if (modal) {
+        modal.classList.remove("active");
+      }
+    };
+  }
+  if (modal) {
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        modal.classList.remove("active");
+      }
+    };
+  }
+  
+  // Wire related card clicks to jump to Flash card
+  document.body.addEventListener("click", e => {
+    const item = e.target.closest(".related-flash-item");
+    if (item) {
+      const storyId = item.dataset.id;
+      openFlashStory(storyId);
+    }
+  });
+}
+
+// Global keydown listner for desktop arrow keys
+window.addEventListener("keydown", e => {
+  if (currentMode !== "flash") return;
+  if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") return;
+  
+  const filtered = activeFlashCategory === "all" 
+    ? flashStories 
+    : flashStories.filter(s => s.cat === activeFlashCategory);
+    
+  if (e.key === "ArrowLeft") {
+    navigateFlash(-1, filtered);
+  } else if (e.key === "ArrowRight") {
+    navigateFlash(1, filtered);
+  }
+});
 
 window.addEventListener("popstate", route);
 document.body.addEventListener("click", e => {
@@ -1407,4 +2259,7 @@ document.body.addEventListener("click", e => {
     route();
   }
 });
+
+initModeToggle();
+initSavedStories();
 route();

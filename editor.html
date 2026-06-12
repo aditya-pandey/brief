@@ -6,7 +6,7 @@
   <title>The Briefing — Admin Portal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,650;0,9..144,900;1,9..144,500&family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,550;8..60,700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,650;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:wght@700&family=Roboto+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,550;8..60,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <style>
     /* Admin Portal extensions */
@@ -282,25 +282,49 @@
         </div>
       </div>
 
-      <div class="form-row">
+      <!-- Tab Selector -->
+      <div class="tab-container" style="display: flex; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--rule); padding-bottom: 10px;">
+        <button class="tab-btn active" id="tab-btn-briefing" onclick="switchEditorTab('briefing')" style="background: none; border: none; font-family: var(--sans); font-size: 14px; font-weight: 700; color: var(--ink); padding: 8px 16px; cursor: pointer; border-bottom: 2px solid var(--accent); margin-bottom: -11px;">Briefing Editor</button>
+        <button class="tab-btn" id="tab-btn-flash" onclick="switchEditorTab('flash')" style="background: none; border: none; font-family: var(--sans); font-size: 14px; font-weight: 500; color: var(--ink-3); padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -11px;">⚡ Flash Editor</button>
+      </div>
+
+      <!-- Briefing Editor Fields -->
+      <div id="briefing-editor-fields">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="briefing-date">Target Date</label>
+            <input type="date" id="briefing-date" class="input-date" />
+          </div>
+          <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 20px;">
+            <input type="checkbox" id="merge-stories" checked style="width: 18px; height: 18px; cursor: pointer;" />
+            <label for="merge-stories" style="cursor: pointer; user-select: none; font-size: 13px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); font-weight: 600;">Merge/append to existing stories</label>
+          </div>
+        </div>
+
         <div class="form-group">
-          <label for="briefing-date">Target Date</label>
-          <input type="date" id="briefing-date" class="input-date" />
+          <label for="raw-json">Paste Briefing JSON</label>
+          <textarea id="raw-json" class="input-textarea" placeholder="Paste the daily briefing JSON payload directly..."></textarea>
         </div>
-        <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 20px;">
-          <input type="checkbox" id="merge-stories" checked style="width: 18px; height: 18px; cursor: pointer;" />
-          <label for="merge-stories" style="cursor: pointer; user-select: none; font-size: 13px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); font-weight: 600;">Merge/append to existing stories</label>
+
+        <div style="display: flex; gap: 12px; margin-top: 12px;">
+          <button class="btn" id="btn-parse" onclick="runPipeline(false)">Parse & Preview</button>
+          <button class="btn" id="btn-publish" onclick="runPipeline(true)" style="background: var(--green);">Publish to GitHub</button>
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="raw-json">Paste Briefing JSON</label>
-        <textarea id="raw-json" class="input-textarea" placeholder="Paste the daily briefing JSON payload directly..."></textarea>
-      </div>
+      <!-- Flash Editor Fields -->
+      <div id="flash-editor-fields" style="display: none;">
+        <div class="form-group">
+          <label for="flash-raw-json">Paste Flash JSON (25 Stories Array)</label>
+          <textarea id="flash-raw-json" class="input-textarea" placeholder="Paste the daily Flash JSON array directly..."></textarea>
+        </div>
 
-      <div style="display: flex; gap: 12px; margin-top: 12px;">
-        <button class="btn" id="btn-parse" onclick="runPipeline(false)">Parse & Preview</button>
-        <button class="btn" id="btn-publish" onclick="runPipeline(true)" style="background: var(--green);">Publish to GitHub</button>
+        <div id="flash-validation-panel" style="display: none; border-radius: var(--radius-sm); margin-bottom: 16px;"></div>
+
+        <div style="display: flex; gap: 12px; margin-top: 12px;">
+          <button class="btn" id="btn-flash-parse" onclick="runFlashPipeline(false)">Validate & Preview</button>
+          <button class="btn" id="btn-flash-publish" onclick="runFlashPipeline(true)" style="background: var(--green); display: none;">Publish to GitHub</button>
+        </div>
       </div>
     </div>
 
@@ -316,6 +340,12 @@
       <div class="stories-section">
         <div id="preview-stories" class="stories-grid"></div>
       </div>
+    </div>
+
+    <!-- Flash Preview Results -->
+    <div id="flash-results-section" class="import-results" style="display: none;">
+      <h2 class="admin-title" style="font-size: 20px; margin-bottom: 16px;">Flash Cards Preview</h2>
+      <div id="flash-preview-stories" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 30px;"></div>
     </div>
   </main>
 
@@ -346,8 +376,10 @@
 
     // Auto-expanding textareas for better mobile UX
     const jsonTextarea = document.getElementById("raw-json");
+    const flashJsonTextarea = document.getElementById("flash-raw-json");
 
     function autoExpand(el) {
+      if (!el) return;
       el.style.height = "auto";
       const maxHeight = 400;
       const targetHeight = el.scrollHeight + 4;
@@ -355,8 +387,14 @@
       el.style.overflowY = targetHeight > maxHeight ? "auto" : "hidden";
     }
 
-    jsonTextarea.addEventListener("input", () => autoExpand(jsonTextarea));
-    jsonTextarea.addEventListener("focus", () => autoExpand(jsonTextarea));
+    if (jsonTextarea) {
+      jsonTextarea.addEventListener("input", () => autoExpand(jsonTextarea));
+      jsonTextarea.addEventListener("focus", () => autoExpand(jsonTextarea));
+    }
+    if (flashJsonTextarea) {
+      flashJsonTextarea.addEventListener("input", () => autoExpand(flashJsonTextarea));
+      flashJsonTextarea.addEventListener("focus", () => autoExpand(flashJsonTextarea));
+    }
 
     // Load Configuration Settings
     function loadSettings() {
@@ -843,6 +881,353 @@
         </div>
       `;
       document.getElementById("preview-modal").style.display = "flex";
+    }
+
+    function closeDeepDive() {
+      document.getElementById("preview-modal").style.display = "none";
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       ⚡ FLASH EDITOR CONTROLLERS & VALIDATION
+       ══════════════════════════════════════════════════════════════ */
+    function switchEditorTab(tab) {
+      const bFields = document.getElementById("briefing-editor-fields");
+      const fFields = document.getElementById("flash-editor-fields");
+      const bTab = document.getElementById("tab-btn-briefing");
+      const fTab = document.getElementById("tab-btn-flash");
+      const bResults = document.getElementById("results-section");
+      const fResults = document.getElementById("flash-results-section");
+      const loggerSection = document.getElementById("logger-section");
+      
+      // Clear console
+      document.getElementById("console-log").innerHTML = "";
+      loggerSection.style.display = "none";
+      
+      if (tab === 'briefing') {
+        bFields.style.display = "block";
+        fFields.style.display = "none";
+        bTab.classList.add("active");
+        fTab.classList.remove("active");
+        
+        bTab.style.fontWeight = "700";
+        bTab.style.color = "var(--ink)";
+        bTab.style.borderBottomColor = "var(--accent)";
+        
+        fTab.style.fontWeight = "500";
+        fTab.style.color = "var(--ink-3)";
+        fTab.style.borderBottomColor = "transparent";
+        
+        bResults.style.display = "none";
+        fResults.style.display = "none";
+      } else {
+        bFields.style.display = "none";
+        fFields.style.display = "block";
+        fTab.classList.add("active");
+        bTab.classList.remove("active");
+        
+        fTab.style.fontWeight = "700";
+        fTab.style.color = "var(--ink)";
+        fTab.style.borderBottomColor = "var(--accent)";
+        
+        bTab.style.fontWeight = "500";
+        bTab.style.color = "var(--ink-3)";
+        bTab.style.borderBottomColor = "transparent";
+        
+        bResults.style.display = "none";
+        fResults.style.display = "none";
+      }
+    }
+
+    let currentParsedFlashStories = [];
+
+    async function runFlashPipeline(shouldPublish = false) {
+      try {
+        const rawText = document.getElementById("flash-raw-json").value.trim();
+        if (!rawText) {
+          alert("Please paste the Flash JSON payload.");
+          return;
+        }
+
+        document.getElementById("logger-section").style.display = "block";
+        const cons = document.getElementById("console-log");
+        cons.innerHTML = "";
+        log("Initializing Flash processing pipeline...");
+
+        // 1. Repair and Parse JSON
+        let repaired = repairJson(rawText);
+        let stories = [];
+        try {
+          stories = JSON.parse(repaired);
+        } catch (e) {
+          log(`Direct parse failed: ${e.message}. Trying markdown code block extraction...`, true);
+          const match = rawText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+          if (match) {
+            try {
+              repaired = repairJson(match[1].trim());
+              stories = JSON.parse(repaired);
+            } catch (e2) {
+              throw new Error(`Failed to parse JSON even after block extraction: ${e2.message}`);
+            }
+          } else {
+            throw e;
+          }
+        }
+
+        if (!Array.isArray(stories)) {
+          throw new Error("Invalid structure: Flash payload must be a JSON array of stories.");
+        }
+
+        log(`Successfully parsed JSON array with ${stories.length} stories.`);
+
+        // 2. Validate Stories
+        const validation = validateFlashStories(stories);
+        
+        const valPanel = document.getElementById("flash-validation-panel");
+        valPanel.style.display = "block";
+        
+        let valHtml = "";
+        let hasErrors = false;
+        
+        if (validation.errors.length > 0) {
+          hasErrors = true;
+          valHtml += `<div style="background: rgba(255, 80, 50, 0.15); border-left: 4px solid #ff5032; padding: 12px; color: #ff5032; margin-bottom: 12px; font-size: 13px;">`;
+          valHtml += `<strong>Errors found (Publish blocked):</strong><ul style="margin: 6px 0 0 16px;">`;
+          validation.errors.forEach(err => {
+            valHtml += `<li>${escapeHtml(err)}</li>`;
+            log(`Error: ${err}`, true);
+          });
+          valHtml += `</ul></div>`;
+        }
+        
+        if (validation.warnings.length > 0) {
+          valHtml += `<div style="background: rgba(245, 158, 11, 0.15); border-left: 4px solid #f59e0b; padding: 12px; color: #f59e0b; font-size: 13px;">`;
+          valHtml += `<strong>Warnings (Publish allowed):</strong><ul style="margin: 6px 0 0 16px;">`;
+          validation.warnings.forEach(warn => {
+            valHtml += `<li>${escapeHtml(warn)}</li>`;
+            log(`Warning: ${warn}`);
+          });
+          valHtml += `</ul></div>`;
+        }
+        
+        if (validation.errors.length === 0 && validation.warnings.length === 0) {
+          valHtml += `<div style="background: rgba(34, 197, 94, 0.15); border-left: 4px solid #22c55e; padding: 12px; color: #22c55e; font-size: 13px;">`;
+          valHtml += `<strong>All validation checks passed!</strong> Ready to publish.</div>`;
+          log("Validation passed successfully.");
+        } else if (validation.errors.length === 0) {
+          valHtml += `<div style="background: rgba(34, 197, 94, 0.15); border-left: 4px solid #22c55e; padding: 12px; color: #22c55e; font-size: 13px; margin-top: 12px;">`;
+          valHtml += `<strong>Validation check ok.</strong> Pre-publishing allowed with warnings.</div>`;
+        }
+        
+        valPanel.innerHTML = valHtml;
+
+        if (hasErrors) {
+          document.getElementById("btn-flash-publish").style.display = "none";
+          document.getElementById("flash-results-section").style.display = "none";
+          return;
+        }
+
+        currentParsedFlashStories = stories;
+        
+        // 3. Render Previews
+        renderFlashPreviews(stories, validation.vagueKeywordsByStory);
+        document.getElementById("flash-results-section").style.display = "block";
+        document.getElementById("btn-flash-publish").style.display = "inline-flex";
+
+        // 4. Publish to GitHub
+        if (shouldPublish) {
+          await publishFlashToGitHub(stories);
+        }
+
+      } catch (err) {
+        log(`Pipeline failed: ${err.message}`, true);
+        alert(`Failed to parse/validate Flash JSON: ${err.message}`);
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? "").replace(/[&<>"']/g, c =>
+        ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+    }
+
+    function validateFlashStories(stories) {
+      const errors = [];
+      const warnings = [];
+      const vagueKeywordsByStory = {};
+      
+      const count = stories.length;
+      if (count !== 25) {
+        warnings.push(`Story count is ${count} (expected exactly 25 stories for today).`);
+      }
+      
+      const validCats = new Set(['india', 'world', 'politics', 'business', 'ai', 'science']);
+      const catCount = {};
+      
+      stories.forEach((s, idx) => {
+        const prefix = `Story #${idx + 1} ("${s.headline || s.hl || 'Untitled'}")`;
+        
+        const id = s.id;
+        const cat = s.cat;
+        const ts = s.ts || s.time;
+        const hl = s.hl || s.headline;
+        const body = s.body || s.summary;
+        const fact = s.fact || s.signal;
+        
+        if (!id) errors.push(`${prefix} is missing key 'id'.`);
+        if (!cat) errors.push(`${prefix} is missing key 'cat'.`);
+        if (!ts) errors.push(`${prefix} is missing key 'ts'.`);
+        if (!hl) errors.push(`${prefix} is missing key 'hl'.`);
+        if (!body) errors.push(`${prefix} is missing key 'body'.`);
+        if (!fact) errors.push(`${prefix} is missing key 'fact'.`);
+        
+        if (cat) {
+          const lowerCat = cat.trim().toLowerCase();
+          if (!validCats.has(lowerCat)) {
+            errors.push(`${prefix} has invalid category '${cat}'. Must be one of: ${Array.from(validCats).join(', ')}.`);
+          } else {
+            catCount[lowerCat] = (catCount[lowerCat] || 0) + 1;
+          }
+        }
+        
+        if (Array.isArray(s.who_benefits)) {
+          const vague = ['everyone', 'society', 'consumers', 'global', 'india', 'users', 'general public', 'public', 'people'];
+          const foundVague = [];
+          s.who_benefits.forEach(b => {
+            const bLower = String(b).trim().toLowerCase();
+            if (vague.some(v => bLower === v || bLower.includes(v))) {
+              foundVague.push(b);
+            }
+          });
+          if (foundVague.length > 0) {
+            vagueKeywordsByStory[idx] = foundVague;
+            warnings.push(`${prefix} has vague stakeholders in 'who_benefits': ${foundVague.map(f => `"${f}"`).join(', ')}.`);
+          }
+        } else if (s.who_benefits !== undefined) {
+          errors.push(`${prefix} has 'who_benefits' but it is not an array.`);
+        }
+      });
+      
+      const catArray = Array.from(validCats);
+      catArray.forEach(c => {
+        const count = catCount[c] || 0;
+        if (count === 0) {
+          warnings.push(`Category '${c}' has 0 stories. Feed might feel imbalanced.`);
+        }
+      });
+      
+      return { errors, warnings, vagueKeywordsByStory };
+    }
+
+    function renderFlashPreviews(stories, vagueKeywords) {
+      const container = document.getElementById("flash-preview-stories");
+      if (!container) return;
+      container.innerHTML = "";
+      
+      const FLASH_COLORS = {
+        india:    '#FF5722',
+        world:    '#3B82F6',
+        politics: '#8B5CF6',
+        business: '#22C55E',
+        ai:       '#06B6D4',
+        science:  '#F59E0B'
+      };
+      
+      container.innerHTML = stories.map((s, idx) => {
+        const cat = (s.cat || "india").toLowerCase();
+        const col = FLASH_COLORS[cat] || '#3E3E50';
+        
+        const vague = vagueKeywords[idx] || [];
+        const vagueWarningHtml = vague.length > 0
+          ? `<div style="background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #f59e0b; padding: 4px 8px; border-radius: 4px; font-size: 10px; margin-top: 8px;">
+               ⚠️ Vague keywords: ${vague.join(', ')}
+             </div>`
+          : "";
+          
+        const benefitsChips = (s.who_benefits || []).map(b => `
+          <span style="border: 1px solid rgba(255,255,255,0.08); font-family: var(--sans); font-size: 10px; border-radius: 10px; padding: 2px 6px; color: var(--ink-2); background: var(--bg-card-h); white-space: nowrap;">${escapeHtml(b)}</span>
+        `).join("");
+        
+        return `
+          <div style="background: var(--bg-card); border: 1px solid var(--rule); border-top: 4px solid ${col}; border-radius: var(--radius-sm); padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow-sm); text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+              <span style="color: ${col}; font-weight: 700; text-transform: uppercase;">${escapeHtml(s.cat)}</span>
+              <span style="color: var(--ink-3); font-family: var(--mono);">${escapeHtml(s.ts)}</span>
+            </div>
+            <h3 style="font-family: var(--serif); font-size: 16px; font-weight: 700; color: var(--ink); margin: 0; line-height: 1.3;">${escapeHtml(s.hl || s.headline)}</h3>
+            <p style="font-family: var(--sans); font-size: 13px; color: var(--ink-2); line-height: 1.5; margin: 0;">${escapeHtml(s.body || s.summary)}</p>
+            <div style="background: var(--bg); padding: 8px; border-left: 2px solid ${col}; border-radius: 4px; font-family: var(--mono); font-size: 11px; color: var(--ink);">
+              <div style="font-size: 8px; color: var(--ink-3); text-transform: uppercase; margin-bottom: 2px;">Key Fact</div>
+              ${escapeHtml(s.fact || s.signal)}
+            </div>
+            ${benefitsChips ? `
+              <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px;">
+                <span style="font-size: 9px; color: var(--ink-3); text-transform: uppercase; font-family: var(--sans); font-weight: 700;">Benefits:</span>
+                ${benefitsChips}
+              </div>` : ""}
+            ${vagueWarningHtml}
+          </div>`;
+      }).join("");
+    }
+
+    async function publishFlashToGitHub(stories) {
+      const owner = localStorage.getItem("gh-owner");
+      const repo = localStorage.getItem("gh-repo");
+      const token = localStorage.getItem("gh-token");
+
+      if (!owner || !repo || !token) {
+        log("Error: GitHub settings configuration is incomplete. Please fill and save the settings panel above.", true);
+        alert("GitHub configuration missing! Open the panel above to set it.");
+        return;
+      }
+
+      const headers = {
+        "Authorization": `token ${token}`,
+        "Content-Type": "application/json",
+        "Accept": "application/vnd.github.v3+json"
+      };
+
+      log("Checking remote flash.json file on GitHub...");
+      let flashSha = null;
+
+      try {
+        const flashRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/flash.json`, { headers });
+        if (flashRes.ok) {
+          const flashJson = await flashRes.json();
+          flashSha = flashJson.sha;
+          log("Found existing remote flash.json. Preparing to overwrite.");
+        } else if (flashRes.status === 404) {
+          log("Notice: flash.json not found on remote. Will create a new flash.json file.");
+        } else {
+          throw new Error(`Failed to check flash.json (HTTP ${flashRes.status})`);
+        }
+      } catch (err) {
+        log(`Error checking flash.json: ${err.message}`, true);
+        return;
+      }
+
+      log("Uploading flash.json contents to remote repository root...");
+      const body = {
+        message: "update: update ⚡ Flash speed news feed",
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(stories, null, 2)))),
+        branch: "main"
+      };
+      if (flashSha) body.sha = flashSha;
+
+      try {
+        const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/flash.json`, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify(body)
+        });
+        if (res.ok) {
+          log("Success: flash.json written successfully! ⚡🚀");
+          alert("Successfully published Flash speed news! The live feed will refresh in 1-2 minutes.");
+        } else {
+          const errBody = await res.json();
+          throw new Error(`Failed to write flash.json: ${errBody.message}`);
+        }
+      } catch (err) {
+        log(`Error writing flash.json: ${err.message}`, true);
+      }
     }
 
     function closeDeepDive() {

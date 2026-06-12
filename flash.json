@@ -1,0 +1,348 @@
+[
+  {
+    "id": "monsoon-arrives-early",
+    "cat": "india",
+    "ts": "1h ago",
+    "hl": "Monsoon arrives early — not everywhere",
+    "body": "The southwest monsoon made landfall in Kerala four days ahead of the June 1 forecast, the IMD confirmed Tuesday. Coastal Karnataka and Goa have already recorded 30% above-average rainfall. Yet large swathes of Maharashtra, Rajasthan, and UP remain dry, raising concern over uneven distribution and its consequences for kharif sowing schedules across India's agrarian heartland.",
+    "fact": "4 days early vs. IMD forecast · 30% above-avg rainfall on Kerala coast in opening week",
+    "src": "The Hindu · IMD",
+    "who_benefits": [
+      "Kerala Farmers",
+      "Water Reservoirs",
+      "Hydro Power"
+    ]
+  },
+  {
+    "id": "sc-electoral-bonds",
+    "cat": "india",
+    "ts": "3h ago",
+    "hl": "Supreme Court presses on electoral bond disclosure",
+    "body": "A three-judge bench issued notice to the State Bank of India and Election Commission demanding complete electoral bond purchase data within ten days, citing \"substantial non-compliance\" with the February ruling. The court signalled contempt proceedings remain open — the most direct judicial pressure on campaign finance in a decade, constitutional observers say.",
+    "fact": "10-day SC deadline · ₹12,155 cr in bonds encashed before the landmark ruling",
+    "src": "Indian Express",
+    "who_benefits": [
+      "Public Transparency",
+      "Election Commission",
+      "Opposition Parties"
+    ]
+  },
+  {
+    "id": "ev-sales-threshold",
+    "cat": "india",
+    "ts": "5h ago",
+    "hl": "EVs cross 6% of passenger car sales for the first time",
+    "body": "Electric vehicles hit 6.2% of total passenger vehicle sales in May, crossing the 6% threshold for the first time, per SIAM data. Tata Motors holds 62% of the EV market with the Nexon EV and Punch leading volumes. Analysts note that fewer than 800 public fast-chargers exist outside the top 10 metros — the primary constraint on faster adoption.",
+    "fact": "6.2% EV share of PV sales, May 2024 · Tata Motors commands 62% of domestic market",
+    "src": "SIAM · Economic Times",
+    "who_benefits": [
+      "Tata Motors",
+      "Urban EV Buyers",
+      "Battery Suppliers"
+    ]
+  },
+  {
+    "id": "delhi-heat-record",
+    "cat": "india",
+    "ts": "6h ago",
+    "hl": "Delhi logs its third straight May heat record at 47°C",
+    "body": "Safdarjung station recorded 47.4°C on May 29, the third consecutive year Delhi has set a new May maximum. The heat action plan was activated at Level 3, banning outdoor work between noon and 4pm. AIIMS epidemiologists estimate heat-related hospital admissions ran 40% above the 2019 baseline this May, though official mortality counts remain disputed.",
+    "fact": "47.4°C: third consecutive all-time May record in Delhi since 2022",
+    "src": "IMD · Hindustan Times",
+    "who_benefits": [
+      "AC Manufacturers",
+      "Indoor Workers",
+      "Healthcare Providers"
+    ]
+  },
+  {
+    "id": "fed-holds-rates",
+    "cat": "world",
+    "ts": "4h ago",
+    "hl": "Fed holds — and signals fewer cuts than it promised",
+    "body": "The Federal Reserve kept its benchmark rate at 5.25–5.5% for the seventh straight meeting. More consequentially, the updated dot plot shows officials now project just one cut in 2024, down from three projected in March. Chair Powell cited \"lack of further progress\" on Q1 inflation while acknowledging the labour market remains strong but cooling. Markets moved to price a September cut.",
+    "fact": "1 cut now projected for 2024, down from 3 in March · rate held at 5.25–5.5% 7th time",
+    "src": "Federal Reserve · Reuters",
+    "who_benefits": [
+      "US Banks",
+      "Yield Investors",
+      "Dollar Bulls"
+    ]
+  },
+  {
+    "id": "gaza-ceasefire-talks",
+    "cat": "world",
+    "ts": "2h ago",
+    "hl": "Gaza ceasefire talks reach a critical threshold in Doha",
+    "body": "Qatar and Egypt presented Hamas with a revised three-phase proposal backed by Washington — a 42-day initial fighting pause, exchange of hostages and prisoners, then a roadmap toward permanent cessation. Hamas's political bureau said it was \"seriously studying\" the offer. Israel has not publicly responded. The UN estimates 1.5 million displaced Gazans face acute food insecurity regardless of timing.",
+    "fact": "42-day initial pause proposed · 1.5M Gazans at acute food insecurity · Israel yet to respond",
+    "src": "Al Jazeera · NYT",
+    "who_benefits": [
+      "Gaza Civilians",
+      "Hostage Families",
+      "Regional Stability"
+    ]
+  },
+  {
+    "id": "eu-ai-act-entry",
+    "cat": "world",
+    "ts": "8h ago",
+    "hl": "EU AI Act enters into force — the world's first AI law",
+    "body": "The European Union's AI Act officially took effect, becoming the world's first comprehensive regulatory framework for artificial intelligence. Prohibitions on the most dangerous uses — social scoring, real-time public biometric surveillance — kick in within six months. Requirements for high-risk systems like hiring tools and medical devices apply in 24 months. Non-EU companies selling into Europe are fully covered.",
+    "fact": "6 months for banned systems · 24 months for high-risk AI · fines up to €35M or 7% revenue",
+    "src": "European Commission · FT",
+    "who_benefits": [
+      "Privacy Advocates",
+      "Compliance Tech",
+      "European Citizens"
+    ]
+  },
+  {
+    "id": "china-gdp-composition",
+    "cat": "world",
+    "ts": "7h ago",
+    "hl": "China Q1 GDP beats forecasts — the composition is the story",
+    "body": "China's economy grew 5.3% in Q1, beating the 4.6% consensus and keeping the full-year 5% target within reach. But manufacturing and exports drove the beat while retail sales and property investment both contracted. Urban youth unemployment held above 15%. The growth is export-led at precisely the moment Western partners are accelerating tariffs on Chinese goods.",
+    "fact": "5.3% Q1 GDP vs. 4.6% forecast · property investment -9.5% YoY · youth unemployment 15.3%",
+    "src": "China NBS · The Economist",
+    "who_benefits": [
+      "State Manufacturers",
+      "Green Energy Exporters",
+      "Industrial Parks"
+    ]
+  },
+  {
+    "id": "nda-bihar-deal",
+    "cat": "politics",
+    "ts": "2h ago",
+    "hl": "NDA finalises Bihar seat-sharing six weeks early",
+    "body": "The National Democratic Alliance has locked its Bihar formula — BJP and JDU each contesting 17 of the state's 40 seats, with smaller allies sharing the rest. The early announcement is widely read as an attempt to pre-empt INDIA bloc unity talks; Congress and RJD remain at odds over the Pataliputra seat.",
+    "fact": "BJP 17 · JDU 17 · allies 6 · formula sealed 6 weeks ahead of election schedule",
+    "src": "NDTV · India Today",
+    "who_benefits": [
+      "BJP Strategists",
+      "JDU Candidates",
+      "Coalition Unity"
+    ]
+  },
+  {
+    "id": "monsoon-session-bills",
+    "cat": "politics",
+    "ts": "4h ago",
+    "hl": "Monsoon session: 24 bills and Modi 3.0's first Budget",
+    "body": "The government announced Parliament's monsoon session will begin July 22, with 24 bills on the agenda including the Waqf Amendment Bill and Broadcasting Regulation Bill. The opposition has served notice demanding a full-day inflation debate before other business. The session will also see the first full Union Budget of the Modi 3.0 government.",
+    "fact": "24 bills listed · session from July 22 · first full-year Budget of Modi 3.0 presented mid-session",
+    "src": "Lok Sabha Secretariat · PTI",
+    "who_benefits": [
+      "Ruling Coalition",
+      "Treasury Benches",
+      "Legislative Planners"
+    ]
+  },
+  {
+    "id": "caa-applications-zone",
+    "cat": "politics",
+    "ts": "5h ago",
+    "hl": "CAA applications cross 14,000 — five states still absent",
+    "body": "The Ministry of Home Affairs says 14,312 applications have arrived under the Citizenship Amendment Act since March. But West Bengal, Tamil Nadu, Kerala, Punjab, and Telangana have not directed district authorities to begin processing, creating a legal grey zone the MHA says it is \"examining.\" No citizenship has been granted anywhere yet.",
+    "fact": "14,312 applications filed · 0 citizenships granted · 5 states yet to operationalise CAA rules",
+    "src": "MHA · The Wire",
+    "who_benefits": [
+      "MHA Planners",
+      "Border Registrars",
+      "Legal Advisors"
+    ]
+  },
+  {
+    "id": "rbi-record-surplus",
+    "cat": "business",
+    "ts": "3h ago",
+    "hl": "RBI's record surplus reshapes Budget arithmetic overnight",
+    "body": "The Reserve Bank of India transferred ₹2.11 lakh crore in surplus to the central government — 141% above last year's ₹87,416 crore and the highest in the bank's 89-year history. The windfall, driven by forex gains and higher interest income, gives the Finance Minister room to accelerate fiscal consolidation, increase capital expenditure, or fund welfare schemes without breaching the 5.1% deficit target.",
+    "fact": "₹2.11 lakh crore surplus · 141% above last year · largest transfer in RBI's 89-year history",
+    "src": "RBI · Business Standard",
+    "who_benefits": [
+      "Finance Ministry",
+      "Infrastructure Projects",
+      "Fiscal Deficit Target"
+    ]
+  },
+  {
+    "id": "sensex-milestone-75k",
+    "cat": "business",
+    "ts": "1h ago",
+    "hl": "Sensex at 75,000: a milestone with a valuation footnote",
+    "body": "The BSE Sensex closed above 75,000 for the first time, led by IT and FMCG as foreign institutions turned net buyers at ₹4,200 crore for the session. The caveat: the index now trades at 22x forward earnings — among the priciest in emerging markets — while corporate earnings growth is expected to moderate to 12–14% in FY25 from 20%+ in the past two years.",
+    "fact": "First close above 75,000 · P/E at 22x forward earnings — 30% premium to EM average",
+    "src": "BSE · Bloomberg",
+    "who_benefits": [
+      "FPI Investors",
+      "IT Exporters",
+      "FMCG Distributors"
+    ]
+  },
+  {
+    "id": "paytm-rbi-licence",
+    "cat": "business",
+    "ts": "6h ago",
+    "hl": "Paytm wins restricted RBI licence — the road back is long",
+    "body": "Paytm Payments Bank received a restricted operations licence from the Reserve Bank, allowing it to resume wallet recharges and some merchant payment services — a partial reversal of February's freeze. Full banking operations remain suspended. Shares jumped 18% on the announcement; analysts say the company faces a six-month compliance window before a full licence review.",
+    "fact": "18% share jump · wallet recharges resume · full banking ops still suspended; 6-month window",
+    "src": "RBI · Mint",
+    "who_benefits": [
+      "Paytm Merchants",
+      "Paytm Shareholders",
+      "Retail Wallet Users"
+    ]
+  },
+  {
+    "id": "gpt5-training-complete",
+    "cat": "ai",
+    "ts": "30m ago",
+    "hl": "OpenAI confirms GPT-5 training complete, weeks from launch",
+    "body": "CEO Sam Altman confirmed on X that GPT-5 training has finished, with public deployment \"within weeks\" pending safety evaluations. The company claims GPT-5 achieves PhD-level reasoning on standard benchmarks and outperforms GPT-4 on MMLU \"significantly.\" The announcement landed days after Google made Gemini 1.5 Pro free — what observers are calling the opening shot of the frontier model price war.",
+    "fact": "GPT-5 training complete · claims PhD-level on MMLU · \"within weeks\" per Sam Altman",
+    "src": "OpenAI · X (@sama)",
+    "who_benefits": [
+      "OpenAI Developers",
+      "Enterprise AI Users",
+      "Microsoft Cloud"
+    ]
+  },
+  {
+    "id": "gemini-free-context",
+    "cat": "ai",
+    "ts": "2h ago",
+    "hl": "Google makes 1M-token Gemini free — the context war begins",
+    "body": "Google opened Gemini 1.5 Pro — including its 1 million token context window — to all users at no cost, removing it from the $20/month paywall. The window can hold entire books or hours of video in a single prompt. Analysts read the move as a sign that context length has replaced raw benchmark scores as the primary competitive axis in the frontier model market.",
+    "fact": "1M token context now free · equivalent to ~750,000 words or ~11 hours of audio per prompt",
+    "src": "Google DeepMind · Wired",
+    "who_benefits": [
+      "Software Engineers",
+      "Data Analysts",
+      "Google Cloud Adoption"
+    ]
+  },
+  {
+    "id": "sarvam-ai-series-a",
+    "cat": "ai",
+    "ts": "4h ago",
+    "hl": "Sarvam AI raises $41M to build India's language stack",
+    "body": "Bengaluru-based Sarvam AI closed a $41 million Series A led by Peak XV Partners to develop open-source large language models across 22 Indian languages — with depth in Hindi, Bengali, Tamil, and Telugu. Founders point to a gap no Western model has addressed: 90% of India's population cannot effectively use English-first AI tools.",
+    "fact": "$41M Series A · 22 Indian language models · 90% of India's 1.4B people are non-primary English users",
+    "src": "Peak XV · Economic Times",
+    "who_benefits": [
+      "Sarvam AI Engineers",
+      "Non-English Users",
+      "Indian Developers"
+    ]
+  },
+  {
+    "id": "llama3-gpt4-rival",
+    "cat": "ai",
+    "ts": "5h ago",
+    "hl": "Meta's Llama 3 matches GPT-4 on benchmarks — and it's free",
+    "body": "Meta released Llama 3 in 8B and 70B versions under an open-source licence, with the 70B model posting benchmark scores competitive with GPT-4 on MMLU, HumanEval, and GSM8K. The model can be downloaded and run locally. Open-source advocates called it the moment \"the moat around closed models begins to drain\" — critics noted Meta's dominance concentrates influence differently, not less.",
+    "fact": "Llama 3 70B rivals GPT-4 on MMLU, HumanEval, GSM8K · fully open-source · locally deployable",
+    "src": "Meta AI · Hugging Face",
+    "who_benefits": [
+      "Open Source Community",
+      "Local AI Startups",
+      "Hardware Vendors"
+    ]
+  },
+  {
+    "id": "nisar-radar-satellite",
+    "cat": "science",
+    "ts": "7h ago",
+    "hl": "ISRO-NASA radar satellite NISAR on track for September",
+    "body": "The $1.5 billion NISAR satellite — a joint ISRO-NASA mission — has completed pre-launch testing at Sriharikota and is on schedule for a September 2024 launch. Using dual-band synthetic aperture radar, NISAR will map every part of Earth's surface every 12 days, tracking glacial movement, earthquake deformation, volcanic activity, and agricultural land use at 9-centimetre resolution.",
+    "fact": "$1.5B ISRO-NASA mission · full Earth mapping every 12 days · 9cm ground deformation precision",
+    "src": "ISRO · NASA JPL",
+    "who_benefits": [
+      "Climate Researchers",
+      "Disaster Response",
+      "Agricultural Planners"
+    ]
+  },
+  {
+    "id": "lancet-heatwave-deaths",
+    "cat": "science",
+    "ts": "9h ago",
+    "hl": "Lancet puts India's spring heat deaths at 40,000 — 8× official count",
+    "body": "A systematic analysis in The Lancet estimates 40,000 excess deaths were attributable to India's April–May 2024 heatwave — eight times the official government figure. Researchers used hospital admissions data and excess mortality modelling across 14 states. The gap comes down to method: official counts require a physician to certify heat as cause of death, a bar rarely met in rural areas.",
+    "fact": "40,000 estimated vs. 4,900 officially recorded · 14-state study · The Lancet, June 2024",
+    "src": "The Lancet · Down to Earth",
+    "who_benefits": [
+      "Epidemiologists",
+      "Heat Action Planners",
+      "Rural Health Workers"
+    ]
+  },
+  {
+    "id": "the-escalation-off-oman",
+    "cat": "world",
+    "ts": "10h ago",
+    "hl": "US kinetic strike off Oman sparks India-US rift",
+    "body": "New Delhi summoned the top US diplomat after an American kinetic strike on oil tanker Settebello off Oman left three Indian seafarers missing. While US Central Command claims the ship was linked to sanctioned shipping networks, India strongly condemned the unilateral action in international waters, marking a sudden crisis in bilateral maritime cooperation.",
+    "fact": "3 missing Indian sailors · Settebello crew of 24 · US missile strike in international waters",
+    "src": "MEA · US Central Command",
+    "who_benefits": [
+      "Regional Competitors",
+      "Maritime Insurers"
+    ]
+  },
+  {
+    "id": "the-rupture-of-the-trinamool-congress",
+    "cat": "politics",
+    "ts": "12h ago",
+    "hl": "Existential split rocks Trinamool Congress",
+    "body": "A quiet rebellion led by 20 TMC Members of Parliament culminated in high-profile resignations and police raids on party offices in Kolkata. The generational rift between Mamata Banerjee and heir Abhishek Banerjee has paralyzed local governance patronage networks and severely weakened the opposition bloc's weight in New Delhi.",
+    "fact": "20 MPs rebel · CID raids Kolkata offices · Generation war between old guard and heir",
+    "src": "Hindustan Times · NDTV",
+    "who_benefits": [
+      "National Opposition Rival",
+      "BJP Bengal Division"
+    ]
+  },
+  {
+    "id": "zohos-sovereign-server-gambit",
+    "cat": "business",
+    "ts": "14h ago",
+    "hl": "Zoho launches Nathu La sovereign servers to slash AI cloud costs",
+    "body": "SaaS giant Zoho unveiled proprietary vertically integrated server architecture Nathu La, designed to run localized AI workloads without relying on US hyper-scalers like AWS or Azure. Built by rural engineering teams, the venture highlights software firms bypassing Western hardware monopolies to defend operating margins.",
+    "fact": "Nathu La server platform launched · Designed in rural India · Bypasses AWS/Azure for AI workloads",
+    "src": "Zoho PR · Economic Times",
+    "who_benefits": [
+      "Zoho SaaS Clients",
+      "Rural Engineers",
+      "Hardware Startups"
+    ]
+  },
+  {
+    "id": "chandrayaan-landing-prep",
+    "cat": "science",
+    "ts": "18h ago",
+    "hl": "ISRO details site selection for Chandrayaan-4 lunar return",
+    "body": "ISRO published telemetry requirements and geological parameters for its next lunar lander Chandrayaan-4. Target areas include a south pole crater ridge displaying high hydrogen levels. The sample return mission, co-developed with JAXA, is slated for a late 2027 window.",
+    "fact": "South pole ridge target site · co-developed with JAXA · target window late 2027",
+    "src": "ISRO · JAXA Press",
+    "who_benefits": [
+      "Lunar Geologists",
+      "Aerospace Contractors"
+    ]
+  },
+  {
+    "id": "aviation-turbine-fuel-spike",
+    "cat": "business",
+    "ts": "20h ago",
+    "hl": "ATF price hike hits domestic carriers ahead of holiday peak",
+    "body": "State oil marketing firms increased aviation turbine fuel (ATF) rates by 4.2% following crude oil strength in Singapore benchmarks. Indigo and Air India are planning a ₹200 surcharge per passenger sector to offset immediate margin compression.",
+    "fact": "4.2% ATF price increase · ₹200 ticket surcharge planned · crude oil benchmark strength",
+    "src": "IOCL · DGCA Reports",
+    "who_benefits": [
+      "Oil Refineries",
+      "Railways Class-A"
+    ]
+  }
+]

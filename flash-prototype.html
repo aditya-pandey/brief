@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>⚡ Flash — The Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,600&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after {
+  margin: 0; padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --bg:       #0B0B0F;
+  --card:     #141419;
+  --card-hi:  #1A1A22;
+  --border:   rgba(255,255,255,0.065);
+  --text:     #EDEDED;
+  --text-2:   #88889A;
+  --text-3:   #3E3E50;
+
+  --india:    #FF5722;
+  --world:    #3B82F6;
+  --politics: #8B5CF6;
+  --business: #22C55E;
+  --ai:       #06B6D4;
+  --science:  #F59E0B;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Layout shell ─── */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ─── Header ─── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 22px 0 14px;
+  flex-shrink: 0;
+}
+
+.brand-top {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 3px;
+}
+
+.brand-name {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  line-height: 1;
+}
+
+.bolt { color: #FFD000; }
+
+.hdr-right {
+  text-align: right;
+  line-height: 1;
+}
+
+.count-big {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.count-sub {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-top: 3px;
+}
+
+/* ─── Date bar ─── */
+.datebar {
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+/* ─── Category pills ─── */
+.cats {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 13px;
+  flex-shrink: 0;
+}
+.cats::-webkit-scrollbar { display: none; }
+
+.cat-btn {
+  flex-shrink: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 5px 13px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.cat-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+/* active state applied via JS for per-category color */
+
+/* ─── Card stage ─── */
+.stage {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Stack shadows — decorative siblings rendered by JS */
+.ghost {
+  position: absolute;
+  left: 6px; right: 6px;
+  top: 10px; bottom: -4px;
+  background: var(--card);
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  z-index: 1;
+  pointer-events: none;
+}
+.ghost-2 {
+  left: 12px; right: 12px;
+  top: 18px; bottom: -8px;
+  background: var(--bg);
+  border-color: rgba(255,255,255,0.03);
+  z-index: 0;
+}
+
+/* ─── The Card ─── */
+.card {
+  position: absolute;
+  inset: 0;
+  background: var(--card-hi);
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  padding: 22px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+  cursor: grab;
+  user-select: none;
+  will-change: transform;
+  overflow: hidden;
+  touch-action: none;
+}
+.card:active { cursor: grabbing; }
+.card.snapping {
+  transition: transform 0.32s cubic-bezier(0.25, 0, 0.2, 1);
+}
+
+/* Card top row */
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-shrink: 0;
+}
+
+.cat-tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 5px;
+}
+
+.card-ts {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+/* Headline */
+.card-hl {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: clamp(18px, 5vw, 24px);
+  line-height: 1.28;
+  color: var(--text);
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+/* Rule */
+.card-rule {
+  height: 1px;
+  background: var(--border);
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+/* Summary — fills remaining space */
+.card-body {
+  font-size: clamp(13px, 3.5vw, 14px);
+  line-height: 1.78;
+  color: var(--text-2);
+  flex: 1;
+  overflow: hidden;
+  /* gracefully truncates if screen is very small */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+}
+
+/* Key fact */
+.fact-box {
+  flex-shrink: 0;
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 11px 13px;
+  margin-top: 14px;
+  border-left: 3px solid transparent; /* color set by JS */
+}
+
+.fact-lbl {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 5px;
+}
+
+.fact-val {
+  font-family: 'Roboto Mono', monospace;
+  font-size: clamp(11px, 3vw, 12px);
+  line-height: 1.55;
+  color: var(--text);
+}
+
+/* Card footer */
+.card-ft {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.card-src {
+  font-size: 10px;
+  color: var(--text-3);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.swipe-hint {
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.swipe-hint.visible { opacity: 1; }
+
+/* ─── Drag feedback overlay ─── */
+.drag-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+/* ─── Progress bar ─── */
+.progress {
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 10px 0;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+/* ─── Nav ─── */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  flex-shrink: 0;
+}
+
+.nav-btn {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.nav-btn:hover:not(:disabled) {
+  background: var(--card-hi);
+  color: var(--text);
+  border-color: rgba(255,255,255,0.2);
+}
+.nav-btn:disabled { opacity: 0.2; cursor: default; }
+
+.nav-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-pos {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 11.5px;
+  color: var(--text-2);
+  letter-spacing: 0.1em;
+}
+
+.dots {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--text-3);
+  transition: width 0.2s ease, background 0.2s ease;
+}
+.dot.active {
+  width: 14px;
+  border-radius: 3px;
+}
+
+/* ─── Entry animation ─── */
+@keyframes slideUp {
+  from { opacity: 0.2; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1;   transform: translateY(0)    scale(1); }
+}
+.card-enter { animation: slideUp 0.26s cubic-bezier(0.22, 0, 0.18, 1) forwards; }
+
+/* ─── Empty state ─── */
+.empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--card);
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  z-index: 5;
+}
+.empty-icon { font-size: 26px; opacity: 0.3; }
+.empty-msg  { font-size: 12.5px; color: var(--text-3); letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="header">
+    <div>
+      <div class="brand-top">The Briefing</div>
+      <div class="brand-name"><span class="bolt">⚡</span> FLASH</div>
+    </div>
+    <div class="hdr-right">
+      <div class="count-big" id="countBig">1 / 20</div>
+      <div class="count-sub">stories</div>
+    </div>
+  </header>
+
+  <div class="datebar" id="datebar"></div>
+
+  <div class="cats" id="cats">
+    <button class="cat-btn" data-cat="all">All</button>
+    <button class="cat-btn" data-cat="india">🇮🇳 India</button>
+    <button class="cat-btn" data-cat="world">🌍 World</button>
+    <button class="cat-btn" data-cat="politics">🏛 Politics</button>
+    <button class="cat-btn" data-cat="business">📈 Business</button>
+    <button class="cat-btn" data-cat="ai">🤖 AI & Tech</button>
+    <button class="cat-btn" data-cat="science">🔬 Science</button>
+  </div>
+
+  <div class="stage" id="stage"></div>
+
+  <div class="progress">
+    <div class="progress-fill" id="progFill"></div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-btn" id="prevBtn" onclick="go(-1)">←</button>
+    <div class="nav-mid">
+      <span class="nav-pos" id="navPos">1 / 20</span>
+      <div class="dots" id="dots"></div>
+    </div>
+    <button class="nav-btn" id="nextBtn" onclick="go(1)">→</button>
+  </nav>
+
+</div>
+<script>
+/* ─── Data ─── */
+const COLORS = {
+  india:    '#FF5722',
+  world:    '#3B82F6',
+  politics: '#8B5CF6',
+  business: '#22C55E',
+  ai:       '#06B6D4',
+  science:  '#F59E0B'
+};
+const LABELS = {
+  india:'India', world:'World', politics:'Politics',
+  business:'Business', ai:'AI & Tech', science:'Science'
+};
+
+const ALL = [
+  /* ── INDIA ── */
+  { cat:'india', ts:'1h ago',
+    hl: 'Monsoon arrives early — not everywhere',
+    body: 'The southwest monsoon made landfall in Kerala four days ahead of the June 1 forecast, the IMD confirmed Tuesday. Coastal Karnataka and Goa have already recorded 30% above-average rainfall. Yet large swathes of Maharashtra, Rajasthan, and UP remain dry, raising concern over uneven distribution and its consequences for kharif sowing schedules across India\'s agrarian heartland.',
+    fact: '4 days early vs. IMD forecast · 30% above-avg rainfall on Kerala coast in opening week',
+    src: 'The Hindu · IMD' },
+
+  { cat:'india', ts:'3h ago',
+    hl: 'Supreme Court presses on electoral bond disclosure',
+    body: 'A three-judge bench issued notice to the State Bank of India and Election Commission demanding complete electoral bond purchase data within ten days, citing "substantial non-compliance" with the February ruling. The court signalled contempt proceedings remain open — the most direct judicial pressure on campaign finance in a decade, constitutional observers say.',
+    fact: '10-day SC deadline · ₹12,155 cr in bonds encashed before the landmark ruling',
+    src: 'Indian Express' },
+
+  { cat:'india', ts:'5h ago',
+    hl: 'EVs cross 6% of passenger car sales for the first time',
+    body: 'Electric vehicles hit 6.2% of total passenger vehicle sales in May, crossing the 6% threshold for the first time, per SIAM data. Tata Motors holds 62% of the EV market with the Nexon EV and Punch leading volumes. Analysts note that fewer than 800 public fast-chargers exist outside the top 10 metros — the primary constraint on faster adoption.',
+    fact: '6.2% EV share of PV sales, May 2024 · Tata Motors commands 62% of domestic market',
+    src: 'SIAM · Economic Times' },
+
+  { cat:'india', ts:'6h ago',
+    hl: 'Delhi logs its third straight May heat record at 47°C',
+    body: 'Safdarjung station recorded 47.4°C on May 29, the third consecutive year Delhi has set a new May maximum. The heat action plan was activated at Level 3, banning outdoor work between noon and 4pm. AIIMS epidemiologists estimate heat-related hospital admissions ran 40% above the 2019 baseline this May, though official mortality counts remain disputed.',
+    fact: '47.4°C: third consecutive all-time May record in Delhi since 2022',
+    src: 'IMD · Hindustan Times' },
+
+  /* ── WORLD ── */
+  { cat:'world', ts:'4h ago',
+    hl: 'Fed holds — and signals fewer cuts than it promised',
+    body: 'The Federal Reserve kept its benchmark rate at 5.25–5.5% for the seventh straight meeting. More consequentially, the updated dot plot shows officials now project just one cut in 2024, down from three projected in March. Chair Powell cited "lack of further progress" on Q1 inflation while acknowledging the labour market remains strong but cooling. Markets moved to price a September cut.',
+    fact: '1 cut now projected for 2024, down from 3 in March · rate held at 5.25–5.5% 7th time',
+    src: 'Federal Reserve · Reuters' },
+
+  { cat:'world', ts:'2h ago',
+    hl: 'Gaza ceasefire talks reach a critical threshold in Doha',
+    body: 'Qatar and Egypt presented Hamas with a revised three-phase proposal backed by Washington — a 42-day initial fighting pause, exchange of hostages and prisoners, then a roadmap toward permanent cessation. Hamas\'s political bureau said it was "seriously studying" the offer. Israel has not publicly responded. The UN estimates 1.5 million displaced Gazans face acute food insecurity regardless of timing.',
+    fact: '42-day initial pause proposed · 1.5M Gazans at acute food insecurity · Israel yet to respond',
+    src: 'Al Jazeera · NYT' },
+
+  { cat:'world', ts:'8h ago',
+    hl: 'EU AI Act enters into force — the world\'s first AI law',
+    body: 'The European Union\'s AI Act officially took effect, becoming the world\'s first comprehensive regulatory framework for artificial intelligence. Prohibitions on the most dangerous uses — social scoring, real-time public biometric surveillance — kick in within six months. Requirements for high-risk systems like hiring tools and medical devices apply in 24 months. Non-EU companies selling into Europe are fully covered.',
+    fact: '6 months for banned systems · 24 months for high-risk AI · fines up to €35M or 7% revenue',
+    src: 'European Commission · FT' },
+
+  { cat:'world', ts:'7h ago',
+    hl: 'China Q1 GDP beats forecasts — the composition is the story',
+    body: 'China\'s economy grew 5.3% in Q1, beating the 4.6% consensus and keeping the full-year 5% target within reach. But manufacturing and exports drove the beat while retail sales and property investment both contracted. Urban youth unemployment held above 15%. The growth is export-led at precisely the moment Western partners are accelerating tariffs on Chinese goods.',
+    fact: '5.3% Q1 GDP vs. 4.6% forecast · property investment -9.5% YoY · youth unemployment 15.3%',
+    src: 'China NBS · The Economist' },
+
+  /* ── POLITICS ── */
+  { cat:'politics', ts:'2h ago',
+    hl: 'NDA finalises Bihar seat-sharing six weeks early',
+    body: 'The National Democratic Alliance has locked its Bihar formula — BJP and JDU each contesting 17 of the state\'s 40 seats, with smaller allies sharing the rest. The early announcement is widely read as an attempt to pre-empt INDIA bloc unity talks; Congress and RJD remain at odds over the Pataliputra seat.',
+    fact: 'BJP 17 · JDU 17 · allies 6 · formula sealed 6 weeks ahead of election schedule',
+    src: 'NDTV · India Today' },
+
+  { cat:'politics', ts:'4h ago',
+    hl: 'Monsoon session: 24 bills and Modi 3.0\'s first Budget',
+    body: 'The government announced Parliament\'s monsoon session will begin July 22, with 24 bills on the agenda including the Waqf Amendment Bill and Broadcasting Regulation Bill. The opposition has served notice demanding a full-day inflation debate before other business. The session will also see the first full Union Budget of the Modi 3.0 government.',
+    fact: '24 bills listed · session from July 22 · first full-year Budget of Modi 3.0 presented mid-session',
+    src: 'Lok Sabha Secretariat · PTI' },
+
+  { cat:'politics', ts:'5h ago',
+    hl: 'CAA applications cross 14,000 — five states still absent',
+    body: 'The Ministry of Home Affairs says 14,312 applications have arrived under the Citizenship Amendment Act since March. But West Bengal, Tamil Nadu, Kerala, Punjab, and Telangana have not directed district authorities to begin processing, creating a legal grey zone the MHA says it is "examining." No citizenship has been granted anywhere yet.',
+    fact: '14,312 applications filed · 0 citizenships granted · 5 states yet to operationalise CAA rules',
+    src: 'MHA · The Wire' },
+
+  /* ── BUSINESS ── */
+  { cat:'business', ts:'3h ago',
+    hl: "RBI's record surplus reshapes Budget arithmetic overnight",
+    body: 'The Reserve Bank of India transferred ₹2.11 lakh crore in surplus to the central government — 141% above last year\'s ₹87,416 crore and the highest in the bank\'s 89-year history. The windfall, driven by forex gains and higher interest income, gives the Finance Minister room to accelerate fiscal consolidation, increase capital expenditure, or fund welfare schemes without breaching the 5.1% deficit target.',
+    fact: '₹2.11 lakh crore surplus · 141% above last year · largest transfer in RBI\'s 89-year history',
+    src: 'RBI · Business Standard' },
+
+  { cat:'business', ts:'1h ago',
+    hl: 'Sensex at 75,000: a milestone with a valuation footnote',
+    body: 'The BSE Sensex closed above 75,000 for the first time, led by IT and FMCG as foreign institutions turned net buyers at ₹4,200 crore for the session. The caveat: the index now trades at 22x forward earnings — among the priciest in emerging markets — while corporate earnings growth is expected to moderate to 12–14% in FY25 from 20%+ in the past two years.',
+    fact: 'First close above 75,000 · P/E at 22x forward earnings — 30% premium to EM average',
+    src: 'BSE · Bloomberg' },
+
+  { cat:'business', ts:'6h ago',
+    hl: 'Paytm wins restricted RBI licence — the road back is long',
+    body: 'Paytm Payments Bank received a restricted operations licence from the Reserve Bank, allowing it to resume wallet recharges and some merchant payment services — a partial reversal of February\'s freeze. Full banking operations remain suspended. Shares jumped 18% on the announcement; analysts say the company faces a six-month compliance window before a full licence review.',
+    fact: '18% share jump · wallet recharges resume · full banking ops still suspended; 6-month window',
+    src: 'RBI · Mint' },
+
+  /* ── AI & TECH ── */
+  { cat:'ai', ts:'30m ago',
+    hl: 'OpenAI confirms GPT-5 training complete, weeks from launch',
+    body: 'CEO Sam Altman confirmed on X that GPT-5 training has finished, with public deployment "within weeks" pending safety evaluations. The company claims GPT-5 achieves PhD-level reasoning on standard benchmarks and outperforms GPT-4 on MMLU "significantly." The announcement landed days after Google made Gemini 1.5 Pro free — what observers are calling the opening shot of the frontier model price war.',
+    fact: 'GPT-5 training complete · claims PhD-level on MMLU · "within weeks" per Sam Altman',
+    src: 'OpenAI · X (@sama)' },
+
+  { cat:'ai', ts:'2h ago',
+    hl: 'Google makes 1M-token Gemini free — the context war begins',
+    body: 'Google opened Gemini 1.5 Pro — including its 1 million token context window — to all users at no cost, removing it from the $20/month paywall. The window can hold entire books or hours of video in a single prompt. Analysts read the move as a sign that context length has replaced raw benchmark scores as the primary competitive axis in the frontier model market.',
+    fact: '1M token context now free · equivalent to ~750,000 words or ~11 hours of audio per prompt',
+    src: 'Google DeepMind · Wired' },
+
+  { cat:'ai', ts:'4h ago',
+    hl: "Sarvam AI raises $41M to build India's language stack",
+    body: 'Bengaluru-based Sarvam AI closed a $41 million Series A led by Peak XV Partners to develop open-source large language models across 22 Indian languages — with depth in Hindi, Bengali, Tamil, and Telugu. Founders point to a gap no Western model has addressed: 90% of India\'s population cannot effectively use English-first AI tools.',
+    fact: '$41M Series A · 22 Indian language models · 90% of India\'s 1.4B people are non-primary English users',
+    src: 'Peak XV · Economic Times' },
+
+  { cat:'ai', ts:'5h ago',
+    hl: "Meta's Llama 3 matches GPT-4 on benchmarks — and it's free",
+    body: 'Meta released Llama 3 in 8B and 70B versions under an open-source licence, with the 70B model posting benchmark scores competitive with GPT-4 on MMLU, HumanEval, and GSM8K. The model can be downloaded and run locally. Open-source advocates called it the moment "the moat around closed models begins to drain" — critics noted Meta\'s dominance concentrates influence differently, not less.',
+    fact: 'Llama 3 70B rivals GPT-4 on MMLU, HumanEval, GSM8K · fully open-source · locally deployable',
+    src: 'Meta AI · Hugging Face' },
+
+  /* ── SCIENCE ── */
+  { cat:'science', ts:'7h ago',
+    hl: 'ISRO-NASA radar satellite NISAR on track for September',
+    body: 'The $1.5 billion NISAR satellite — a joint ISRO-NASA mission — has completed pre-launch testing at Sriharikota and is on schedule for a September 2024 launch. Using dual-band synthetic aperture radar, NISAR will map every part of Earth\'s surface every 12 days, tracking glacial movement, earthquake deformation, volcanic activity, and agricultural land use at 9-centimetre resolution.',
+    fact: '$1.5B ISRO-NASA mission · full Earth mapping every 12 days · 9cm ground deformation precision',
+    src: 'ISRO · NASA JPL' },
+
+  { cat:'science', ts:'9h ago',
+    hl: "Lancet puts India's spring heat deaths at 40,000 — 8× official count",
+    body: 'A systematic analysis in The Lancet estimates 40,000 excess deaths were attributable to India\'s April–May 2024 heatwave — eight times the official government figure. Researchers used hospital admissions data and excess mortality modelling across 14 states. The gap comes down to method: official counts require a physician to certify heat as cause of death, a bar rarely met in rural areas.',
+    fact: '40,000 estimated vs. 4,900 officially recorded · 14-state study · The Lancet, June 2024',
+    src: 'The Lancet · Down to Earth' }
+];
+
+/* ─── State ─── */
+let filter = 'all';
+let pool   = [...ALL];
+let idx    = 0;
+
+/* Drag */
+let dragging = false, startX = 0, currX = 0;
+let cardEl   = null;
+
+/* ─── Helpers ─── */
+function h2rgb(h) {
+  return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)].join(',');
+}
+
+/* ─── Category filter ─── */
+function setFilter(cat) {
+  filter = cat;
+  pool   = cat === 'all' ? [...ALL] : ALL.filter(d => d.cat === cat);
+  idx    = 0;
+  document.querySelectorAll('.cat-btn').forEach(b => {
+    const mine = b.dataset.cat === cat;
+    b.classList.toggle('active', mine);
+    if (mine) {
+      const col = cat === 'all' ? '#EDEDED' : COLORS[cat];
+      b.style.cssText = `background:${col}; border-color:${col}; color:#0B0B0F; font-weight:600;`;
+    } else {
+      b.style.cssText = '';
+    }
+  });
+  render(false);
+}
+
+/* ─── Chrome update ─── */
+function chrome() {
+  const total = pool.length;
+  const pos   = total === 0 ? 0 : idx + 1;
+  const story = total > 0 ? pool[idx] : null;
+  const col   = story ? COLORS[story.cat] : '#3E3E50';
+
+  document.getElementById('countBig').textContent = total ? `${pos} / ${total}` : '– / –';
+  document.getElementById('navPos').textContent   = total ? `${pos} / ${total}` : '0 / 0';
+
+  const fill = document.getElementById('progFill');
+  fill.style.width           = total ? `${(pos / total) * 100}%` : '0%';
+  fill.style.backgroundColor = col;
+
+  document.getElementById('prevBtn').disabled = idx === 0;
+  document.getElementById('nextBtn').disabled = idx >= total - 1;
+
+  /* Dots — max 9 shown */
+  const dotsEl = document.getElementById('dots');
+  dotsEl.innerHTML = '';
+  const show = Math.min(total, 9);
+  let start = Math.max(0, Math.min(idx - 4, total - show));
+  for (let i = start; i < start + show; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === idx ? ' active' : '');
+    if (i === idx) d.style.background = col;
+    dotsEl.appendChild(d);
+  }
+}
+
+/* ─── Render ─── */
+function render(anim, dir) {
+  const stage = document.getElementById('stage');
+
+  if (!pool.length) {
+    stage.innerHTML = `<div class="empty"><div class="empty-icon">◦</div><div class="empty-msg">No stories in this category</div></div>`;
+    chrome(); return;
+  }
+
+  const s   = pool[idx];
+  const col = COLORS[s.cat];
+  const rgb = h2rgb(col);
+
+  /* Ghost stack — show next card's color tinting the ghost */
+  const n   = pool[idx + 1];
+  const g2  = pool[idx + 2];
+  const ghosts = `
+    ${g2 ? `<div class="ghost ghost-2" style="border-color:rgba(${h2rgb(COLORS[g2.cat])},0.08)"></div>` : ''}
+    ${n  ? `<div class="ghost"         style="border-color:rgba(${h2rgb(COLORS[n.cat])},0.14)"></div>`  : ''}`;
+
+  stage.innerHTML = ghosts + `
+    <div class="card${anim ? ' card-enter' : ''}" id="card"
+         style="border-color:rgba(${rgb},0.25);">
+      <div class="drag-overlay" id="dragOverlay"></div>
+      <div class="card-top">
+        <span class="cat-tag"
+              style="background:rgba(${rgb},0.15); color:${col};"
+        >${LABELS[s.cat]}</span>
+        <span class="card-ts">${s.ts}</span>
+      </div>
+      <div class="card-hl">${s.hl}</div>
+      <div class="card-rule"></div>
+      <div class="card-body">${s.body}</div>
+      <div class="fact-box" style="border-left-color:${col};">
+        <div class="fact-lbl">Key Fact</div>
+        <div class="fact-val">${s.fact}</div>
+      </div>
+      <div class="card-ft">
+        <span class="card-src">${s.src}</span>
+        <span class="swipe-hint${idx === 0 ? ' visible' : ''}" id="swipeHint">← swipe →</span>
+      </div>
+    </div>`;
+
+  cardEl = document.getElementById('card');
+  attachDrag();
+  chrome();
+
+  /* Hide swipe hint after first card */
+  if (idx === 0) {
+    setTimeout(() => {
+      const h = document.getElementById('swipeHint');
+      if (h) h.classList.remove('visible');
+    }, 2400);
+  }
+}
+
+/* ─── Navigation ─── */
+function go(dir) {
+  const ni = idx + dir;
+  if (ni < 0 || ni >= pool.length) return;
+
+  const card = document.getElementById('card');
+  if (card) {
+    card.style.transition = 'transform 0.22s ease-in, opacity 0.18s ease';
+    card.style.transform  = dir > 0
+      ? 'translateX(-108%) rotate(-5deg)'
+      : 'translateX(108%) rotate(5deg)';
+    card.style.opacity = '0';
+    setTimeout(() => { idx = ni; render(true, dir); }, 215);
+  } else {
+    idx = ni; render(true, dir);
+  }
+}
+
+/* ─── Drag / Swipe ─── */
+function attachDrag() {
+  if (!cardEl) return;
+  cardEl.addEventListener('touchstart', dStart, { passive: true  });
+  cardEl.addEventListener('touchmove',  dMove,  { passive: false });
+  cardEl.addEventListener('touchend',   dEnd);
+  cardEl.addEventListener('mousedown',  dStart);
+}
+
+function dStart(e) {
+  dragging = true; currX = 0;
+  startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+  if (cardEl) cardEl.style.transition = 'none';
+  document.addEventListener('mousemove', dMove);
+  document.addEventListener('mouseup',   dEnd);
+}
+
+function dMove(e) {
+  if (!dragging || !cardEl) return;
+  if (e.cancelable) e.preventDefault();
+  const x = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+  currX = x - startX;
+  const rot = currX * 0.032;
+  cardEl.style.transform = `translateX(${currX}px) rotate(${rot}deg)`;
+
+  /* Directional tint feedback */
+  const overlay = document.getElementById('dragOverlay');
+  if (overlay) {
+    const intensity = Math.min(Math.abs(currX) / 160, 1) * 0.18;
+    if (currX < 0) {
+      overlay.style.background = `rgba(255,80,50,${intensity})`;
+    } else {
+      overlay.style.background = `rgba(34,197,94,${intensity})`;
+    }
+    overlay.style.opacity = '1';
+  }
+}
+
+function dEnd() {
+  if (!dragging) return;
+  dragging = false;
+  document.removeEventListener('mousemove', dMove);
+  document.removeEventListener('mouseup',   dEnd);
+
+  const overlay = document.getElementById('dragOverlay');
+  if (overlay) overlay.style.opacity = '0';
+
+  const THRESH = 72;
+  if      (currX < -THRESH) go(1);
+  else if (currX >  THRESH) go(-1);
+  else if (cardEl) {
+    cardEl.classList.add('snapping');
+    cardEl.style.transform = '';
+    cardEl.addEventListener('transitionend', () => {
+      cardEl && cardEl.classList.remove('snapping');
+    }, { once: true });
+  }
+}
+
+/* ─── Category clicks ─── */
+document.getElementById('cats').addEventListener('click', e => {
+  const b = e.target.closest('.cat-btn');
+  if (b) setFilter(b.dataset.cat);
+});
+
+/* ─── Keyboard ─── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(-1);
+});
+
+/* ─── Init ─── */
+(function init() {
+  const d    = new Date();
+  const opts = { weekday:'long', month:'long', day:'numeric' };
+  document.getElementById('datebar').textContent =
+    `${d.toLocaleDateString('en-IN', opts)} · ${ALL.length} stories today`;
+  setFilter('all');
+})();
+</script>
+</body>
+</html>
