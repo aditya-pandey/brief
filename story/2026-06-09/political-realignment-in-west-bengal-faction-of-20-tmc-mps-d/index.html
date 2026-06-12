@@ -53,6 +53,9 @@
         <button id="toggle-flash" class="mode-tab active" data-mode="flash">⚡ Flash</button>
         <button id="toggle-briefing" class="mode-tab" data-mode="briefing">📰 Briefing</button>
       </nav>
+      
+      <!-- Desktop Flash Center Progress -->
+      <div id="flash-header-center" class="flash-header-center-progress"></div>
 
       <div class="header-right">
         <div class="header-search" id="header-search-container">
@@ -68,10 +71,17 @@
           </div>
         </div>
         <span id="header-date"></span>
+        
+        <!-- Desktop Flash switch mode navigation -->
+        <div id="flash-desktop-right-nav" class="flash-desktop-right-nav">
+          <button id="desktop-switch-briefing" class="desktop-switch-briefing-btn">📰 Switch to Briefing</button>
+        </div>
+        
         <button id="saved-trigger" class="saved-trigger-btn" aria-label="View saved stories" title="Saved Stories">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
           </svg>
+          <span class="saved-count-badge" id="saved-count-badge"></span>
         </button>
         <button id="theme-toggle" aria-label="Toggle dark mode">
           <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>

@@ -17,6 +17,7 @@ let flashStories = [];
 let activeFlashCategory = "all";
 let currentFlashIndex = 0;
 const flashReadsSessionSet = new Set();
+let selectedFlashStoryId = null;
 
 /* ── Analytics tracking helpers ──────────────────────────────── */
 function trackPageView(path, title) {
@@ -1476,21 +1477,31 @@ async function route() {
    ⚡ FLASH LAYOUT & INTERACTION ENGINE
    ══════════════════════════════════════════════════════════════ */
 const FLASH_COLORS = {
-  india:    '#FF5722',
-  world:    '#3B82F6',
-  politics: '#8B5CF6',
-  business: '#22C55E',
-  ai:       '#06B6D4',
-  science:  '#F59E0B'
+  all:           '#FF5722',
+  india:         '#FF5722',
+  world:         '#3B82F6',
+  ai:            '#06B6D4',
+  politics:      '#8B5CF6',
+  business:      '#22C55E',
+  sports:        '#F97316',
+  entertainment: '#EC4899',
+  culture:       '#A78BFA',
+  science:       '#F59E0B',
+  health:        '#34D399'
 };
 
 const FLASH_LABELS = {
-  india:    'India',
-  world:    'World',
-  politics: 'Politics',
-  business: 'Business',
-  ai:       'AI & Tech',
-  science: 'Science'
+  all:           'All',
+  india:         'India',
+  world:         'Global',
+  ai:            'AI & Tech',
+  politics:      'Politics',
+  business:      'Economics',
+  sports:        'Sports',
+  entertainment: 'Entertainment',
+  culture:       'Culture',
+  science:       'Science',
+  health:        'Health'
 };
 
 function getCategoryColor(cat) {
@@ -1970,6 +1981,7 @@ function openFlashStory(storyId) {
   const index = flashStories.findIndex(fs => fs.id === storyId);
   if (index >= 0) {
     currentFlashIndex = index;
+    selectedFlashStoryId = storyId;
     renderFlashView();
   }
 }
@@ -2009,8 +2021,10 @@ async function renderFlashView() {
   
   // Update mode navigation active tab
   document.body.classList.add("mode-flash-active");
-  $("toggle-flash").classList.add("active");
-  $("toggle-briefing").classList.remove("active");
+  const toggleFlash = $("toggle-flash");
+  const toggleBriefing = $("toggle-briefing");
+  if (toggleFlash) toggleFlash.classList.add("active");
+  if (toggleBriefing) toggleBriefing.classList.remove("active");
   
   try {
     await loadFlash();
@@ -2023,6 +2037,42 @@ async function renderFlashView() {
     ? flashStories 
     : flashStories.filter(s => s.cat === activeFlashCategory);
     
+  const total = filtered.length;
+  
+  // Responsive branch check
+  const isDesktop = window.innerWidth >= 992;
+  const wordmark = document.querySelector("#site-header .wordmark");
+  if (wordmark) {
+    if (isDesktop) {
+      wordmark.innerHTML = "⚡ FLASH";
+      wordmark.style.fontFamily = "Roboto Mono, monospace";
+      wordmark.style.fontWeight = "700";
+    } else {
+      wordmark.innerHTML = "The Briefing";
+      wordmark.style.fontFamily = "";
+      wordmark.style.fontWeight = "";
+    }
+  }
+  
+  // Update Header Progress
+  const progressText = $("flash-header-center");
+  if (progressText) {
+    const activeCats = new Set(filtered.map(fs => fs.cat));
+    progressText.textContent = `Showing ${total} stories · ${activeCats.size} categories`;
+  }
+  
+  // Update bookmark badge
+  updateSavedBadge();
+  
+  if (isDesktop) {
+    renderFlashDesktopLayout(filtered);
+  } else {
+    renderFlashMobileLayout(filtered);
+  }
+}
+
+/* ── Mobile Layout Renderer ── */
+function renderFlashMobileLayout(filtered) {
   const total = filtered.length;
   currentFlashIndex = Math.max(0, Math.min(total - 1, currentFlashIndex));
   
@@ -2068,31 +2118,20 @@ async function renderFlashView() {
   const col = getCategoryColor(s.cat);
   const rgb = getCategoryColorRgb(s.cat);
   
-  // Check if saved
   const saved = getSavedStories();
   const isSaved = saved.some(fs => fs.id === s.id);
   
-  // Check if "Go Deeper" is available (story.id exists in today's briefing payload)
   let showGoDeeper = false;
   const latestDate = indexEntries[0]?.date;
   if (latestDate) {
     try {
-      const todayPayload = dayCache[latestDate] || await loadDay(latestDate);
-      showGoDeeper = todayPayload.stories.some(ts => ts.id === s.id);
+      const todayPayload = dayCache[latestDate];
+      if (todayPayload) {
+        showGoDeeper = todayPayload.stories.some(ts => ts.id === s.id);
+      }
     } catch(e) {}
   }
   
-  // Render ghosts
-  const nextStory = filtered[currentFlashIndex + 1];
-  const thirdStory = filtered[currentFlashIndex + 2];
-  
-  const ghost1Html = nextStory 
-    ? `<div class="flash-ghost-card-1" style="--next-cat-color-rgb: ${getCategoryColorRgb(nextStory.cat)}"></div>`
-    : "";
-  const ghost2Html = thirdStory 
-    ? `<div class="flash-ghost-card-2"></div>`
-    : "";
-    
   // Render Who benefits chips
   const benefitsHtml = (s.who_benefits || []).map(b => `
     <div class="flash-benefit-chip" title="${esc(b)}">${esc(b)}</div>
@@ -2104,7 +2143,6 @@ async function renderFlashView() {
        </div>`
     : "";
     
-  // Render views/trending
   let localReads = {};
   try {
     localReads = JSON.parse(localStorage.getItem("flash_reads_fallback") || "{}");
@@ -2186,6 +2224,501 @@ async function renderFlashView() {
       pill.style.opacity = resolvedViews >= 1000 ? 1 : 0.4;
     }
   });
+}
+
+/* ── Desktop Layout Renderer ── */
+function renderFlashDesktopLayout(filtered) {
+  app.innerHTML = `
+    <div class="flash-desktop-layout">
+      <!-- Zone 1: Sidebar -->
+      <aside class="flash-sidebar">
+        <div class="sidebar-top">
+          <div class="sidebar-eyebrow">THE BRIEFING</div>
+          <div class="sidebar-logo">⚡ FLASH</div>
+          <div class="sidebar-date-info" id="sidebar-date-info">${getSidebarDateString()}</div>
+        </div>
+        
+        <nav class="sidebar-cats" id="sidebar-cats">
+          ${renderDesktopCategoryList()}
+        </nav>
+        
+        <div class="sidebar-bottom">
+          <span class="sidebar-link" id="sidebar-switch-briefing">📰 The Briefing &rarr;</span>
+        </div>
+      </aside>
+      
+      <!-- Zone 2: Main Feed -->
+      <main class="flash-main-feed">
+        <div class="flash-grid-container">
+          ${renderDesktopGrid(filtered)}
+        </div>
+      </main>
+      
+      <!-- Zone 3: Reading Panel -->
+      <aside class="flash-reading-panel" id="flash-reading-panel">
+        ${renderReadingPanel()}
+      </aside>
+    </div>
+  `;
+  
+  wireFlashDesktopEvents(filtered);
+  wireReadingPanelEvents(filtered);
+}
+
+function getSidebarDateString() {
+  const options = { day: 'numeric', month: 'long' };
+  const dateStr = new Date().toLocaleDateString('en-GB', options);
+  return `${dateStr} · ${flashStories.length} stories`;
+}
+
+function renderDesktopCategoryList() {
+  const cats = [
+    { id: "all", label: "All", emoji: "🌐" },
+    { id: "india", label: "India", emoji: "🇮🇳" },
+    { id: "world", label: "Global", emoji: "🌍" },
+    { id: "politics", label: "Politics", emoji: "🏛" },
+    { id: "business", label: "Economics", emoji: "📈" },
+    { id: "ai", label: "AI & Tech", emoji: "🤖" },
+    { id: "science", label: "Science", emoji: "🔬" },
+    { id: "sports", label: "Sports", emoji: "⚽" },
+    { id: "entertainment", label: "Entertainment", emoji: "🎬" },
+    { id: "culture", label: "Culture", emoji: "🎨" },
+    { id: "health", label: "Health", emoji: "🏥" }
+  ];
+  
+  return cats.map(c => {
+    let count = 0;
+    if (c.id === "all") {
+      count = flashStories.length;
+    } else {
+      count = flashStories.filter(s => s.cat === c.id).length;
+    }
+    
+    const isActive = activeFlashCategory === c.id;
+    const col = getCategoryColor(c.id);
+    const rgb = getCategoryColorRgb(c.id);
+    
+    const styleAttr = isActive 
+      ? `style="border-left-color: ${col}; background: rgba(${rgb}, 0.08); color: ${col}; font-weight: 600;"` 
+      : "";
+      
+    return `
+      <div class="sidebar-cat-row ${isActive ? 'active' : ''}" data-cat="${c.id}" ${styleAttr}>
+        <span class="sidebar-cat-emoji">${c.emoji}</span>
+        <span class="sidebar-cat-label">${c.label}</span>
+        <span class="sidebar-cat-badge" style="${isActive ? `background: ${col}; color: #fff;` : ''}">${count}</span>
+      </div>`;
+  }).join("");
+}
+
+function renderDesktopGrid(filtered) {
+  if (filtered.length === 0) {
+    return `
+      <div class="saved-empty-state" style="margin-top: 100px;">
+        <div class="saved-empty-icon">◦</div>
+        <div class="saved-empty-text">No stories available in this category.</div>
+      </div>`;
+  }
+  
+  const heroStory = filtered[0];
+  const gridStories = filtered.slice(1);
+  
+  const heroCol = getCategoryColor(heroStory.cat);
+  const heroRgb = getCategoryColorRgb(heroStory.cat);
+  const heroSaved = getSavedStories().some(fs => fs.id === heroStory.id);
+  const isHeroSelected = selectedFlashStoryId === heroStory.id;
+  
+  const heroBenefitsChips = (heroStory.who_benefits || []).map(b => `
+    <span class="desktop-benefit-chip" style="border-color: rgba(${heroRgb}, 0.25); color: ${heroCol};">${esc(b)}</span>
+  `).join("");
+  
+  // Resolve views
+  let localReads = {};
+  try {
+    localReads = JSON.parse(localStorage.getItem("flash_reads_fallback") || "{}");
+  } catch(e) {}
+  const heroViews = localReads[heroStory.id] || 1;
+  
+  const heroHtml = `
+    <div class="desktop-hero-card ${isHeroSelected ? 'selected' : ''}" data-id="${esc(heroStory.id)}" style="--hero-cat-color: ${heroCol}; --hero-cat-color-rgb: ${heroRgb};">
+      <div class="hero-card-header">
+        <span class="hero-cat-badge" style="background: rgba(${heroRgb}, 0.15); color: ${heroCol};">${esc(FLASH_LABELS[heroStory.cat] || heroStory.cat)}</span>
+        <span class="hero-time">${esc(heroStory.ts)}</span>
+      </div>
+      <h2 class="hero-headline">${esc(heroStory.hl)}</h2>
+      <p class="hero-summary">${esc(heroStory.body)}</p>
+      
+      <div class="hero-signal-box">
+        <div class="hero-signal-label">Key Fact / Signal</div>
+        <div class="hero-signal-value">${esc(heroStory.fact)}</div>
+      </div>
+      
+      ${heroBenefitsChips ? `
+        <div class="hero-benefits-row">
+          <span class="hero-benefits-label">Benefits:</span>
+          ${heroBenefitsChips}
+        </div>` : ''}
+      
+      <div class="hero-card-footer">
+        <span class="hero-views-count">🔥 <span id="views-${esc(heroStory.id)}">${heroViews}</span> reads</span>
+        <button class="hero-footer-btn-save ${heroSaved ? 'saved' : ''}" data-id="${esc(heroStory.id)}" style="color: ${heroSaved ? heroCol : ''}">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="${heroSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>${heroSaved ? 'Saved' : 'Save'}</span>
+        </button>
+      </div>
+    </div>
+  `;
+  
+  const gridHtml = gridStories.map(s => {
+    const col = getCategoryColor(s.cat);
+    const rgb = getCategoryColorRgb(s.cat);
+    const isSaved = getSavedStories().some(fs => fs.id === s.id);
+    const isSelected = selectedFlashStoryId === s.id;
+    
+    const benefitsChips = (s.who_benefits || []).map(b => `
+      <span class="desktop-benefit-chip" style="border-color: rgba(${rgb}, 0.25); color: ${col};">${esc(b)}</span>
+    `).join("");
+    
+    const sViews = localReads[s.id] || 1;
+    
+    return `
+      <div class="desktop-grid-card ${isSelected ? 'selected' : ''}" data-id="${esc(s.id)}" style="--grid-cat-color: ${col}; --grid-cat-color-rgb: ${rgb};">
+        <div class="grid-card-header">
+          <span class="grid-cat-badge" style="background: rgba(${rgb}, 0.15); color: ${col};">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
+          <span class="grid-time">${esc(s.ts)}</span>
+        </div>
+        <h3 class="grid-headline">${esc(s.hl)}</h3>
+        <p class="grid-summary">${esc(s.body)}</p>
+        
+        <div class="grid-signal-box">
+          <div class="grid-signal-label">Key Fact</div>
+          <div class="grid-signal-value">${esc(s.fact)}</div>
+        </div>
+        
+        ${benefitsChips ? `
+          <div class="grid-benefits-row">
+            ${benefitsChips}
+          </div>` : ''}
+        
+        <div class="grid-card-footer">
+          <span class="grid-views-count">🔥 <span id="views-${esc(s.id)}">${sViews}</span></span>
+          <button class="grid-footer-btn-save ${isSaved ? 'saved' : ''}" data-id="${esc(s.id)}" style="color: ${isSaved ? col : ''}">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+  
+  return `
+    ${heroHtml}
+    <div class="flash-grid">
+      ${gridHtml}
+    </div>
+  `;
+}
+
+function renderReadingPanel() {
+  if (!selectedFlashStoryId) {
+    return `
+      <div class="reading-panel-empty">
+        <div class="empty-logo">The Briefing</div>
+        <div class="empty-sub">Select a story card to read the full expanded coverage.</div>
+      </div>`;
+  }
+  
+  const s = flashStories.find(fs => fs.id === selectedFlashStoryId);
+  if (!s) {
+    return `
+      <div class="reading-panel-empty">
+        <div class="empty-logo">The Briefing</div>
+        <div class="empty-sub">Story not found. Select another card.</div>
+      </div>`;
+  }
+  
+  const col = getCategoryColor(s.cat);
+  const rgb = getCategoryColorRgb(s.cat);
+  const isSaved = getSavedStories().some(fs => fs.id === s.id);
+  
+  let showGoDeeper = false;
+  const latestDate = indexEntries[0]?.date;
+  if (latestDate) {
+    try {
+      const todayPayload = dayCache[latestDate];
+      if (todayPayload) {
+        showGoDeeper = todayPayload.stories.some(ts => ts.id === s.id);
+      }
+    } catch(e) {}
+  }
+  
+  const benefitsChips = (s.who_benefits || []).map(b => `
+    <span class="panel-benefit-chip" style="border-color: rgba(${rgb}, 0.25); color: ${col};">${esc(b)}</span>
+  `).join("");
+  
+  let localReads = {};
+  try {
+    localReads = JSON.parse(localStorage.getItem("flash_reads_fallback") || "{}");
+  } catch(e) {}
+  const currentViews = localReads[s.id] || 1;
+  
+  return `
+    <div class="reading-panel-content" style="--panel-cat-color: ${col}; --panel-cat-color-rgb: ${rgb};">
+      <button class="panel-close-btn" id="panel-close-btn" aria-label="Close reading panel">&times;</button>
+      
+      <div class="panel-header">
+        <span class="panel-cat-badge" style="background: rgba(${rgb}, 0.15); color: ${col};">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
+        <span class="panel-time">${esc(s.ts)}</span>
+      </div>
+      
+      <h2 class="panel-headline">${esc(s.hl)}</h2>
+      <hr class="panel-divider" />
+      
+      <div class="panel-summary">
+        <p>${esc(s.body)}</p>
+      </div>
+      
+      <div class="panel-signal-box">
+        <div class="panel-signal-label">Key Fact / Signal</div>
+        <div class="panel-signal-value">${esc(s.fact)}</div>
+      </div>
+      
+      ${benefitsChips ? `
+        <div class="panel-benefits-container">
+          <span class="panel-benefits-label">Benefits:</span>
+          ${benefitsChips}
+        </div>` : ""}
+        
+      <div class="panel-actions-row">
+        <button class="panel-btn-action ${isSaved ? 'saved' : ''}" id="panel-save-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>${isSaved ? 'Saved' : 'Save'}</span>
+        </button>
+        
+        <button class="panel-btn-action" id="panel-share-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          <span>Share</span>
+        </button>
+      </div>
+      
+      ${showGoDeeper ? `
+        <button class="panel-go-deeper-btn" id="panel-go-deeper-btn">
+          Go Deeper &rarr;
+        </button>` : ""}
+    </div>
+  `;
+}
+
+function wireFlashDesktopEvents(filtered) {
+  // 1. Sidebar category filtering
+  const catRows = document.querySelectorAll(".sidebar-cat-row");
+  catRows.forEach(row => {
+    row.onclick = () => {
+      activeFlashCategory = row.dataset.cat;
+      selectedFlashStoryId = null; // reset selection on category change
+      renderFlashView();
+    };
+  });
+  
+  // 2. Sidebar switch mode link
+  const sidebarSwitch = $("sidebar-switch-briefing");
+  if (sidebarSwitch) {
+    sidebarSwitch.onclick = () => {
+      switchToBriefingMode();
+    };
+  }
+  
+  // 3. Card click logic in feed grid
+  const cards = document.querySelectorAll(".desktop-hero-card, .desktop-grid-card");
+  cards.forEach(card => {
+    card.onclick = (e) => {
+      if (e.target.closest("button")) return;
+      
+      const id = card.dataset.id;
+      selectedFlashStoryId = id;
+      
+      document.querySelectorAll(".desktop-hero-card, .desktop-grid-card").forEach(c => {
+        c.classList.remove("selected");
+      });
+      card.classList.add("selected");
+      
+      const panel = $("flash-reading-panel");
+      if (panel) {
+        panel.innerHTML = renderReadingPanel();
+        wireReadingPanelEvents(filtered);
+      }
+      
+      trackViewCount(id).then(views => {
+        const vSpan = $(`views-${id}`);
+        if (vSpan) vSpan.textContent = views;
+      });
+    };
+  });
+  
+  // 4. Save buttons clicks inside grid cards
+  const saveBtns = document.querySelectorAll(".hero-footer-btn-save, .grid-footer-btn-save");
+  saveBtns.forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const story = flashStories.find(fs => fs.id === id);
+      if (story) {
+        const isSaved = toggleBookmark(story);
+        const col = getCategoryColor(story.cat);
+        btn.classList.toggle("saved", isSaved);
+        btn.style.color = isSaved ? col : "";
+        const svg = btn.querySelector("svg");
+        if (svg) svg.setAttribute("fill", isSaved ? "currentColor" : "none");
+        
+        updateSavedBadge();
+        
+        // Sync with active reading panel if same card
+        if (selectedFlashStoryId === id) {
+          const panelSave = $("panel-save-btn");
+          if (panelSave) {
+            panelSave.classList.toggle("saved", isSaved);
+            const pSvg = panelSave.querySelector("svg");
+            if (pSvg) pSvg.setAttribute("fill", isSaved ? "currentColor" : "none");
+            const pSpan = panelSave.querySelector("span");
+            if (pSpan) pSpan.textContent = isSaved ? "Saved" : "Save";
+          }
+        }
+      }
+    };
+  });
+  
+  // 5. Header Switch mode button
+  const headerSwitch = $("desktop-switch-briefing");
+  if (headerSwitch) {
+    headerSwitch.onclick = () => {
+      switchToBriefingMode();
+    };
+  }
+}
+
+function wireReadingPanelEvents(filtered) {
+  const closeBtn = $("panel-close-btn");
+  const saveBtn = $("panel-save-btn");
+  const goDeeperBtn = $("panel-go-deeper-btn");
+  const shareBtn = $("panel-share-btn");
+  
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      selectedFlashStoryId = null;
+      document.querySelectorAll(".desktop-hero-card, .desktop-grid-card").forEach(c => {
+        c.classList.remove("selected");
+      });
+      const panel = $("flash-reading-panel");
+      if (panel) {
+        panel.innerHTML = renderReadingPanel();
+      }
+    };
+  }
+  
+  if (saveBtn) {
+    saveBtn.onclick = () => {
+      const story = flashStories.find(fs => fs.id === selectedFlashStoryId);
+      if (story) {
+        const isSaved = toggleBookmark(story);
+        const col = getCategoryColor(story.cat);
+        saveBtn.classList.toggle("saved", isSaved);
+        const svg = saveBtn.querySelector("svg");
+        if (svg) svg.setAttribute("fill", isSaved ? "currentColor" : "none");
+        const span = saveBtn.querySelector("span");
+        if (span) span.textContent = isSaved ? "Saved" : "Save";
+        
+        updateSavedBadge();
+        
+        const gridBtn = document.querySelector(`.hero-footer-btn-save[data-id="${story.id}"], .grid-footer-btn-save[data-id="${story.id}"]`);
+        if (gridBtn) {
+          gridBtn.classList.toggle("saved", isSaved);
+          gridBtn.style.color = isSaved ? col : "";
+          const gSvg = gridBtn.querySelector("svg");
+          if (gSvg) gSvg.setAttribute("fill", isSaved ? "currentColor" : "none");
+        }
+      }
+    };
+  }
+  
+  if (goDeeperBtn) {
+    goDeeperBtn.onclick = () => {
+      const story = flashStories.find(fs => fs.id === selectedFlashStoryId);
+      const latestDate = indexEntries[0]?.date;
+      if (story && latestDate) {
+        currentMode = "briefing";
+        localStorage.setItem("currentMode", "briefing");
+        document.body.classList.remove("mode-flash-active");
+        
+        const toggleFlash = $("toggle-flash");
+        const toggleBriefing = $("toggle-briefing");
+        if (toggleFlash) toggleFlash.classList.remove("active");
+        if (toggleBriefing) toggleBriefing.classList.add("active");
+        
+        const wordmark = document.querySelector("#site-header .wordmark");
+        if (wordmark) {
+          wordmark.innerHTML = "The Briefing";
+          wordmark.style.fontFamily = "";
+          wordmark.style.fontWeight = "";
+        }
+        
+        navigate(`${BASE_PATH}/story/${latestDate}/${story.id}`);
+      }
+    };
+  }
+  
+  if (shareBtn) {
+    shareBtn.onclick = () => {
+      const story = flashStories.find(fs => fs.id === selectedFlashStoryId);
+      if (story) {
+        const url = `${window.location.origin}${BASE_PATH}/#flash-${story.id}`;
+        navigator.clipboard.writeText(url).then(() => {
+          showToast("Copied shareable link to clipboard");
+        }).catch(() => {
+          showToast("Failed to copy link");
+        });
+      }
+    };
+  }
+}
+
+function switchToBriefingMode() {
+  currentMode = "briefing";
+  localStorage.setItem("currentMode", "briefing");
+  document.body.classList.remove("mode-flash-active");
+  
+  const toggleFlash = $("toggle-flash");
+  const toggleBriefing = $("toggle-briefing");
+  if (toggleFlash) toggleFlash.classList.remove("active");
+  if (toggleBriefing) toggleBriefing.classList.add("active");
+  
+  const wordmark = document.querySelector("#site-header .wordmark");
+  if (wordmark) {
+    wordmark.innerHTML = "The Briefing";
+    wordmark.style.fontFamily = "";
+    wordmark.style.fontWeight = "";
+  }
+  
+  navigate(`${BASE_PATH}/`);
+}
+
+function updateSavedBadge() {
+  const badge = $("saved-count-badge");
+  if (badge) {
+    const savedCount = getSavedStories().length;
+    badge.textContent = savedCount;
+    badge.style.display = savedCount > 0 ? "inline-flex" : "none";
+  }
 }
 
 function initModeToggle() {
@@ -2289,6 +2822,18 @@ document.body.addEventListener("click", e => {
     e.preventDefault();
     history.pushState(null, "", a.href);
     route();
+  }
+});
+
+// Window resize handler to switch layouts dynamically between mobile reels and desktop grid
+let isDesktopLayout = window.innerWidth >= 992;
+window.addEventListener("resize", () => {
+  const check = window.innerWidth >= 992;
+  if (check !== isDesktopLayout) {
+    isDesktopLayout = check;
+    if (currentMode === "flash") {
+      renderFlashView();
+    }
   }
 });
 
