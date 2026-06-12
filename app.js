@@ -1644,10 +1644,10 @@ function navigateFlash(direction, filtered) {
   
   const card = $("flash-card");
   if (card) {
-    card.style.transition = 'transform 0.22s ease-in, opacity 0.18s ease';
+    card.style.transition = 'transform 0.24s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease';
     card.style.transform  = direction > 0
-      ? 'translateX(-108%) rotate(-5deg)'
-      : 'translateX(108%) rotate(5deg)';
+      ? 'translateY(-108%)'
+      : 'translateY(108%)';
     card.style.opacity = '0';
     setTimeout(() => {
       currentFlashIndex = nextIdx;
@@ -1656,14 +1656,16 @@ function navigateFlash(direction, filtered) {
       const newCard = $("flash-card");
       if (newCard) {
         newCard.style.opacity = '0';
-        newCard.style.transform = 'translateY(10px) scale(0.97)';
+        newCard.style.transform = direction > 0
+          ? 'translateY(108%)'
+          : 'translateY(-108%)';
         // trigger reflow
         newCard.offsetHeight;
-        newCard.style.transition = 'transform 0.26s cubic-bezier(0.22, 0, 0.18, 1), opacity 0.26s ease';
+        newCard.style.transition = 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.28s ease';
         newCard.style.transform = '';
         newCard.style.opacity = '1';
       }
-    }, 215);
+    }, 240);
   } else {
     currentFlashIndex = nextIdx;
     renderFlashView();
@@ -1671,9 +1673,10 @@ function navigateFlash(direction, filtered) {
 }
 
 let flashDragging = false;
-let flashStartX = 0;
-let flashCurrX = 0;
+let flashStartY = 0;
+let flashCurrY = 0;
 let flashCardEl = null;
+let wheelTimeout = null;
 
 function attachFlashDrag(filtered) {
   flashCardEl = $("flash-card");
@@ -1684,10 +1687,37 @@ function attachFlashDrag(filtered) {
   flashCardEl.addEventListener('touchend',   fEnd);
   flashCardEl.addEventListener('mousedown',  fStart);
   
+  // Desktop Wheel event for card transition & internal scroll coordination
+  flashCardEl.addEventListener('wheel', e => {
+    const bodyEl = flashCardEl.querySelector('.flash-card-body');
+    if (bodyEl) {
+      const scrollTop = bodyEl.scrollTop;
+      const maxScroll = bodyEl.scrollHeight - bodyEl.clientHeight;
+      
+      // Let the content scroll normally if it hasn't hit boundaries
+      if (e.deltaY > 0 && scrollTop < maxScroll - 1) {
+        return; // scroll down inside card
+      }
+      if (e.deltaY < 0 && scrollTop > 1) {
+        return; // scroll up inside card
+      }
+    }
+    
+    e.preventDefault();
+    if (wheelTimeout) return;
+    
+    const dir = e.deltaY > 0 ? 1 : -1;
+    navigateFlash(dir, filtered);
+    
+    wheelTimeout = setTimeout(() => {
+      wheelTimeout = null;
+    }, 600); // Debounce trackpad scroll sweeps
+  }, { passive: false });
+  
   function fStart(e) {
     flashDragging = true;
-    flashCurrX = 0;
-    flashStartX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+    flashCurrY = 0;
+    flashStartY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
     if (flashCardEl) flashCardEl.style.transition = 'none';
     
     document.addEventListener('mousemove', fMove);
@@ -1696,31 +1726,49 @@ function attachFlashDrag(filtered) {
   
   function fMove(e) {
     if (!flashDragging || !flashCardEl) return;
-    if (e.cancelable) e.preventDefault();
     
-    const x = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
-    flashCurrX = x - flashStartX;
-    const rot = flashCurrX * 0.032;
-    flashCardEl.style.transform = `translateX(${flashCurrX}px) rotate(${rot}deg)`;
+    const y = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+    flashCurrY = y - flashStartY;
+    
+    // Check if user is scrolling the text body inside the card
+    const bodyEl = flashCardEl.querySelector('.flash-card-body');
+    if (bodyEl) {
+      const scrollTop = bodyEl.scrollTop;
+      const maxScroll = bodyEl.scrollHeight - bodyEl.clientHeight;
+      
+      if (flashCurrY > 0 && scrollTop > 1) {
+        // Dragging down, but body can scroll up
+        flashDragging = false;
+        return;
+      }
+      if (flashCurrY < 0 && scrollTop < maxScroll - 1) {
+        // Dragging up, but body can scroll down
+        flashDragging = false;
+        return;
+      }
+    }
+    
+    if (e.cancelable) e.preventDefault();
+    flashCardEl.style.transform = `translateY(${flashCurrY}px)`;
     
     /* Directional tint feedback */
-    const overlayLeft = $("flash-drag-left");
-    const overlayRight = $("flash-drag-right");
+    const overlayTop = $("flash-drag-top");
+    const overlayBottom = $("flash-drag-bottom");
     
-    const intensity = Math.min(Math.abs(flashCurrX) / 160, 1) * 0.18;
-    if (flashCurrX < 0) { // Drag left -> next card
-      if (overlayLeft) {
-        overlayLeft.style.opacity = intensity;
+    const intensity = Math.min(Math.abs(flashCurrY) / 160, 1) * 0.18;
+    if (flashCurrY < 0) { // Drag up -> next card
+      if (overlayBottom) {
+        overlayBottom.style.opacity = intensity;
       }
-      if (overlayRight) {
-        overlayRight.style.opacity = 0;
+      if (overlayTop) {
+        overlayTop.style.opacity = 0;
       }
-    } else { // Drag right -> prev card
-      if (overlayRight) {
-        overlayRight.style.opacity = intensity;
+    } else { // Drag down -> prev card
+      if (overlayTop) {
+        overlayTop.style.opacity = intensity;
       }
-      if (overlayLeft) {
-        overlayLeft.style.opacity = 0;
+      if (overlayBottom) {
+        overlayBottom.style.opacity = 0;
       }
     }
   }
@@ -1732,20 +1780,20 @@ function attachFlashDrag(filtered) {
     document.removeEventListener('mousemove', fMove);
     document.removeEventListener('mouseup',   fEnd);
     
-    const overlayLeft = $("flash-drag-left");
-    const overlayRight = $("flash-drag-right");
+    const overlayTop = $("flash-drag-top");
+    const overlayBottom = $("flash-drag-bottom");
     
-    if (overlayLeft) overlayLeft.style.opacity = '0';
-    if (overlayRight) overlayRight.style.opacity = '0';
+    if (overlayTop) overlayTop.style.opacity = '0';
+    if (overlayBottom) overlayBottom.style.opacity = '0';
     
     const THRESH = 72;
-    if (flashCurrX < -THRESH) {
+    if (flashCurrY < -THRESH) {
       if (currentFlashIndex < filtered.length - 1) {
         navigateFlash(1, filtered);
       } else {
         snapBack();
       }
-    } else if (flashCurrX > THRESH) {
+    } else if (flashCurrY > THRESH) {
       if (currentFlashIndex > 0) {
         navigateFlash(-1, filtered);
       } else {
@@ -2078,31 +2126,30 @@ async function renderFlashView() {
       </div>
       
       <div class="flash-card-stage" id="flash-card-stage">
-        ${ghost2Html}
-        ${ghost1Html}
-        
         <div class="flash-card" id="flash-card">
-          <div class="flash-drag-overlay left" id="flash-drag-left">PREV</div>
-          <div class="flash-drag-overlay right" id="flash-drag-right">NEXT</div>
+          <div class="flash-drag-overlay top" id="flash-drag-top">PREV</div>
+          <div class="flash-drag-overlay bottom" id="flash-drag-bottom">NEXT</div>
           
           <div class="flash-card-header">
             <span class="flash-cat-badge">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
             <span class="flash-time">${esc(s.ts)}</span>
           </div>
           
-          <h2 class="flash-headline">${esc(s.hl)}</h2>
-          <hr class="flash-divider" />
-          
-          <div class="flash-summary">
-            <p>${esc(s.body)}</p>
+          <div class="flash-card-body">
+            <h2 class="flash-headline">${esc(s.hl)}</h2>
+            <hr class="flash-divider" />
+            
+            <div class="flash-summary">
+              <p>${esc(s.body)}</p>
+            </div>
+            
+            <div class="flash-signal-box">
+              <div class="flash-signal-label">Key Fact / Signal</div>
+              <div class="flash-signal-value">${esc(s.fact)}</div>
+            </div>
+            
+            ${benefitsSection}
           </div>
-          
-          <div class="flash-signal-box">
-            <div class="flash-signal-label">Key Fact / Signal</div>
-            <div class="flash-signal-value">${esc(s.fact)}</div>
-          </div>
-          
-          ${benefitsSection}
           
           <div class="flash-card-footer">
             <button class="flash-footer-btn ${isSaved ? 'saved' : ''}" id="flash-bookmark-btn" aria-label="Save story" style="color: ${isSaved ? col : ''}">
@@ -2122,21 +2169,6 @@ async function renderFlashView() {
             </div>
           </div>
         </div>
-      </div>
-      
-      <div class="flash-progress-track">
-        <div class="flash-progress-fill" style="width: ${((currentFlashIndex + 1) / total) * 100}%;"></div>
-      </div>
-      
-      <div class="flash-nav-row">
-        <button class="flash-nav-btn" id="flash-prev" ${currentFlashIndex === 0 ? 'disabled' : ''}>&larr;</button>
-        <div class="flash-nav-center">
-          <span class="flash-nav-counter">${currentFlashIndex + 1} / ${total}</span>
-          <div class="flash-dots-container" id="flash-dots">
-            ${renderFlashDots(total)}
-          </div>
-        </div>
-        <button class="flash-nav-btn" id="flash-next" ${currentFlashIndex === total - 1 ? 'disabled' : ''}>&rarr;</button>
       </div>
     </div>`;
     
@@ -2243,9 +2275,9 @@ window.addEventListener("keydown", e => {
     ? flashStories 
     : flashStories.filter(s => s.cat === activeFlashCategory);
     
-  if (e.key === "ArrowLeft") {
+  if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
     navigateFlash(-1, filtered);
-  } else if (e.key === "ArrowRight") {
+  } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
     navigateFlash(1, filtered);
   }
 });

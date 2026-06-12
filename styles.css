@@ -2999,11 +2999,11 @@ body.mode-flash-active .mode-tab.active {
   --cat-color-rgb: 255, 87, 34;
   max-width: 480px;
   margin: 0 auto;
-  padding: 8px 16px 80px;
+  padding: 8px 16px 16px;
   display: flex;
   flex-direction: column;
   height: calc(100vh - var(--header-h));
-  justify-content: space-between;
+  justify-content: flex-start;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -3070,10 +3070,11 @@ body.mode-flash-active .mode-tab.active {
   position: relative;
   flex: 1;
   width: 100%;
-  margin: 8px 0 16px;
+  margin: 8px 0 0;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
+  overflow: hidden;
 }
 
 /* Flash Card container styling */
@@ -3081,12 +3082,12 @@ body.mode-flash-active .mode-tab.active {
   position: absolute;
   width: 100%;
   height: 100%;
-  max-height: 480px;
+  max-height: 100%;
   background: #1A1A22;
   border-radius: 22px;
   border: 1px solid rgba(var(--cat-color-rgb), 0.25);
   box-shadow: 0 8px 32px rgba(var(--cat-color-rgb), 0.08);
-  padding: 22px 22px 20px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -3126,6 +3127,22 @@ body.mode-flash-active .mode-tab.active {
   color: #3E3E50;
 }
 
+/* Scrollable card body */
+.flash-card-body {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none; /* Hide scrollbar Firefox */
+  -ms-overflow-style: none;  /* Hide scrollbar IE/Edge */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 4px;
+  margin-bottom: 12px;
+}
+.flash-card-body::-webkit-scrollbar {
+  display: none; /* Hide scrollbar Chrome/Safari/Webkit */
+}
+
 /* Headline */
 .flash-headline {
   font-family: var(--serif);
@@ -3133,7 +3150,7 @@ body.mode-flash-active .mode-tab.active {
   font-size: clamp(18px, 4.5vw, 22px);
   line-height: 1.28;
   color: #EDEDED;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   flex-shrink: 0;
 }
 
@@ -3143,7 +3160,7 @@ body.mode-flash-active .mode-tab.active {
   background: rgba(255,255,255,0.065);
   border: none;
   width: 100%;
-  margin-bottom: 12px;
+  margin-bottom: 0;
   flex-shrink: 0;
 }
 
@@ -3153,27 +3170,14 @@ body.mode-flash-active .mode-tab.active {
   font-size: clamp(13px, 3.2vw, 14px);
   line-height: 1.7;
   color: #8A8A96;
-  margin-bottom: 12px;
-  flex: 1;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 5;
-  -webkit-box-orient: vertical;
+  margin-bottom: 0;
+  flex-shrink: 0;
+  overflow: visible;
+  display: block;
   position: relative;
 }
 .flash-summary p {
   margin: 0;
-}
-/* Gradient fade at bottom of summary */
-.flash-summary::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 20px;
-  background: linear-gradient(to top, #1A1A22, transparent);
-  pointer-events: none;
 }
 
 /* Signal Box */
@@ -3339,12 +3343,12 @@ body.mode-flash-active .mode-tab.active {
   letter-spacing: 0.1em;
   transition: opacity 0.1s ease;
 }
-.flash-drag-overlay.left {
-  background: rgba(255, 80, 50, 1);
+.flash-drag-overlay.top {
+  background: rgb(239, 68, 68);
   color: #fff;
 }
-.flash-drag-overlay.right {
-  background: rgba(34, 197, 94, 1);
+.flash-drag-overlay.bottom {
+  background: rgb(34, 197, 94);
   color: #fff;
 }
 
