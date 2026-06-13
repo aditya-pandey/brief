@@ -141,6 +141,18 @@ body.mode-flash-active .flash-header-counter {
   border-radius: 5px;
   flex-shrink: 0;
 }
+.wordmark .logo-briefing {
+  display: inline-block;
+}
+.wordmark .logo-flash {
+  display: none;
+}
+body.mode-flash-active .wordmark .logo-briefing {
+  display: none;
+}
+body.mode-flash-active .wordmark .logo-flash {
+  display: inline-block;
+}
 .wordmark:hover { text-decoration: none; color: var(--accent); }
 .header-right { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
 

@@ -484,7 +484,9 @@ async function runSSG() {
 
   const flashDir = path.join(process.cwd(), 'flash');
   if (!fs.existsSync(flashDir)) fs.mkdirSync(flashDir, { recursive: true });
-  fs.writeFileSync(path.join(flashDir, 'index.html'), injectBaseHref(rootHtml, '../'));
+  let flashHtml = injectBaseHref(rootHtml, '../');
+  flashHtml = flashHtml.replace(/https:\/\/thebriefings\.netlify\.app\/icon-briefing\.png/g, 'https://thebriefings.netlify.app/flash-logo.png');
+  fs.writeFileSync(path.join(flashDir, 'index.html'), flashHtml);
 
   const dataDir = path.join(process.cwd(), 'data');
   const allFiles = fs.readdirSync(dataDir);
@@ -520,7 +522,9 @@ async function runSSG() {
 
     const fDayDir = path.join(process.cwd(), 'flash', 'day', date);
     if (!fs.existsSync(fDayDir)) fs.mkdirSync(fDayDir, { recursive: true });
-    fs.writeFileSync(path.join(fDayDir, 'index.html'), injectBaseHref(rootHtml, '../../../'));
+    let fDayHtml = injectBaseHref(rootHtml, '../../../');
+    fDayHtml = fDayHtml.replace(/https:\/\/thebriefings\.netlify\.app\/icon-briefing\.png/g, 'https://thebriefings.netlify.app/flash-logo.png');
+    fs.writeFileSync(path.join(fDayDir, 'index.html'), fDayHtml);
     
     if (briefingExists) {
       const briefing = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
