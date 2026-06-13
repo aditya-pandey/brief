@@ -2189,35 +2189,64 @@ function wireFlashNavigation(filtered) {
 function navigateFlash(direction, filtered) {
   const nextIdx = currentFlashIndex + direction;
   if (nextIdx < 0 || nextIdx > filtered.length) return;
-  
-  const card = $("flash-card");
-  if (card) {
-    card.style.transition = 'transform 0.24s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease';
-    card.style.transform  = direction > 0
-      ? 'translateY(-108%)'
-      : 'translateY(108%)';
-    card.style.opacity = '0';
-    setTimeout(() => {
-      currentFlashIndex = nextIdx;
-      renderFlashView();
-      // add entrance animation
-      const newCard = $("flash-card");
-      if (newCard) {
-        newCard.style.opacity = '0';
-        newCard.style.transform = direction > 0
-          ? 'translateY(108%)'
-          : 'translateY(-108%)';
-        // trigger reflow
-        newCard.offsetHeight;
-        newCard.style.transition = 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.28s ease';
-        newCard.style.transform = '';
-        newCard.style.opacity = '1';
-      }
-    }, 240);
-  } else {
+
+  const stage = $('flash-card-stage');
+  const oldCard = $('flash-card');
+
+  if (!stage || !oldCard) {
     currentFlashIndex = nextIdx;
     renderFlashView();
+    return;
   }
+
+  oldCard.style.pointerEvents = 'none';
+
+  // Build the incoming card element directly in the stage
+  const nextS = filtered[nextIdx];
+  let newCardEl = null;
+  if (nextS) {
+    const col = getCategoryColor(nextS.cat);
+    const rgb = getCategoryColorRgb(nextS.cat);
+    const isSaved = getSavedStories().some(fs => fs.id === nextS.id);
+    newCardEl = document.createElement('div');
+    newCardEl.className = 'flash-card';
+    newCardEl.style.cssText =
+      `position:absolute;inset:0;z-index:9;pointer-events:none;` +
+      `--cat-color:${col};--cat-color-rgb:${rgb};` +
+      `transform:translateY(${direction > 0 ? '100%' : '-100%'});`;
+    newCardEl.innerHTML = buildFlashCardInnerHTML(nextS, col, isSaved);
+    stage.appendChild(newCardEl);
+    newCardEl.getBoundingClientRect(); // force reflow before transition
+  }
+
+  // Smooth simultaneous slide — both cards move together like one physical stack
+  const DUR = '420ms';
+  const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+
+  oldCard.style.transition = `transform ${DUR} ${EASE}`;
+  oldCard.style.transform = direction > 0 ? 'translateY(-100%)' : 'translateY(100%)';
+
+  if (newCardEl) {
+    newCardEl.style.transition = `transform ${DUR} ${EASE}`;
+    newCardEl.style.transform = 'translateY(0)';
+  }
+
+  // Update progress + counter immediately (no waiting for animation)
+  const total = filtered.length;
+  const fill = document.querySelector('.flash-progress-fill');
+  const counter = document.querySelector('.flash-nav-counter');
+  if (fill) fill.style.width = `${Math.min(((nextIdx + 1) / total) * 100, 100)}%`;
+  if (counter) counter.textContent = nextIdx >= total ? 'Completed' : `${nextIdx + 1} / ${total}`;
+
+  let settled = false;
+  const settle = () => {
+    if (settled) return;
+    settled = true;
+    currentFlashIndex = nextIdx;
+    renderFlashView();
+  };
+  oldCard.addEventListener('transitionend', settle, { once: true });
+  setTimeout(settle, 480); // fallback if transitionend misfires
 }
 
 let flashDragging = false;
@@ -2227,103 +2256,157 @@ let flashCardEl = null;
 let wheelTimeout = null;
 
 function attachFlashDrag(filtered) {
-  flashCardEl = $("flash-card");
+  flashCardEl = $('flash-card');
   if (!flashCardEl) return;
-  
+
+  let peekCardEl = null;
+  let peekDir = 0;
+
+  // Build and insert the "peek" card (next/prev card visible behind current during drag)
+  function buildPeekCard(dir) {
+    const stage = $('flash-card-stage');
+    if (!stage) return null;
+    // Remove any existing peek
+    if (peekCardEl && peekCardEl.parentNode) peekCardEl.parentNode.removeChild(peekCardEl);
+    const peekIdx = currentFlashIndex + dir;
+    const peekS = filtered[peekIdx];
+    if (!peekS) return null;
+    const col = getCategoryColor(peekS.cat);
+    const rgb = getCategoryColorRgb(peekS.cat);
+    const isSaved = getSavedStories().some(fs => fs.id === peekS.id);
+    const el = document.createElement('div');
+    el.className = 'flash-card';
+    el.id = 'flash-card-peek';
+    el.style.cssText =
+      `position:absolute;inset:0;z-index:9;pointer-events:none;` +
+      `--cat-color:${col};--cat-color-rgb:${rgb};transition:none;` +
+      `transform:translateY(${dir > 0 ? '100%' : '-100%'});`;
+    el.innerHTML = buildFlashCardInnerHTML(peekS, col, isSaved);
+    stage.appendChild(el);
+    el.getBoundingClientRect(); // force reflow
+    return el;
+  }
+
   flashCardEl.addEventListener('touchstart', fStart, { passive: true });
   flashCardEl.addEventListener('touchmove',  fMove,  { passive: false });
   flashCardEl.addEventListener('touchend',   fEnd);
   flashCardEl.addEventListener('mousedown',  fStart);
-  
-  // Desktop Wheel event — always navigate between cards (no internal scroll)
+
   flashCardEl.addEventListener('wheel', e => {
     e.preventDefault();
     if (wheelTimeout) return;
-    
-    const dir = e.deltaY > 0 ? 1 : -1;
-    navigateFlash(dir, filtered);
-    
-    wheelTimeout = setTimeout(() => {
-      wheelTimeout = null;
-    }, 600);
+    navigateFlash(e.deltaY > 0 ? 1 : -1, filtered);
+    wheelTimeout = setTimeout(() => { wheelTimeout = null; }, 600);
   }, { passive: false });
-  
+
   function fStart(e) {
     flashDragging = true;
     flashCurrY = 0;
+    peekDir = 0;
+    peekCardEl = null;
     flashStartY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
     if (flashCardEl) flashCardEl.style.transition = 'none';
-    
     document.addEventListener('mousemove', fMove);
     document.addEventListener('mouseup',   fEnd);
   }
-  
+
   function fMove(e) {
     if (!flashDragging || !flashCardEl) return;
-    
     const y = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
     flashCurrY = y - flashStartY;
-    
     if (e.cancelable) e.preventDefault();
-    flashCardEl.style.transform = `translateY(${flashCurrY}px)`;
-    
-    /* Directional tint feedback */
-    const overlayTop = $("flash-drag-top");
-    const overlayBottom = $("flash-drag-bottom");
-    
-    const intensity = Math.min(Math.abs(flashCurrY) / 160, 1) * 0.18;
-    if (flashCurrY < 0) { // Drag up -> next card
-      if (overlayBottom) {
-        overlayBottom.style.opacity = intensity;
-      }
-      if (overlayTop) {
-        overlayTop.style.opacity = 0;
-      }
-    } else { // Drag down -> prev card
-      if (overlayTop) {
-        overlayTop.style.opacity = intensity;
-      }
-      if (overlayBottom) {
-        overlayBottom.style.opacity = 0;
-      }
+
+    // Create peek card once direction is established (after 8px movement)
+    const dir = flashCurrY < 0 ? 1 : -1;
+    if (dir !== peekDir && Math.abs(flashCurrY) > 8) {
+      peekDir = dir;
+      peekCardEl = buildPeekCard(dir);
     }
+
+    // Move current card with finger
+    flashCardEl.style.transform = `translateY(${flashCurrY}px)`;
+
+    // Peek card follows directly behind — locked to the opposite edge
+    if (peekCardEl) {
+      const stageH = ($('flash-card-stage') || {}).offsetHeight || window.innerHeight;
+      // dir>0: peek sits below (stageH px below), slides up as card moves up
+      // dir<0: peek sits above (-stageH px above), slides down
+      const peekY = dir > 0
+        ? stageH  + flashCurrY
+        : -stageH + flashCurrY;
+      peekCardEl.style.transform = `translateY(${peekY}px)`;
+    }
+
+    // Subtle directional tint on active card edges
+    const overlayTop    = $('flash-drag-top');
+    const overlayBottom = $('flash-drag-bottom');
+    const intensity = Math.min(Math.abs(flashCurrY) / 160, 1) * 0.15;
+    if (overlayTop)    overlayTop.style.opacity    = flashCurrY > 0 ? intensity : 0;
+    if (overlayBottom) overlayBottom.style.opacity = flashCurrY < 0 ? intensity : 0;
   }
-  
+
   function fEnd() {
     if (!flashDragging) return;
     flashDragging = false;
-    
     document.removeEventListener('mousemove', fMove);
     document.removeEventListener('mouseup',   fEnd);
-    
-    const overlayTop = $("flash-drag-top");
-    const overlayBottom = $("flash-drag-bottom");
-    
-    if (overlayTop) overlayTop.style.opacity = '0';
+
+    const overlayTop    = $('flash-drag-top');
+    const overlayBottom = $('flash-drag-bottom');
+    if (overlayTop)    overlayTop.style.opacity    = '0';
     if (overlayBottom) overlayBottom.style.opacity = '0';
-    
-    const THRESH = 72;
-    if (flashCurrY < -THRESH) {
-      if (currentFlashIndex < filtered.length) {
-        navigateFlash(1, filtered);
-      } else {
-        snapBack();
+
+    const THRESH = 64;
+    const DUR  = '300ms';
+    const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+
+    function completeNav(dir) {
+      // Complete the card exit from wherever it currently is
+      flashCardEl.style.transition = `transform ${DUR} ${EASE}`;
+      flashCardEl.style.transform  = dir > 0 ? 'translateY(-105%)' : 'translateY(105%)';
+
+      if (peekCardEl) {
+        peekCardEl.style.transition = `transform ${DUR} ${EASE}`;
+        peekCardEl.style.transform  = 'translateY(0)';
       }
-    } else if (flashCurrY > THRESH) {
-      if (currentFlashIndex > 0) {
-        navigateFlash(-1, filtered);
-      } else {
-        snapBack();
-      }
-    } else {
-      snapBack();
+
+      // Update counter/progress bar immediately
+      const nextIdx = currentFlashIndex + dir;
+      const total   = filtered.length;
+      const fill    = document.querySelector('.flash-progress-fill');
+      const counter = document.querySelector('.flash-nav-counter');
+      if (fill)    fill.style.width      = `${Math.min(((nextIdx + 1) / total) * 100, 100)}%`;
+      if (counter) counter.textContent   = nextIdx >= total ? 'Completed' : `${nextIdx + 1} / ${total}`;
+
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        peekCardEl = null;
+        currentFlashIndex = nextIdx;
+        renderFlashView();
+      };
+      flashCardEl.addEventListener('transitionend', finish, { once: true });
+      setTimeout(finish, 380);
     }
-  }
-  
-  function snapBack() {
-    if (flashCardEl) {
-      flashCardEl.style.transition = 'transform 0.32s cubic-bezier(0.25, 0, 0.2, 1)';
-      flashCardEl.style.transform = '';
+
+    if (flashCurrY < -THRESH && currentFlashIndex < filtered.length) {
+      completeNav(1);
+    } else if (flashCurrY > THRESH && currentFlashIndex > 0) {
+      completeNav(-1);
+    } else {
+      // Snap back — bounce the current card home and dismiss peek
+      if (peekCardEl) {
+        const p = peekCardEl;
+        peekCardEl = null;
+        p.style.transition = `transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)`;
+        p.style.transform  = peekDir > 0 ? 'translateY(100%)' : 'translateY(-100%)';
+        setTimeout(() => { if (p.parentNode) p.parentNode.removeChild(p); }, 380);
+      }
+      if (flashCardEl) {
+        flashCardEl.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        flashCardEl.style.transform  = '';
+      }
     }
   }
 }
@@ -2600,6 +2683,70 @@ async function renderFlashView(date = null) {
 }
 
 /* ── Mobile Layout Renderer ── */
+/* ── Flash card inner-HTML builder (reused by animation + render) ── */
+function buildFlashCardInnerHTML(s, col, isSaved) {
+  const benefitsHtml = (s.who_benefits || []).map(b =>
+    `<div class="flash-benefit-chip" title="${esc(b)}">${esc(b)}</div>`).join('');
+  const benefitsSection = benefitsHtml
+    ? `<div class="flash-benefits-container"><span class="flash-benefits-label">Benefits:</span>${benefitsHtml}</div>` : '';
+
+  const whyItMattersHtml = s.why_it_matters ? `<div class="flash-why-it-matters" style="--cat-color:${col};">
+    <div class="flash-section-icon flash-why-icon">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    </div>
+    <div class="flash-section-content">
+      <span class="flash-why-label">Why It Matters</span>
+      <span class="flash-why-value">${esc(s.why_it_matters)}</span>
+    </div>
+  </div>` : '';
+
+  const rememberHtml = s.remember ? `<div class="flash-remember-box">
+    <div class="flash-section-icon flash-remember-icon">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+      </svg>
+    </div>
+    <div class="flash-section-content">
+      <span class="flash-remember-label">Remember</span>
+      <span class="flash-remember-value">${esc(s.remember)}</span>
+    </div>
+  </div>` : '';
+
+  return `
+    <div class="flash-drag-overlay top" id="flash-drag-top">PREV</div>
+    <div class="flash-drag-overlay bottom" id="flash-drag-bottom">NEXT</div>
+    <div class="flash-card-header">
+      <div class="flash-card-visual">${getFlashIllustration(s.cat, s.id)}</div>
+      <span class="flash-cat-badge">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
+      <span class="flash-header-spacer"></span>
+      ${(s.source || s.src) ? `<span class="flash-time">${esc(s.source || s.src)}</span>` : ''}
+    </div>
+    <div class="flash-card-body">
+      <h2 class="flash-headline">${esc(s.headline || s.hl)}</h2>
+      <hr class="flash-divider" />
+      <div class="flash-summary"><p>${esc(s.summary || s.body)}</p></div>
+      ${whyItMattersHtml}${rememberHtml}${benefitsSection}
+    </div>
+    <div class="flash-card-footer">
+      <button class="flash-footer-action ${isSaved ? 'saved' : ''}" id="flash-bookmark-btn" aria-label="Save story"${isSaved ? ` style="color:${col};"` : ''}>
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="${isSaved ? 'currentColor' : 'none'}" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>${isSaved ? 'Saved' : 'Save'}</span>
+      </button>
+      <div class="flash-footer-sep"></div>
+      <button class="flash-footer-action" id="flash-share-btn" aria-label="Share story">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+        <span>Share</span>
+      </button>
+    </div>`;
+}
+
 function renderFlashMobileLayout(filtered, targetDate) {
   const total = filtered.length;
   currentFlashIndex = Math.max(0, Math.min(total, currentFlashIndex));
@@ -2721,55 +2868,6 @@ function renderFlashMobileLayout(filtered, targetDate) {
     }
   }
   
-  // Render Who benefits chips
-  const benefitsHtml = (s.who_benefits || []).map(b => `
-    <div class="flash-benefit-chip" title="${esc(b)}">${esc(b)}</div>
-  `).join("");
-  const benefitsSection = benefitsHtml 
-    ? `<div class="flash-benefits-container">
-         <span class="flash-benefits-label">Benefits:</span>
-         ${benefitsHtml}
-       </div>`
-    : "";
-    
-  // Render Why it matters and Remember blocks — new icon design
-  const whyItMattersHtml = s.why_it_matters
-    ? `<div class="flash-why-it-matters" style="--cat-color: ${col};">
-         <div class="flash-section-icon flash-why-icon">
-           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-             <circle cx="12" cy="12" r="10"></circle>
-             <line x1="12" y1="8" x2="12" y2="12"></line>
-             <line x1="12" y1="16" x2="12.01" y2="16"></line>
-           </svg>
-         </div>
-         <div class="flash-section-content">
-           <span class="flash-why-label">Why It Matters</span>
-           <span class="flash-why-value">${esc(s.why_it_matters)}</span>
-         </div>
-       </div>`
-    : "";
-    
-  const rememberHtml = s.remember
-    ? `<div class="flash-remember-box">
-         <div class="flash-section-icon flash-remember-icon">
-           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-           </svg>
-         </div>
-         <div class="flash-section-content">
-           <span class="flash-remember-label">Remember</span>
-           <span class="flash-remember-value">${esc(s.remember)}</span>
-         </div>
-       </div>`
-    : "";
-    
-  let localReads = {};
-  try {
-    localReads = JSON.parse(localStorage.getItem("flash_reads_fallback") || "{}");
-  } catch(e) {}
-  const initialViews = localReads[s.id] || 1;
-  const isTrending = initialViews >= 1000;
-  
   app.innerHTML = `
     <div class="flash-container" style="--cat-color: ${col}; --cat-color-rgb: ${rgb};">
       <div class="flash-categories-bar" id="flash-cats">
@@ -2778,57 +2876,7 @@ function renderFlashMobileLayout(filtered, targetDate) {
       
       <div class="flash-card-stage" id="flash-card-stage">
         <div class="flash-card" id="flash-card">
-          <div class="flash-drag-overlay top" id="flash-drag-top">PREV</div>
-          <div class="flash-drag-overlay bottom" id="flash-drag-bottom">NEXT</div>
-          
-          <div class="flash-card-header">
-            <span class="flash-cat-badge">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
-            ${ (s.source || s.src) ? `<span class="flash-time">${esc(s.source || s.src)}</span>` : '' }
-          </div>
-          
-          <div class="flash-card-visual">
-            ${getFlashIllustration(s.cat, s.id)}
-          </div>
-          <div class="flash-visual-dashes">
-            <span class="flash-dash"></span>
-            <span class="flash-dash"></span>
-            <span class="flash-dash"></span>
-          </div>
-          
-          <div class="flash-card-body">
-            <h2 class="flash-headline">${esc(s.headline || s.hl)}</h2>
-            <hr class="flash-divider" />
-            
-            <div class="flash-summary">
-              <p>${esc(s.summary || s.body)}</p>
-            </div>
-            
-            ${whyItMattersHtml}
-            ${rememberHtml}
-            ${benefitsSection}
-          </div>
-          
-          <div class="flash-card-footer">
-            <button class="flash-footer-action ${isSaved ? 'saved' : ''}" id="flash-bookmark-btn" aria-label="Save story" style="${isSaved ? `color: ${col};` : ''}">
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="${isSaved ? 'currentColor' : 'none'}" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-              </svg>
-              <span>${isSaved ? 'Saved' : 'Save'}</span>
-            </button>
-            
-            <div class="flash-footer-sep"></div>
-            
-            <button class="flash-footer-action" id="flash-share-btn" aria-label="Share story">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="18" cy="5" r="3"></circle>
-                <circle cx="6" cy="12" r="3"></circle>
-                <circle cx="18" cy="19" r="3"></circle>
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-              </svg>
-              <span>Share</span>
-            </button>
-          </div>
+          ${buildFlashCardInnerHTML(s, col, isSaved)}
         </div>
       </div>
       
