@@ -2187,8 +2187,8 @@ function attachPhysicalDrag(filtered) {
   let curCard = null, nxtCard = null, prvCard = null;
   let stageH = 0;
 
-  const EXIT_T  = '360ms cubic-bezier(0.22, 1, 0.36, 1)';
-  const SNAPB_T = '420ms cubic-bezier(0.34, 1.04, 0.64, 1)';
+  const EXIT_T  = '250ms cubic-bezier(0.16, 1, 0.3, 1)';
+  const SNAPB_T = '280ms cubic-bezier(0.16, 1, 0.3, 1)';
 
   function trans(el, t) { if (el) el.style.transition = t; }
 
@@ -2200,7 +2200,7 @@ function attachPhysicalDrag(filtered) {
     } else if (role === 'next') {
       Object.assign(el.style, { zIndex:'10', transform:'translateY(0) scale(0.94)', opacity:'0.85', pointerEvents:'none' });
     } else if (role === 'prev') {
-      Object.assign(el.style, { zIndex:'10', transform:'translateY(-100%) scale(0.94)', opacity:'0', pointerEvents:'none' });
+      Object.assign(el.style, { zIndex:'30', transform:'translateY(-100%) scale(1)', opacity:'0', pointerEvents:'none' });
     }
   }
 
@@ -2308,18 +2308,29 @@ function attachPhysicalDrag(filtered) {
     if (dy < 0 && !nxtCard) edy = dy * 0.25;
     if (dy > 0 && !prvCard) edy = dy * 0.25;
     const p = Math.min(Math.abs(edy) / stageH, 1);
-    curCard.style.transform = `translateY(${edy}px) scale(${1 - p * 0.02})`;
-    if (edy < 0 && nxtCard) {
-      nxtCard.style.transform = `translateY(0) scale(${0.94 + p * 0.06})`;
-      nxtCard.style.opacity   = String(0.85 + p * 0.15);
-      if (prvCard) { prvCard.style.transform = 'translateY(-100%) scale(0.94)'; prvCard.style.opacity = '0'; }
-    } else if (edy > 0 && prvCard) {
-      prvCard.style.transform = `translateY(${-stageH + edy}px) scale(0.94)`;
-      prvCard.style.opacity   = String(Math.min(edy / (stageH * 0.6), 0.85));
-      if (nxtCard) { nxtCard.style.transform = 'translateY(0) scale(0.94)'; nxtCard.style.opacity = '0.85'; }
+    
+    if (edy < 0) {
+      // Swiping UP (going forward): curCard slides up, nxtCard scales up
+      curCard.style.transform = `translateY(${edy}px) scale(${1 - p * 0.02})`;
+      if (nxtCard) {
+        nxtCard.style.transform = `translateY(0) scale(${0.94 + p * 0.06})`;
+        nxtCard.style.opacity   = String(0.85 + p * 0.15);
+      }
+      if (prvCard) {
+        prvCard.style.transform = 'translateY(-100%) scale(1)';
+        prvCard.style.opacity   = '0';
+      }
     } else {
-      if (nxtCard) { nxtCard.style.transform = 'translateY(0) scale(0.94)'; nxtCard.style.opacity = '0.85'; }
-      if (prvCard) { prvCard.style.transform = 'translateY(-100%) scale(0.94)'; prvCard.style.opacity = '0'; }
+      // Swiping DOWN (going backward): curCard stays or scales down slightly to 0.94, prvCard slides down
+      curCard.style.transform = `translateY(0) scale(${1 - p * 0.06})`;
+      if (prvCard) {
+        prvCard.style.transform = `translateY(${-stageH + edy}px) scale(1)`;
+        prvCard.style.opacity   = '1';
+      }
+      if (nxtCard) {
+        nxtCard.style.transform = 'translateY(0) scale(0.94)';
+        nxtCard.style.opacity   = String(0.85 * (1 - p));
+      }
     }
   }
 
@@ -2339,9 +2350,20 @@ function attachPhysicalDrag(filtered) {
     const outgoing = curCard;
     const incoming = dir > 0 ? nxtCard : prvCard;
     trans(outgoing, EXIT_T);
-    if (outgoing) { outgoing.style.transform = `translateY(${dir > 0 ? -(stageH + 30) : (stageH + 30)}px) scale(0.96)`; outgoing.style.opacity = '0'; }
+    if (outgoing) {
+      if (dir > 0) {
+        outgoing.style.transform = `translateY(${-(stageH + 30)}px) scale(0.96)`;
+        outgoing.style.opacity = '0';
+      } else {
+        outgoing.style.transform = 'translateY(0) scale(0.94)';
+        outgoing.style.opacity = '0.85';
+      }
+    }
     trans(incoming, EXIT_T);
-    if (incoming) { incoming.style.transform = 'translateY(0) scale(1)'; incoming.style.opacity = '1'; }
+    if (incoming) {
+      incoming.style.transform = 'translateY(0) scale(1)';
+      incoming.style.opacity = '1';
+    }
 
     const newIdx = currentFlashIndex + dir;
     const total  = filtered.length;
@@ -2386,13 +2408,13 @@ function attachPhysicalDrag(filtered) {
       }
     }
     if (outgoing) outgoing.addEventListener('transitionend', finalize, { once: true });
-    setTimeout(finalize, 440);
+    setTimeout(finalize, 300);
   }
 
   function snapBack() {
     if (curCard) { trans(curCard, SNAPB_T); curCard.style.transform = 'translateY(0) scale(1)'; curCard.style.opacity = '1'; }
     if (nxtCard) { trans(nxtCard, EXIT_T); nxtCard.style.transform = 'translateY(0) scale(0.94)'; nxtCard.style.opacity = '0.85'; }
-    if (prvCard) { trans(prvCard, EXIT_T); prvCard.style.transform = 'translateY(-100%) scale(0.94)'; prvCard.style.opacity = '0'; }
+    if (prvCard) { trans(prvCard, EXIT_T); prvCard.style.transform = 'translateY(-100%) scale(1)'; prvCard.style.opacity = '0'; }
   }
 
   stage.addEventListener('touchstart', onStart, { passive: true });
@@ -2426,31 +2448,9 @@ async function trackViewCount(storyId) {
   }
   
   let views = localReads[storyId] || 0;
-  
-  // Try CountAPI xyz
-  try {
-    const namespace = "thebriefing-flash";
-    if (isFirstView) {
-      // Increment
-      const res = await fetch(`https://api.countapi.xyz/hit/${namespace}/${storyId}`).catch(() => null);
-      if (res && res.ok) {
-        const data = await res.json();
-        views = data.value;
-      }
-    } else {
-      // Get
-      const res = await fetch(`https://api.countapi.xyz/get/${namespace}/${storyId}`).catch(() => null);
-      if (res && res.ok) {
-        const data = await res.json();
-        views = data.value;
-      }
-    }
-  } catch (err) {
-    console.warn("CountAPI failed, using local fallback count:", err);
-  }
-  
   return views;
 }
+
 
 function showToast(message) {
   const container = $("toast-container");
