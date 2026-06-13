@@ -1487,6 +1487,31 @@ async function renderStory(date, id) {
   window.scrollTo(0,0);
 }
 
+async function findFlashStoryDate(storyId) {
+  if (flashStories && flashStories.some(s => s.id === storyId)) {
+    return flashStories.loadedDate;
+  }
+  const latestDate = indexEntries.length > 0 ? indexEntries[0].date : null;
+  try {
+    const latestStories = await loadFlash(latestDate);
+    if (latestStories.some(s => s.id === storyId)) return latestDate;
+  } catch(e) {}
+  
+  for (let i = 1; i < indexEntries.length; i++) {
+    const d = indexEntries[i].date;
+    try {
+      const r = await fetch(`${BASE_PATH ? BASE_PATH + "/" : ""}data/flash-${d}.json`);
+      if (r.ok) {
+        const stories = await r.json();
+        if (stories.some(s => s.id === storyId)) {
+          return d;
+        }
+      }
+    } catch(e) {}
+  }
+  return null;
+}
+
 /* ── Router ────────────────────────────────────────────────── */
 async function route() {
   let p = location.pathname;
@@ -1499,6 +1524,46 @@ async function route() {
   }
   p = p.replace(/\/+$/, "") || "/";
 
+  // Check if hash-based flash routing is present
+  const hash = location.hash;
+  if (hash.startsWith("#flash-")) {
+    const storyId = hash.slice(7);
+    currentMode = "flash";
+    updateModeToggleUI();
+    app.innerHTML = `<div class="loading-screen"><div class="spinner"></div></div>`;
+    $("hero").classList.add("hidden");
+    stopProgress();
+    try {
+      await loadIndex();
+      const storyDate = await findFlashStoryDate(storyId);
+      if (storyDate) {
+        await loadFlash(storyDate);
+        const index = flashStories.findIndex(fs => fs.id === storyId);
+        if (index >= 0) {
+          currentFlashIndex = index;
+          selectedFlashStoryId = storyId;
+        }
+        await renderFlashView(storyDate);
+        
+        // Scroll or highlight if desktop
+        const isDesktop = window.innerWidth >= 992;
+        if (isDesktop) {
+          setTimeout(() => {
+            const card = document.querySelector(`[data-id="${storyId}"]`);
+            if (card) {
+              card.scrollIntoView({ behavior: "smooth", block: "center" });
+              card.classList.add("highlighted");
+              setTimeout(() => card.classList.remove("highlighted"), 2000);
+            }
+          }, 300);
+        }
+        return;
+      }
+    } catch (err) {
+      console.error("Hash routing failed:", err);
+    }
+  }
+
   app.innerHTML=`<div class="loading-screen"><div class="spinner"></div></div>`;
   $("hero").classList.add("hidden");
   stopProgress();
@@ -1508,9 +1573,40 @@ async function route() {
       try { await loadFlash(); } catch(e) { console.error("Preloading flash failed:", e); }
     }
 
+    const flashStoryMatch = p.match(/^\/flash\/story\/([^/]+)$/);
     const storyMatch = p.match(/^\/story\/([^/]+)\/(.+)$/);
     const briefingsDayMatch = p.match(/^\/briefings\/day\/([^/]+)$/);
     const flashDayMatch = p.match(/^\/flash\/day\/([^/]+)$/);
+    
+    if (flashStoryMatch) {
+      const storyId = decodeURIComponent(flashStoryMatch[1]);
+      currentMode = "flash";
+      updateModeToggleUI();
+      const storyDate = await findFlashStoryDate(storyId);
+      if (storyDate) {
+        await loadFlash(storyDate);
+        const index = flashStories.findIndex(fs => fs.id === storyId);
+        if (index >= 0) {
+          currentFlashIndex = index;
+          selectedFlashStoryId = storyId;
+        }
+        await renderFlashView(storyDate);
+        
+        // Scroll or highlight if desktop
+        const isDesktop = window.innerWidth >= 992;
+        if (isDesktop) {
+          setTimeout(() => {
+            const card = document.querySelector(`[data-id="${storyId}"]`);
+            if (card) {
+              card.scrollIntoView({ behavior: "smooth", block: "center" });
+              card.classList.add("highlighted");
+              setTimeout(() => card.classList.remove("highlighted"), 2000);
+            }
+          }, 300);
+        }
+        return;
+      }
+    }
     
     if (storyMatch) {
       currentMode = "briefing";
@@ -1634,6 +1730,289 @@ function getBriefStoryCategory(s) {
   return "world";
 }
 
+function getFlashIllustration(cat, storyId, indexOverride = null) {
+  let c = (cat || "").toLowerCase();
+  if (c === "world") c = "global";
+  if (c === "business") c = "economics";
+  if (c === "ai") c = "ai-tech";
+  if (c === "tech") c = "ai-tech";
+  
+  const idx = indexOverride !== null ? indexOverride : Math.abs(hashStr(storyId || "default")) % 4;
+  const common = 'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
+  
+  const library = {
+    india: [
+      `<circle cx="100" cy="100" r="45" ${common} />
+       <circle cx="100" cy="100" r="6" fill="currentColor" />
+       <path d="M 100 55 L 100 145 M 55 100 L 145 100 M 68 68 L 132 132 M 68 132 L 132 68 M 83 60 L 117 140 M 83 140 L 117 60 M 60 83 L 140 117 M 60 117 L 140 83" ${common} />`,
+      `<path d="M 100 140 C 70 120, 50 100, 50 80 C 50 60, 70 75, 100 110 C 130 75, 150 60, 150 80 C 150 100, 130 120, 100 140 Z M 100 140 C 85 110, 80 90, 100 60 C 120 90, 115 110, 100 140 Z M 100 140 C 80 135, 70 130, 65 120 C 60 105, 80 115, 100 125 C 120 115, 140 105, 135 120 C 130 130, 120 135, 100 140 Z" ${common} />`,
+      `<path d="M 60 150 L 60 65 L 75 50 L 125 50 L 140 65 L 140 150 M 80 150 L 80 95 C 80 85, 120 85, 120 95 L 120 150 M 55 65 L 145 65 M 70 50 L 130 50" ${common} />
+       <line x1="50" y1="135" x2="150" y2="135" ${common} />`,
+      `<path d="M 50 70 Q 100 45, 150 70 M 50 100 Q 100 75, 150 100 M 50 130 Q 100 105, 150 130 M 75 60 L 125 60 M 75 90 L 125 90 M 75 120 L 125 120" ${common} />`
+    ],
+    global: [
+      `<circle cx="100" cy="100" r="45" ${common} />
+       <ellipse cx="100" cy="100" rx="45" ry="16" ${common} />
+       <ellipse cx="100" cy="100" rx="16" ry="45" ${common} />
+       <line x1="55" y1="100" x2="145" y2="100" ${common} />
+       <line x1="100" y1="55" x2="100" y2="145" ${common} />`,
+      `<circle cx="65" cy="75" r="5" fill="currentColor" />
+       <circle cx="135" cy="70" r="5" fill="currentColor" />
+       <circle cx="100" cy="135" r="5" fill="currentColor" />
+       <circle cx="90" cy="60" r="3" fill="currentColor" />
+       <circle cx="130" cy="120" r="3" fill="currentColor" />
+       <line x1="65" y1="75" x2="135" y2="70" ${common} />
+       <line x1="65" y1="75" x2="100" y2="135" ${common} />
+       <line x1="135" y1="70" x2="100" y2="135" ${common} />
+       <line x1="90" y1="60" x2="65" y2="75" ${common} />
+       <line x1="130" y1="120" x2="100" y2="135" ${common} />
+       <line x1="130" y1="120" x2="135" y2="70" ${common} />`,
+      `<circle cx="100" cy="100" r="45" ${common} />
+       <polygon points="100,60 112,100 100,140 88,100" ${common} />
+       <line x1="55" y1="100" x2="145" y2="100" ${common} />
+       <line x1="100" y1="55" x2="100" y2="145" ${common} stroke-dasharray="2 3" />`,
+      `<ellipse cx="100" cy="100" rx="50" ry="20" transform="rotate(30 100 100)" ${common} />
+       <ellipse cx="100" cy="100" rx="50" ry="20" transform="rotate(-30 100 100)" ${common} />
+       <circle cx="100" cy="100" r="8" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />`
+    ],
+    politics: [
+      `<polygon points="100,45 50,75 150,75" ${common} />
+       <rect x="60" y="75" width="12" height="65" ${common} />
+       <rect x="94" y="75" width="12" height="65" ${common} />
+       <rect x="128" y="75" width="12" height="65" ${common} />
+       <rect x="45" y="140" width="110" height="10" ${common} />`,
+      `<rect x="65" y="80" width="70" height="65" rx="4" ${common} />
+       <path d="M 85 80 L 85 55 L 115 55 L 115 80" ${common} />
+       <line x1="90" y1="55" x2="110" y2="55" ${common} />
+       <line x1="80" y1="105" x2="120" y2="105" ${common} />
+       <line x1="80" y1="115" x2="110" y2="115" ${common} />`,
+      `<line x1="100" y1="50" x2="100" y2="145" ${common} />
+       <line x1="55" y1="70" x2="145" y2="70" ${common} />
+       <path d="M 55 70 L 40 115 L 70 115 Z" ${common} />
+       <path d="M 145 70 L 130 115 L 160 115 Z" ${common} />
+       <line x1="80" y1="145" x2="120" y2="145" ${common} />`,
+      `<rect x="60" y="100" width="30" height="50" ${common} />
+       <rect x="110" y="85" width="30" height="65" ${common} />
+       <path d="M 75 100 L 75 80 C 75 75, 85 75, 85 80" ${common} />
+       <path d="M 125 85 L 125 65 C 125 60, 135 60, 135 65" ${common} />
+       <circle cx="85" cy="80" r="3" fill="currentColor" />
+       <circle cx="135" cy="65" r="3" fill="currentColor" />`
+    ],
+    economics: [
+      `<rect x="60" y="115" width="16" height="35" ${common} />
+       <rect x="92" y="85" width="16" height="65" ${common} />
+       <rect x="124" y="55" width="16" height="95" ${common} />
+       <path d="M 45 135 Q 75 110, 105 85 T 155 40" ${common} />
+       <polyline points="142,40 155,40 155,53" ${common} />`,
+      `<circle cx="100" cy="100" r="45" ${common} />
+       <circle cx="100" cy="100" r="28" ${common} />
+       <circle cx="100" cy="100" r="12" fill="currentColor" />
+       <line x1="100" y1="45" x2="100" y2="155" ${common} stroke-dasharray="2 3" />
+       <line x1="45" y1="100" x2="155" y2="100" ${common} stroke-dasharray="2 3" />`,
+      `<circle cx="100" cy="100" r="40" ${common} stroke-dasharray="4 2" />
+       <path d="M 85 85 L 115 85 M 100 85 L 100 115 M 85 100 L 115 100" ${common} />
+       <path d="M 70 70 Q 100 40, 130 70" ${common} />
+       <polyline points="120,68 130,70 128,60" ${common} />
+       <path d="M 130 130 Q 100 160, 70 130" ${common} />
+       <polyline points="80,132 70,130 72,140" ${common} />`,
+      `<ellipse cx="100" cy="65" rx="35" ry="10" ${common} />
+       <path d="M 65 65 L 65 92 A 35 10 0 0 0 135 92 L 135 65" ${common} />
+       <path d="M 65 92 L 65 119 A 35 10 0 0 0 135 119 L 135 92" ${common} />
+       <path d="M 65 119 L 65 142 A 35 10 0 0 0 135 142 L 135 119" ${common} />
+       <line x1="100" y1="65" x2="100" y2="142" ${common} stroke-dasharray="1 4" />`
+    ],
+    'ai-tech': [
+      `<rect x="65" y="65" width="70" height="70" rx="6" ${common} />
+       <rect x="85" y="85" width="30" height="30" rx="2" ${common} />
+       <path d="M 78 65 L 78 52 M 100 65 L 100 52 M 122 65 L 122 52 M 78 135 L 78 148 M 100 135 L 100 148 M 122 135 L 122 148 M 65 78 L 52 78 M 65 100 L 52 100 M 65 122 L 52 122 M 135 78 L 148 78 M 135 100 L 148 100 M 135 122 L 148 122" ${common} />`,
+      `<circle cx="70" cy="70" r="5" fill="currentColor" />
+       <circle cx="70" cy="130" r="5" fill="currentColor" />
+       <circle cx="130" cy="70" r="5" fill="currentColor" />
+       <circle cx="130" cy="130" r="5" fill="currentColor" />
+       <circle cx="100" cy="100" r="8" ${common} />
+       <line x1="75" y1="70" x2="125" y2="70" ${common} />
+       <line x1="75" y1="130" x2="125" y2="130" ${common} />
+       <line x1="70" y1="75" x2="70" y2="125" ${common} />
+       <line x1="130" y1="75" x2="130" y2="125" ${common} />
+       <line x1="74" y1="74" x2="94" y2="94" ${common} />
+       <line x1="126" y1="74" x2="106" y2="94" ${common} />
+       <line x1="74" y1="126" x2="94" y2="106" ${common} />
+       <line x1="126" y1="126" x2="106" y2="106" ${common} />`,
+      `<path d="M 60 85 L 140 85 C 145 85, 145 115, 140 115 L 125 115 C 120 115, 115 105, 100 105 C 85 105, 80 115, 75 115 L 60 115 C 55 115, 55 85, 60 85 Z" ${common} />
+       <circle cx="80" cy="100" r="5" fill="currentColor" />
+       <circle cx="120" cy="100" r="5" fill="currentColor" />
+       <path d="M 50 100 L 55 100 M 145 100 L 150 100" ${common} />`,
+      `<polyline points="75,70 55,100 75,130" ${common} />
+       <polyline points="125,70 145,100 125,130" ${common} />
+       <line x1="110" y1="65" x2="90" y2="135" ${common} />`
+    ],
+    science: [
+      `<circle cx="100" cy="100" r="8" fill="currentColor" />
+       <ellipse cx="100" cy="100" rx="48" ry="16" transform="rotate(30 100 100)" ${common} />
+       <ellipse cx="100" cy="100" rx="48" ry="16" transform="rotate(-30 100 100)" ${common} />
+       <ellipse cx="100" cy="100" rx="48" ry="16" transform="rotate(90 100 100)" ${common} />
+       <circle cx="140" cy="120" r="3" fill="currentColor" />
+       <circle cx="60" cy="80" r="3" fill="currentColor" />`,
+      `<path d="M 85 50 L 115 50 M 90 50 L 90 80 L 60 140 C 55 150, 65 155, 75 155 L 125 155 C 135 155, 145 150, 140 140 L 110 80 L 110 50" ${common} />
+       <line x1="70" y1="130" x2="130" y2="130" ${common} />
+       <circle cx="85" cy="105" r="3" fill="currentColor" />
+       <circle cx="110" cy="115" r="4" fill="currentColor" />`,
+      `<path d="M 80 50 Q 100 75, 120 100 T 80 150" ${common} />
+       <path d="M 120 50 Q 100 75, 80 100 T 120 150" ${common} />
+       <line x1="90" y1="62" x2="110" y2="62" ${common} />
+       <line x1="82" y1="87" x2="118" y2="87" ${common} />
+       <line x1="82" y1="112" x2="118" y2="112" ${common} />
+       <line x1="90" y1="137" x2="110" y2="137" ${common} />`,
+      `<line x1="70" y1="130" x2="135" y2="65" ${common} stroke-width="3" />
+       <line x1="100" y1="100" x2="80" y2="150" ${common} />
+       <line x1="100" y1="100" x2="120" y2="150" ${common} />
+       <polygon points="145,50 150,55 145,60 140,55" fill="currentColor" />
+       <polygon points="120,40 123,43 120,46 117,43" fill="currentColor" />`
+    ],
+    sports: [
+      `<circle cx="100" cy="100" r="45" ${common} />
+       <polygon points="100,83 113,92 108,108 92,108 87,92" ${common} />
+       <line x1="100" y1="83" x2="100" y2="55" ${common} />
+       <line x1="113" y1="92" x2="139" y2="101" ${common} />
+       <line x1="108" y1="108" x2="124" y2="131" ${common} />
+       <line x1="92" y1="108" x2="76" y2="131" ${common} />
+       <line x1="87" y1="92" x2="61" y2="101" ${common} />`,
+      `<path d="M 70 50 L 130 50 L 125 100 C 120 120, 80 120, 75 100 Z" ${common} />
+       <path d="M 100 120 L 100 145 M 80 145 L 120 145" ${common} />
+       <path d="M 70 65 C 55 65, 55 90, 72 90 M 130 65 C 145 65, 145 90, 128 90" ${common} />`,
+      `<path d="M 50 145 L 50 90 A 50 50 0 0 1 150 90 L 150 145 M 75 145 L 75 90 A 25 25 0 0 1 125 90 L 125 145" ${common} />
+       <line x1="40" y1="145" x2="160" y2="145" ${common} />`,
+      `<circle cx="100" cy="105" r="35" ${common} />
+       <path d="M 90 70 L 110 70 M 100 70 L 100 60" ${common} />
+       <line x1="100" y1="105" x2="118" y2="87" ${common} />
+       <circle cx="125" cy="80" r="4" fill="currentColor" />`
+    ],
+    entertainment: [
+      `<rect x="65" y="82" width="70" height="63" rx="4" ${common} />
+       <line x1="65" y1="104" x2="135" y2="104" ${common} />
+       <path d="M 65 82 L 135 68 L 132 58 L 65 72 Z" ${common} />
+       <line x1="78" y1="79" x2="86" y2="70" ${common} />
+       <line x1="98" y1="75" x2="106" y2="66" ${common} />
+       <line x1="118" y1="71" x2="126" y2="62" ${common} />`,
+      `<path d="M 70 50 Q 95 90, 70 115 T 90 150 M 110 50 Q 135 90, 110 115 T 130 150" ${common} />
+       <line x1="72" y1="70" x2="112" y2="70" ${common} />
+       <line x1="78" y1="95" x2="118" y2="95" ${common} />
+       <line x1="72" y1="120" x2="112" y2="120" ${common} />`,
+      `<path d="M 65 70 C 65 55, 135 55, 135 70 C 135 115, 100 135, 100 135 C 100 135, 65 115, 65 70 Z" ${common} />
+       <circle cx="85" cy="85" r="4" fill="currentColor" />
+       <circle cx="115" cy="85" r="4" fill="currentColor" />
+       <path d="M 82 110 Q 100 125, 118 110" ${common} />`,
+      `<circle cx="75" cy="120" r="8" fill="currentColor" />
+       <circle cx="120" cy="110" r="8" fill="currentColor" />
+       <line x1="83" y1="120" x2="83" y2="55" ${common} />
+       <line x1="128" y1="110" x2="128" y2="45" ${common} />
+       <polygon points="83,55 128,45 128,55 83,65" fill="currentColor" />`
+    ],
+    culture: [
+      `<path d="M 60 110 C 60 70, 130 60, 140 100 C 145 125, 110 145, 80 140 C 65 138, 55 125, 60 110 Z" ${common} />
+       <circle cx="80" cy="85" r="5" fill="currentColor" />
+       <circle cx="110" cy="90" r="5" fill="currentColor" />
+       <circle cx="95" cy="115" r="5" fill="currentColor" />
+       <path d="M 130 70 L 65 135" ${common} stroke-width="3" />`,
+      `<path d="M 100 50 L 78 110 L 78 145 L 122 145 L 122 110 Z" ${common} />
+       <line x1="100" y1="50" x2="100" y2="110" ${common} />
+       <circle cx="100" cy="110" r="3" fill="currentColor" />`,
+      `<path d="M 100 140 C 75 125, 50 125, 45 135 L 45 65 C 50 55, 75 55, 100 70 C 125 55, 150 55, 155 65 L 155 135 C 150 125, 125 125, 100 140 Z" ${common} />
+       <line x1="100" y1="70" x2="100" y2="140" ${common} />`,
+      `<path d="M 80 50 L 120 50 M 90 50 Q 60 95, 90 130 L 90 145 L 110 145 L 110 130 Q 140 95, 110 50" ${common} />
+       <ellipse cx="100" cy="95" rx="15" ry="6" ${common} />`
+    ],
+    health: [
+      `<path d="M 80 60 L 80 100 A 20 20 0 0 0 120 100 L 120 60" ${common} />
+       <circle cx="80" cy="55" r="4" fill="currentColor" />
+       <circle cx="120" cy="55" r="4" fill="currentColor" />
+       <path d="M 100 120 L 100 142 A 20 20 0 0 0 120 142" ${common} />
+       <circle cx="125" cy="142" r="6" ${common} />`,
+      `<path d="M 100 145 C 50 105, 40 70, 70 50 C 90 35, 100 60, 100 60 C 100 60, 110 35, 130 50 C 160 70, 150 105, 100 145 Z" ${common} />
+       <polyline points="65,95 85,95 92,75 100,115 108,85 115,95 135,95" ${common} />`,
+      `<path d="M 60 60 L 140 60 L 140 100 C 140 135, 100 155, 100 155 C 100 155, 60 135, 60 100 Z" ${common} />
+       <path d="M 100 80 L 100 120 M 80 100 L 120 100" ${common} />`,
+      `<path d="M 100 50 C 60 80, 60 130, 100 150 C 140 130, 140 80, 100 50 Z" ${common} />
+       <path d="M 100 50 L 100 150 M 100 90 Q 75 80, 75 80 M 100 110 Q 125 100, 125 100" ${common} />`
+    ]
+  };
+  
+  const icons = library[c] || library['global'];
+  return `<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%;">
+    ${icons[idx]}
+  </svg>`;
+}
+
+function openShareSheet(url, headline) {
+  const modal = $("share-sheet-modal");
+  if (!modal) return;
+  
+  modal.classList.add("active");
+  
+  const wa = $("share-opt-wa");
+  const x = $("share-opt-x");
+  const copy = $("share-opt-copy");
+  const native = $("share-opt-native");
+  const backdrop = $("share-sheet-backdrop");
+  const closeBtn = $("share-sheet-close");
+  
+  const closeSheet = () => modal.classList.remove("active");
+  backdrop.onclick = closeSheet;
+  closeBtn.onclick = closeSheet;
+  
+  if (wa) {
+    wa.onclick = () => {
+      const shareUrl = encodeURIComponent(url);
+      const text = encodeURIComponent(`Check out this Flash news on The Briefing: "${headline}" - `);
+      if (typeof trackEvent === 'function') trackEvent("share_action", "Engagement", "WhatsApp", headline);
+      window.open(`https://api.whatsapp.com/send?text=${text}${shareUrl}`, "_blank");
+      closeSheet();
+    };
+  }
+  if (x) {
+    x.onclick = () => {
+      const shareUrl = encodeURIComponent(url);
+      const text = encodeURIComponent(`Check out this Flash news: "${headline}" on The Briefing`);
+      if (typeof trackEvent === 'function') trackEvent("share_action", "Engagement", "Twitter X", headline);
+      window.open(`https://twitter.com/intent/tweet?url=${shareUrl}&text=${text}`, "_blank");
+      closeSheet();
+    };
+  }
+  if (copy) {
+    // "Share Anywhere" — use native system share sheet, fallback to clipboard
+    copy.onclick = () => {
+      if (typeof trackEvent === 'function') trackEvent("share_action", "Engagement", "Share Anywhere", headline);
+      if (navigator.share) {
+        navigator.share({
+          title: headline,
+          text: `Check out this Flash news on The Briefing: "${headline}"`,
+          url: url
+        }).catch(err => console.log("Share cancelled:", err));
+      } else {
+        navigator.clipboard.writeText(url).then(() => {
+          showToast("Copied shareable link to clipboard");
+        }).catch(() => {
+          showToast("Failed to copy link");
+        });
+      }
+      closeSheet();
+    };
+  }
+  if (native) {
+    // "Copy Link" fallback button
+    native.style.display = "flex";
+    native.onclick = () => {
+      if (typeof trackEvent === 'function') trackEvent("share_action", "Engagement", "Copy Link", headline);
+      navigator.clipboard.writeText(url).then(() => {
+        showToast("Copied link to clipboard");
+      }).catch(() => {
+        showToast("Failed to copy link");
+      });
+      closeSheet();
+    };
+  }
+}
+
 async function loadFlash(date = null) {
   const latestDate = indexEntries.length > 0 ? indexEntries[0].date : null;
   const targetDate = date || latestDate;
@@ -1665,19 +2044,37 @@ async function loadFlash(date = null) {
   return flashStories;
 }
 
+function getFlashCatPillSvg(catId) {
+  const s = 'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
+  const icons = {
+    'india':         `<circle cx="8" cy="8" r="6" ${s}/><circle cx="8" cy="8" r="2" fill="currentColor"/><path d="M8 2v2M8 14v2M2 8H0M16 8h-2" ${s}/>`,
+    'global':        `<circle cx="8" cy="8" r="6" ${s}/><ellipse cx="8" cy="8" rx="6" ry="3" ${s}/><line x1="2" y1="8" x2="14" y2="8" ${s}/>`,
+    'politics':      `<polygon points="8,2 2,6 14,6" ${s}/><rect x="4" y="6" width="2" height="6" ${s}/><rect x="7" y="6" width="2" height="6" ${s}/><rect x="10" y="6" width="2" height="6" ${s}/><line x1="2" y1="12" x2="14" y2="12" ${s}/>`,
+    'economics':     `<polyline points="2,12 5,7 8,9 11,4 14,2" ${s}/><polyline points="11,2 14,2 14,5" ${s}/>`,
+    'ai-tech':       `<rect x="3" y="3" width="10" height="10" rx="2" ${s}/><rect x="6" y="6" width="4" height="4" ${s}/><path d="M6 3V1M10 3V1M6 13v2M10 13v2M3 6H1M3 10H1M13 6h2M13 10h2" ${s}/>`,
+    'science':       `<circle cx="8" cy="8" r="2" fill="currentColor"/><ellipse cx="8" cy="8" rx="7" ry="3" ${s}/><ellipse cx="8" cy="8" rx="7" ry="3" transform="rotate(60 8 8)" ${s}/><ellipse cx="8" cy="8" rx="7" ry="3" transform="rotate(120 8 8)" ${s}/>`,
+    'sports':        `<circle cx="8" cy="8" r="6" ${s}/><polygon points="8,5 9.5,7.5 8,10 6.5,7.5" ${s}/>`,
+    'entertainment': `<rect x="2" y="5" width="12" height="9" rx="1" ${s}/><path d="M2 8h12" ${s}/><path d="M2 5L14 2l-.5-2L2 3z" ${s}/>`,
+    'culture':       `<path d="M8 2l-5 8h10z" ${s}/><line x1="8" y1="10" x2="8" y2="14" ${s}/><line x1="5" y1="14" x2="11" y2="14" ${s}/>`,
+    'health':        `<path d="M8 13C4 10 2 7 2 5a3 3 0 0 1 6 0 3 3 0 0 1 6 0c0 2-2 5-6 8z" ${s}/><polyline points="4,7 6,7 7,5 8,9 9,6 10,7 12,7" ${s}/>`
+  };
+  const paths = icons[catId] || icons['global'];
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" style="display:inline-block;vertical-align:text-bottom;margin-right:5px;stroke:currentColor;fill:none;flex-shrink:0;">${paths}</svg>`;
+}
+
 function renderFlashCategoryPills() {
   const cats = [
     { id: "all", label: "All" },
-    { id: "india", label: "🇮🇳 India" },
-    { id: "global", label: "🌍 Global" },
-    { id: "politics", label: "🏛 Politics" },
-    { id: "economics", label: "📈 Economics" },
-    { id: "ai-tech", label: "🤖 AI & Tech" },
-    { id: "science", label: "🔬 Science" },
-    { id: "sports", label: "⚽️ Sports" },
-    { id: "entertainment", label: "🎬 Entertainment" },
-    { id: "culture", label: "🎨 Culture" },
-    { id: "health", label: "🩺 Health" }
+    { id: "india", label: "India" },
+    { id: "global", label: "Global" },
+    { id: "politics", label: "Politics" },
+    { id: "economics", label: "Economics" },
+    { id: "ai-tech", label: "AI & Tech" },
+    { id: "science", label: "Science" },
+    { id: "sports", label: "Sports" },
+    { id: "entertainment", label: "Entertainment" },
+    { id: "culture", label: "Culture" },
+    { id: "health", label: "Health" }
   ];
   
   return cats.map(c => {
@@ -1690,9 +2087,11 @@ function renderFlashCategoryPills() {
       style = `style="--cat-color: ${col}; --cat-color-rgb: ${rgb};"`;
     }
     
+    const iconHtml = c.id !== "all" ? getFlashCatPillSvg(c.id) : "";
+    
     return `
       <button class="flash-cat-pill ${active ? 'active' : ''}" data-cat="${c.id}" ${style}>
-        ${c.label}
+        ${iconHtml}${esc(c.label)}
       </button>`;
   }).join("");
 }
@@ -1758,6 +2157,15 @@ function wireFlashNavigation(filtered) {
       }
     };
   }
+  const shareBtn = $("flash-share-btn");
+  if (shareBtn) {
+    shareBtn.onclick = () => {
+      const activeStory = filtered[currentFlashIndex];
+      const url = `${window.location.origin}${BASE_PATH}/flash/story/${activeStory.id}`;
+      const headline = activeStory.headline || activeStory.hl;
+      openShareSheet(url, headline);
+    };
+  }
   if (goDeeperBtn) {
     goDeeperBtn.onclick = () => {
       const activeStory = filtered[currentFlashIndex];
@@ -1780,7 +2188,7 @@ function wireFlashNavigation(filtered) {
 
 function navigateFlash(direction, filtered) {
   const nextIdx = currentFlashIndex + direction;
-  if (nextIdx < 0 || nextIdx >= filtered.length) return;
+  if (nextIdx < 0 || nextIdx > filtered.length) return;
   
   const card = $("flash-card");
   if (card) {
@@ -1896,7 +2304,7 @@ function attachFlashDrag(filtered) {
     
     const THRESH = 72;
     if (flashCurrY < -THRESH) {
-      if (currentFlashIndex < filtered.length - 1) {
+      if (currentFlashIndex < filtered.length) {
         navigateFlash(1, filtered);
       } else {
         snapBack();
@@ -2194,7 +2602,74 @@ async function renderFlashView(date = null) {
 /* ── Mobile Layout Renderer ── */
 function renderFlashMobileLayout(filtered, targetDate) {
   const total = filtered.length;
-  currentFlashIndex = Math.max(0, Math.min(total - 1, currentFlashIndex));
+  currentFlashIndex = Math.max(0, Math.min(total, currentFlashIndex));
+  
+  if (total > 0 && currentFlashIndex === total) {
+    app.innerHTML = `
+      <div class="flash-container">
+        <div class="flash-categories-bar" id="flash-cats">
+          ${renderFlashCategoryPills()}
+        </div>
+        
+        <div class="flash-card-stage" id="flash-card-stage">
+          <div class="flash-card all-done-card" id="flash-card" style="justify-content: center; text-align: center; gap: 20px;">
+            <div class="all-done-icon-wrapper" style="margin: 0 auto; width: 64px; height: 64px; border-radius: 50%; background: var(--teal-bg); color: var(--teal); display: flex; align-items: center; justify-content: center;">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            
+            <div>
+              <h2 class="flash-headline" style="font-size: 22px; font-weight: 900; margin-bottom: 8px;">You're All Caught Up!</h2>
+              <p class="flash-summary" style="font-family: var(--body); font-size: 15px; color: var(--ink-2); line-height: 1.6; display: block; -webkit-line-clamp: unset;">
+                You've swiped through all of today's speed news updates. Discover the deeper analysis behind today's events, or browse the archives.
+              </p>
+            </div>
+            
+            <div class="all-done-actions" style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 260px; margin: 10px auto 0;">
+              <button class="desktop-action-btn desktop-go-deeper-btn" id="all-done-briefings-btn" style="width: 100%; justify-content: center; font-size: 12px; padding: 10px;">
+                📰 Explore Deep Dives
+              </button>
+              <button class="desktop-action-btn" id="all-done-restart-btn" style="width: 100%; justify-content: center; font-size: 11px; padding: 8px;">
+                ↺ Back to First Card
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flash-progress-track">
+          <div class="flash-progress-fill" style="width: 100%;"></div>
+        </div>
+        
+        <div class="flash-nav-row" style="justify-content: center;">
+          <div class="flash-nav-center">
+            <span class="flash-nav-counter">Completed</span>
+          </div>
+        </div>
+      </div>`;
+      
+    wireFlashCategories();
+    
+    // Wire special actions
+    const restartBtn = $("all-done-restart-btn");
+    if (restartBtn) {
+      restartBtn.onclick = () => {
+        currentFlashIndex = 0;
+        renderFlashView();
+      };
+    }
+    const briefingsBtn = $("all-done-briefings-btn");
+    if (briefingsBtn) {
+      briefingsBtn.onclick = () => {
+        switchToBriefingMode();
+        navigate(`${BASE_PATH}/briefings`);
+      };
+    }
+    
+    attachFlashDrag(filtered);
+    return;
+  }
   
   if (total === 0) {
     app.innerHTML = `
@@ -2214,12 +2689,10 @@ function renderFlashMobileLayout(filtered, targetDate) {
           <div class="flash-progress-fill" style="width: 0%;"></div>
         </div>
         
-        <div class="flash-nav-row">
-          <button class="flash-nav-btn" disabled>&larr;</button>
+        <div class="flash-nav-row" style="justify-content: center;">
           <div class="flash-nav-center">
             <span class="flash-nav-counter">0 / 0</span>
           </div>
-          <button class="flash-nav-btn" disabled>&rarr;</button>
         </div>
       </div>`;
     
@@ -2259,18 +2732,34 @@ function renderFlashMobileLayout(filtered, targetDate) {
        </div>`
     : "";
     
-  // Render Why it matters and Remember blocks
+  // Render Why it matters and Remember blocks — new icon design
   const whyItMattersHtml = s.why_it_matters
     ? `<div class="flash-why-it-matters" style="--cat-color: ${col};">
-         <span class="flash-why-label">Why it matters:</span>
-         <span class="flash-why-value">${esc(s.why_it_matters)}</span>
+         <div class="flash-section-icon flash-why-icon">
+           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+             <circle cx="12" cy="12" r="10"></circle>
+             <line x1="12" y1="8" x2="12" y2="12"></line>
+             <line x1="12" y1="16" x2="12.01" y2="16"></line>
+           </svg>
+         </div>
+         <div class="flash-section-content">
+           <span class="flash-why-label">Why It Matters</span>
+           <span class="flash-why-value">${esc(s.why_it_matters)}</span>
+         </div>
        </div>`
     : "";
     
   const rememberHtml = s.remember
     ? `<div class="flash-remember-box">
-         <span class="flash-remember-label">Remember:</span>
-         <span class="flash-remember-value">${esc(s.remember)}</span>
+         <div class="flash-section-icon flash-remember-icon">
+           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+           </svg>
+         </div>
+         <div class="flash-section-content">
+           <span class="flash-remember-label">Remember</span>
+           <span class="flash-remember-value">${esc(s.remember)}</span>
+         </div>
        </div>`
     : "";
     
@@ -2297,6 +2786,15 @@ function renderFlashMobileLayout(filtered, targetDate) {
             ${ (s.source || s.src) ? `<span class="flash-time">${esc(s.source || s.src)}</span>` : '' }
           </div>
           
+          <div class="flash-card-visual">
+            ${getFlashIllustration(s.cat, s.id)}
+          </div>
+          <div class="flash-visual-dashes">
+            <span class="flash-dash"></span>
+            <span class="flash-dash"></span>
+            <span class="flash-dash"></span>
+          </div>
+          
           <div class="flash-card-body">
             <h2 class="flash-headline">${esc(s.headline || s.hl)}</h2>
             <hr class="flash-divider" />
@@ -2305,29 +2803,31 @@ function renderFlashMobileLayout(filtered, targetDate) {
               <p>${esc(s.summary || s.body)}</p>
             </div>
             
-            <div class="flash-spacer" style="flex: 1;"></div>
-            
             ${whyItMattersHtml}
             ${rememberHtml}
             ${benefitsSection}
           </div>
           
           <div class="flash-card-footer">
-            <button class="flash-footer-btn ${isSaved ? 'saved' : ''}" id="flash-bookmark-btn" aria-label="Save story" style="color: ${isSaved ? col : ''}">
+            <button class="flash-footer-action ${isSaved ? 'saved' : ''}" id="flash-bookmark-btn" aria-label="Save story" style="${isSaved ? `color: ${col};` : ''}">
               <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="${isSaved ? 'currentColor' : 'none'}" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
               </svg>
               <span>${isSaved ? 'Saved' : 'Save'}</span>
             </button>
             
-            <div style="display: flex; align-items: center; gap: 8px;">
-              ${showGoDeeper ? `<span class="flash-go-deeper" id="flash-go-deeper-btn">Go Deeper &rarr;</span>` : ''}
-              
-              <div class="flash-trending-pill" style="opacity: ${isTrending ? 1 : 0.4}">
-                <span>🔥</span>
-                <span id="views-count">${initialViews}</span>
-              </div>
-            </div>
+            <div class="flash-footer-sep"></div>
+            
+            <button class="flash-footer-action" id="flash-share-btn" aria-label="Share story">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </svg>
+              <span>Share</span>
+            </button>
           </div>
         </div>
       </div>
@@ -2336,12 +2836,10 @@ function renderFlashMobileLayout(filtered, targetDate) {
         <div class="flash-progress-fill" style="width: ${((currentFlashIndex + 1) / total) * 100}%;"></div>
       </div>
       
-      <div class="flash-nav-row">
-        <button class="flash-nav-btn" id="flash-prev" ${currentFlashIndex === 0 ? 'disabled' : ''}>&larr;</button>
+      <div class="flash-nav-row" style="justify-content: center;">
         <div class="flash-nav-center">
           <span class="flash-nav-counter">${currentFlashIndex + 1} / ${total}</span>
         </div>
-        <button class="flash-nav-btn" id="flash-next" ${currentFlashIndex === total - 1 ? 'disabled' : ''}>&rarr;</button>
       </div>
     </div>`;
     
@@ -2423,14 +2921,14 @@ function renderDesktopGrid(filtered, targetDate) {
   const heroSource = heroStory.source || heroStory.src;
 
   const heroWhyHtml = heroStory.why_it_matters
-    ? `<div class="hero-why-box" style="border-left: 2px solid ${heroCol}; padding-left: 10px; margin-top: 12px; font-family: var(--sans); font-size: 13px; color: var(--ink-2); line-height: 1.45;">
-         <strong style="color: var(--ink);">Why it matters:</strong> ${esc(heroStory.why_it_matters)}
+    ? `<div class="hero-why-box" style="border-left: 2px solid ${heroCol}; padding-left: 10px; margin-top: 12px; font-family: var(--body); font-size: 15px; color: var(--ink-2); line-height: 1.5;">
+         <strong style="color: var(--accent); font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; margin-right: 4px;">Why it matters:</strong> ${esc(heroStory.why_it_matters)}
        </div>`
     : "";
 
   const heroRememberHtml = heroStory.remember
-    ? `<div class="hero-remember-box" style="border-left: 2px solid #8B5CF6; padding-left: 10px; margin-top: 10px; font-family: var(--sans); font-size: 13px; color: var(--ink-2); line-height: 1.45;">
-         <strong style="color: var(--ink);">Remember:</strong> ${esc(heroStory.remember)}
+    ? `<div class="hero-remember-box" style="border-left: 2px solid #8B5CF6; padding-left: 10px; margin-top: 10px; font-family: var(--body); font-size: 15px; color: var(--ink-2); line-height: 1.5;">
+         <strong style="color: #8B5CF6; font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; margin-right: 4px;">Remember:</strong> ${esc(heroStory.remember)}
        </div>`
     : "";
 
@@ -2439,6 +2937,9 @@ function renderDesktopGrid(filtered, targetDate) {
       <div class="hero-card-header">
         <span class="hero-cat-badge" style="background: rgba(${heroRgb}, 0.1); color: ${heroCol};">${esc(FLASH_LABELS[heroStory.cat] || heroStory.cat)}</span>
         ${ heroSource ? `<span class="hero-time">${esc(heroSource)}</span>` : '' }
+      </div>
+      <div class="desktop-card-visual">
+        ${getFlashIllustration(heroStory.cat, heroStory.id)}
       </div>
       <h2 class="hero-headline">${esc(heroHl)}</h2>
       <p class="hero-summary">${esc(heroBody)}</p>
@@ -2452,7 +2953,13 @@ function renderDesktopGrid(filtered, targetDate) {
         </div>` : ''}
       
       <div class="hero-card-footer">
-        <span class="hero-views-count">🔥 <span id="views-${esc(heroStory.id)}">${heroViews}</span> reads</span>
+        <span class="hero-views-count" style="display: inline-flex; align-items: center; gap: 4px;">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="stroke: currentColor;">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span id="views-${esc(heroStory.id)}">${heroViews}</span> reads
+        </span>
         <div class="desktop-card-actions">
           <button class="desktop-action-btn ${heroSaved ? 'saved' : ''} action-save-btn" data-id="${esc(heroStory.id)}" style="color: ${heroSaved ? heroCol : ''}">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="${heroSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
@@ -2498,14 +3005,14 @@ function renderDesktopGrid(filtered, targetDate) {
     const sSource = s.source || s.src;
     
     const sWhyHtml = s.why_it_matters
-      ? `<div class="grid-why-box" style="border-left: 2px solid ${col}; padding-left: 8px; margin-top: 10px; font-family: var(--sans); font-size: 12px; color: var(--ink-2); line-height: 1.45;">
-           <strong style="color: var(--ink);">Why it matters:</strong> ${esc(s.why_it_matters)}
+      ? `<div class="grid-why-box" style="border-left: 2px solid ${col}; padding-left: 8px; margin-top: 10px; font-family: var(--body); font-size: 14.5px; color: var(--ink-2); line-height: 1.5;">
+           <strong style="color: var(--accent); font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; margin-right: 4px;">Why it matters:</strong> ${esc(s.why_it_matters)}
          </div>`
       : "";
 
     const sRememberHtml = s.remember
-      ? `<div class="grid-remember-box" style="border-left: 2px solid #8B5CF6; padding-left: 8px; margin-top: 8px; font-family: var(--sans); font-size: 12px; color: var(--ink-2); line-height: 1.45;">
-           <strong style="color: var(--ink);">Remember:</strong> ${esc(s.remember)}
+      ? `<div class="grid-remember-box" style="border-left: 2px solid #8B5CF6; padding-left: 8px; margin-top: 8px; font-family: var(--body); font-size: 14.5px; color: var(--ink-2); line-height: 1.5;">
+           <strong style="color: #8B5CF6; font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; margin-right: 4px;">Remember:</strong> ${esc(s.remember)}
          </div>`
       : "";
     
@@ -2514,6 +3021,9 @@ function renderDesktopGrid(filtered, targetDate) {
         <div class="grid-card-header">
           <span class="grid-cat-badge" style="background: rgba(${rgb}, 0.1); color: ${col};">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
           ${ sSource ? `<span class="grid-time">${esc(sSource)}</span>` : '' }
+        </div>
+        <div class="desktop-card-visual">
+          ${getFlashIllustration(s.cat, s.id)}
         </div>
         <h3 class="grid-headline">${esc(sHl)}</h3>
         <p class="grid-summary">${esc(sBody)}</p>
@@ -2526,7 +3036,13 @@ function renderDesktopGrid(filtered, targetDate) {
           </div>` : ''}
         
         <div class="grid-card-footer">
-          <span class="grid-views-count">🔥 <span id="views-${esc(s.id)}">${sViews}</span> reads</span>
+          <span class="grid-views-count" style="display: inline-flex; align-items: center; gap: 4px;">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="stroke: currentColor;">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <span id="views-${esc(s.id)}">${sViews}</span> reads
+          </span>
           <div class="desktop-card-actions">
             <button class="desktop-action-btn ${isSaved ? 'saved' : ''} action-save-btn" data-id="${esc(s.id)}" style="color: ${isSaved ? col : ''}">
               <svg viewBox="0 0 24 24" width="13" height="13" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
@@ -2574,12 +3090,9 @@ function wireFlashDesktopEvents(filtered, targetDate) {
       const id = btn.dataset.id;
       const story = flashStories.find(fs => fs.id === id);
       if (story) {
-        const url = `${window.location.origin}${BASE_PATH}/#flash-${story.id}`;
-        navigator.clipboard.writeText(url).then(() => {
-          showToast("Copied shareable link to clipboard");
-        }).catch(() => {
-          showToast("Failed to copy link");
-        });
+        const url = `${window.location.origin}${BASE_PATH}/flash/story/${story.id}`;
+        const headline = story.headline || story.hl;
+        openShareSheet(url, headline);
       }
     };
   });
@@ -2647,74 +3160,59 @@ function updateSavedBadge() {
 }
 
 function updateModeToggleUI() {
-  const toggleBtn = $("mode-toggle-btn");
-  if (!toggleBtn) return;
-  
-  const wordmark = document.querySelector("#site-header .wordmark");
+  const segFlash = $("seg-flash");
+  const segBriefing = $("seg-briefing");
+  const wordmark = $("wordmark-link");
   
   if (currentMode === "flash") {
     document.body.classList.add("mode-flash-active");
-    toggleBtn.classList.remove("state-briefing");
-    toggleBtn.classList.add("state-flash");
-    if (wordmark) {
-      wordmark.href = `${BASE_PATH}/flash`;
-      wordmark.innerHTML = `The Briefing <span class="flash-logo-badge" style="font-family: var(--sans); font-size: 11px; font-weight: 800; background: var(--accent); color: #ffffff; padding: 3px 8px; border-radius: 6px; vertical-align: middle; margin-left: 8px; text-transform: uppercase; letter-spacing: 0.08em; display: inline-block; line-height: 1;">⚡ Flash</span>`;
-    }
+    if (segFlash)    { segFlash.classList.add("active"); }
+    if (segBriefing) { segBriefing.classList.remove("active"); }
+    if (wordmark) { wordmark.href = `${BASE_PATH}/flash`; }
   } else {
     document.body.classList.remove("mode-flash-active");
-    toggleBtn.classList.remove("state-flash");
-    toggleBtn.classList.add("state-briefing");
-    if (wordmark) {
-      wordmark.href = `${BASE_PATH}/briefings`;
-      wordmark.innerHTML = "The Briefing";
-    }
+    if (segFlash)    { segFlash.classList.remove("active"); }
+    if (segBriefing) { segBriefing.classList.add("active"); }
+    if (wordmark) { wordmark.href = `${BASE_PATH}/briefings`; }
   }
 }
 
 function initModeToggle() {
-  const toggleBtn = $("mode-toggle-btn");
-  if (toggleBtn) {
-    toggleBtn.onclick = () => {
-      currentMode = currentMode === "flash" ? "briefing" : "flash";
-      localStorage.setItem("currentMode", currentMode);
-      
-      updateModeToggleUI();
-      
-      // Determine what path we are currently on and navigate accordingly
-      let p = location.pathname;
-      if (p.endsWith("/index.html")) {
-        p = p.slice(0, -11);
-      }
-      p = p.replace(/\/+$/, "") || "/";
-      if (BASE_PATH && p.startsWith(BASE_PATH)) {
-        p = p.slice(BASE_PATH.length) || "/";
-      }
-      p = p.replace(/\/+$/, "") || "/";
-      
-      const storyMatch = p.match(/^\/story\/([^/]+)\/(.+)$/);
-      const briefingsDayMatch = p.match(/^\/briefings\/day\/([^/]+)$/);
-      const flashDayMatch = p.match(/^\/flash\/day\/([^/]+)$/);
-      
-      if (storyMatch) {
-        if (currentMode === "flash") {
-          navigate(`${BASE_PATH}/flash/day/${storyMatch[1]}`);
-        } else {
-          route();
-        }
-      } else if (briefingsDayMatch) {
-        navigate(`${BASE_PATH}/flash/day/${briefingsDayMatch[1]}`);
-      } else if (flashDayMatch) {
-        navigate(`${BASE_PATH}/briefings/day/${flashDayMatch[1]}`);
-      } else {
-        if (currentMode === "flash") {
-          navigate(`${BASE_PATH}/flash`);
-        } else {
-          navigate(`${BASE_PATH}/briefings`);
-        }
-      }
-    };
+  const segFlash    = $("seg-flash");
+  const segBriefing = $("seg-briefing");
+
+  function handleModeSwitch(newMode) {
+    if (currentMode === newMode) return;
+    currentMode = newMode;
+    localStorage.setItem("currentMode", currentMode);
+    updateModeToggleUI();
+
+    let p = location.pathname;
+    if (p.endsWith("/index.html")) p = p.slice(0, -11);
+    p = p.replace(/\/+$/, "") || "/";
+    if (BASE_PATH && p.startsWith(BASE_PATH)) p = p.slice(BASE_PATH.length) || "/";
+    p = p.replace(/\/+$/, "") || "/";
+
+    const storyMatch       = p.match(/^\/story\/([^/]+)\/(.+)$/);
+    const briefingsDayMatch = p.match(/^\/briefings\/day\/([^/]+)$/);
+    const flashDayMatch     = p.match(/^\/flash\/day\/([^/]+)$/);
+
+    if (storyMatch) {
+      if (currentMode === "flash") navigate(`${BASE_PATH}/flash/day/${storyMatch[1]}`);
+      else route();
+    } else if (briefingsDayMatch) {
+      navigate(`${BASE_PATH}/flash/day/${briefingsDayMatch[1]}`);
+    } else if (flashDayMatch) {
+      navigate(`${BASE_PATH}/briefings/day/${flashDayMatch[1]}`);
+    } else {
+      if (currentMode === "flash") navigate(`${BASE_PATH}/flash`);
+      else navigate(`${BASE_PATH}/briefings`);
+    }
   }
-  
+
+  if (segFlash)    segFlash.onclick    = () => handleModeSwitch("flash");
+  if (segBriefing) segBriefing.onclick = () => handleModeSwitch("briefing");
+
   updateModeToggleUI();
 }
 
@@ -2773,6 +3271,7 @@ window.addEventListener("keydown", e => {
 });
 
 window.addEventListener("popstate", route);
+window.addEventListener("hashchange", route);
 document.body.addEventListener("click", e => {
   const a = e.target.closest("a");
   if (a && a.href && a.href.startsWith(window.location.origin) && !a.hasAttribute("target")) {
@@ -2800,6 +3299,195 @@ window.addEventListener("resize", () => {
     }
   }
 });
+
+// ── Search Engine ─────────────────────────────────────────────
+function initSearch() {
+  const trigger  = $("search-trigger");
+  const overlay  = $("search-overlay");
+  const closeBtn = $("search-close");
+  const input    = $("search-input");
+
+  if (!overlay) return;
+
+  function openSearch() {
+    overlay.classList.add("open");
+    setTimeout(() => { if (input) input.focus(); }, 50);
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeSearch() {
+    overlay.classList.remove("open");
+    document.body.style.overflow = "";
+    if (input) { input.value = ""; renderSearchResults([]); }
+    const empty = $("search-empty");
+    if (empty) empty.style.display = "flex";
+  }
+
+  if (trigger)  trigger.onclick  = openSearch;
+  if (closeBtn) closeBtn.onclick = closeSearch;
+
+  // ESC to close
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && overlay.classList.contains("open")) closeSearch();
+  });
+
+  // Live search on input
+  let debounceTimer;
+  if (input) {
+    input.addEventListener("input", () => {
+      clearTimeout(debounceTimer);
+      const q = input.value.trim();
+      const empty = $("search-empty");
+      if (!q) {
+        renderSearchResults([]);
+        if (empty) empty.style.display = "flex";
+        return;
+      }
+      if (empty) empty.style.display = "none";
+      debounceTimer = setTimeout(() => {
+        const results = searchAll(q);
+        renderSearchResults(results, q);
+      }, 120);
+    });
+  }
+}
+
+function searchAll(query) {
+  const q = query.toLowerCase().trim();
+  if (!q) return [];
+  const results = [];
+
+  // ── Flash stories ──────────────────────────────────────────
+  const allFlash = Array.isArray(flashStories) ? flashStories : [];
+  for (const s of allFlash) {
+    const hl  = (s.headline || s.hl || "").toLowerCase();
+    const sum = (s.summary  || s.body || "").toLowerCase();
+    const cat = (FLASH_LABELS[s.cat] || s.cat || "").toLowerCase();
+    const why = (s.why_it_matters || "").toLowerCase();
+    const hlScore  = hl.includes(q)  ? 3 : 0;
+    const sumScore = sum.includes(q) ? 1 : 0;
+    const catScore = cat.includes(q) ? 1 : 0;
+    const whyScore = why.includes(q) ? 1 : 0;
+    const score = hlScore + sumScore + catScore + whyScore;
+    if (score > 0) {
+      results.push({
+        type: "flash",
+        score,
+        id:       s.id,
+        cat:      s.cat,
+        headline: s.headline || s.hl,
+        meta:     `${FLASH_LABELS[s.cat] || s.cat}${s.source ? " · " + s.source : ""}`,
+      });
+    }
+  }
+
+  // ── Briefing deep dives ────────────────────────────────────
+  for (const entry of (indexEntries || [])) {
+    const payload = dayCache[entry.date];
+    if (!payload || !Array.isArray(payload.stories)) continue;
+    for (const s of payload.stories) {
+      const hl   = (s.headline || "").toLowerCase();
+      const tldr = (s.tldr || s.summary || "").toLowerCase();
+      const hlScore  = hl.includes(q)   ? 3 : 0;
+      const tlScore  = tldr.includes(q) ? 1 : 0;
+      const score = hlScore + tlScore;
+      if (score > 0) {
+        results.push({
+          type: "briefing",
+          score,
+          id:       s.id,
+          date:     entry.date,
+          headline: s.headline,
+          meta:     `Deep Dive · ${entry.date}`,
+        });
+      }
+    }
+  }
+
+  // Sort by score desc, then alphabetically
+  results.sort((a, b) => b.score - a.score || a.headline.localeCompare(b.headline));
+  return results.slice(0, 30);
+}
+
+function renderSearchResults(results, query) {
+  const list = $("search-results-list");
+  if (!list) return;
+  if (!results.length) {
+    list.innerHTML = query
+      ? `<div class="search-no-results">No results found for "<strong>${esc(query)}</strong>"</div>`
+      : "";
+    return;
+  }
+
+  const flashItems    = results.filter(r => r.type === "flash");
+  const briefingItems = results.filter(r => r.type === "briefing");
+
+  function highlight(text, q) {
+    if (!q || !text) return esc(text || "");
+    const idx = text.toLowerCase().indexOf(q.toLowerCase());
+    if (idx < 0) return esc(text);
+    return esc(text.slice(0, idx)) +
+      `<mark style="background:rgba(255,87,34,.18);color:var(--accent);border-radius:2px;">` +
+      esc(text.slice(idx, idx + q.length)) +
+      `</mark>` + esc(text.slice(idx + q.length));
+  }
+
+  let html = "";
+  if (flashItems.length) {
+    html += `<div class="search-group-label">⚡ Flash News</div>`;
+    for (const r of flashItems) {
+      html += `<div class="search-result-item" data-type="flash" data-id="${esc(r.id)}" data-cat="${esc(r.cat)}">
+        <span class="search-result-badge flash-badge">${esc(FLASH_LABELS[r.cat] || r.cat)}</span>
+        <div class="search-result-content">
+          <div class="search-result-headline">${highlight(r.headline, query)}</div>
+          <div class="search-result-meta">${esc(r.meta)}</div>
+        </div>
+      </div>`;
+    }
+  }
+  if (briefingItems.length) {
+    html += `<div class="search-group-label">📰 Deep Dives</div>`;
+    for (const r of briefingItems) {
+      html += `<div class="search-result-item" data-type="briefing" data-id="${esc(r.id)}" data-date="${esc(r.date)}">
+        <span class="search-result-badge brief-badge">Briefing</span>
+        <div class="search-result-content">
+          <div class="search-result-headline">${highlight(r.headline, query)}</div>
+          <div class="search-result-meta">${esc(r.meta)}</div>
+        </div>
+      </div>`;
+    }
+  }
+  list.innerHTML = html;
+
+  // Wire clicks
+  list.querySelectorAll(".search-result-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const type = item.dataset.type;
+      const id   = item.dataset.id;
+      const overlay = $("search-overlay");
+      const input   = $("search-input");
+      if (overlay) overlay.classList.remove("open");
+      document.body.style.overflow = "";
+      if (input) input.value = "";
+      renderSearchResults([]);
+
+      if (type === "flash") {
+        // Jump to the Flash card with that id
+        const idx = flashStories.findIndex(s => s.id === id);
+        if (idx >= 0) {
+          currentFlashIndex = idx;
+          activeFlashCategory = "all";
+        }
+        navigate(`${BASE_PATH}/flash`);
+      } else {
+        const date = item.dataset.date;
+        navigate(`${BASE_PATH}/story/${date}/${id}`);
+      }
+    });
+  });
+}
+
+initSearch();
 
 initModeToggle();
 initSavedStories();
