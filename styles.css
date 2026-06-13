@@ -130,6 +130,16 @@ body.mode-flash-active .flash-header-counter {
 .wordmark {
   font-family: var(--serif); font-weight: 900; font-size: 22px;
   color: var(--ink); letter-spacing: -.02em; line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.wordmark-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  flex-shrink: 0;
 }
 .wordmark:hover { text-decoration: none; color: var(--accent); }
 .header-right { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
