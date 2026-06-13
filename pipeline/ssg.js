@@ -217,16 +217,39 @@ async function runSSG() {
   console.log('Generating SSG and OG Images...');
   
   const rootHtml = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf8');
+  
+  // Helper to replace dynamic base script with static base href
+  const injectBaseHref = (html, relPath) => {
+    const baseScriptRegex = /<script>\s*const basePath = [\s\S]*?<\/script>/;
+    return html.replace(baseScriptRegex, `<base href="${relPath}" />`);
+  };
+  
+  // Pre-render briefings and flash base directories
+  const briefingsDir = path.join(process.cwd(), 'briefings');
+  if (!fs.existsSync(briefingsDir)) fs.mkdirSync(briefingsDir, { recursive: true });
+  fs.writeFileSync(path.join(briefingsDir, 'index.html'), injectBaseHref(rootHtml, '../'));
+
+  const flashDir = path.join(process.cwd(), 'flash');
+  if (!fs.existsSync(flashDir)) fs.mkdirSync(flashDir, { recursive: true });
+  fs.writeFileSync(path.join(flashDir, 'index.html'), injectBaseHref(rootHtml, '../'));
+
   const dataDir = path.join(process.cwd(), 'data');
-  const files = fs.readdirSync(dataDir).filter(f => f.endsWith('.json') && f !== 'index.json');
+  const allFiles = fs.readdirSync(dataDir);
+  const dates = new Set();
+  for (const f of allFiles) {
+    const m1 = f.match(/^(\d{4}-\d{2}-\d{2})\.json$/);
+    if (m1) dates.add(m1[1]);
+    const m2 = f.match(/^flash-(\d{4}-\d{2}-\d{2})\.json$/);
+    if (m2) dates.add(m2[1]);
+  }
+  const dateList = Array.from(dates).sort((a, b) => b.localeCompare(a));
   
   const ogImagesDir = path.join(process.cwd(), 'og-images');
   if (!fs.existsSync(ogImagesDir)) fs.mkdirSync(ogImagesDir, { recursive: true });
   
-  for (const file of files) {
-    const date = file.replace('.json', '');
-    const dataPath = path.join(dataDir, file);
-    const briefing = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+  for (const date of dateList) {
+    const dataPath = path.join(dataDir, `${date}.json`);
+    const briefingExists = fs.existsSync(dataPath);
     
     // Ensure date OG dir
     const dateOgDir = path.join(ogImagesDir, date);
@@ -235,45 +258,54 @@ async function runSSG() {
     // Also build a /day/YYYY-MM-DD/ route just in case
     const dayDir = path.join(process.cwd(), 'day', date);
     if (!fs.existsSync(dayDir)) fs.mkdirSync(dayDir, { recursive: true });
-    fs.writeFileSync(path.join(dayDir, 'index.html'), rootHtml);
+    fs.writeFileSync(path.join(dayDir, 'index.html'), injectBaseHref(rootHtml, '../../'));
+
+    // Build briefings/day/YYYY-MM-DD and flash/day/YYYY-MM-DD
+    const bDayDir = path.join(process.cwd(), 'briefings', 'day', date);
+    if (!fs.existsSync(bDayDir)) fs.mkdirSync(bDayDir, { recursive: true });
+    fs.writeFileSync(path.join(bDayDir, 'index.html'), injectBaseHref(rootHtml, '../../../'));
+
+    const fDayDir = path.join(process.cwd(), 'flash', 'day', date);
+    if (!fs.existsSync(fDayDir)) fs.mkdirSync(fDayDir, { recursive: true });
+    fs.writeFileSync(path.join(fDayDir, 'index.html'), injectBaseHref(rootHtml, '../../../'));
     
-    let idx = 0;
-    for (const story of briefing.stories) {
-      // 1. Generate PNG
-      const svgString = generateOgSvg(story, idx);
-      const resvg = new Resvg(svgString, {
-        background: 'rgba(255, 255, 255, 1)',
-        fitTo: { mode: 'width', value: 1200 },
-      });
-      const pngData = resvg.render();
-      const pngBuffer = pngData.asPng();
-      
-      const pngPath = path.join(dateOgDir, `${story.id}.png`);
-      fs.writeFileSync(pngPath, pngBuffer);
-      
-      // 2. Generate HTML
-      const storyDir = path.join(process.cwd(), 'story', date, story.id);
-      if (!fs.existsSync(storyDir)) fs.mkdirSync(storyDir, { recursive: true });
-      
-      const ogTitle = story.headline.replace(/"/g, '&quot;');
-      const ogDesc = story.tldr.replace(/"/g, '&quot;');
-      // Provide an absolute URL if HOST is defined, otherwise relative for local testing
-      // Social crawlers require absolute URLs for og:image.
-      // We will assume a placeholder domain if none provided
-      const domain = process.env.HOST || "https://thebriefings.netlify.app"; 
-      const ogImage = `${domain}/og-images/${date}/${story.id}.png`;
-      
-      let storyHtml = rootHtml;
-      storyHtml = storyHtml.replace(/<title>.*?<\/title>/, `<title>${ogTitle}</title>`);
-      storyHtml = storyHtml.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${ogTitle}" />`);
-      storyHtml = storyHtml.replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${ogDesc}" />`);
-      storyHtml = storyHtml.replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${ogDesc}" />`);
-      storyHtml = storyHtml.replace(/<meta property="og:image" content=".*?" \/>/, `<meta property="og:image" content="${ogImage}" />`);
-      storyHtml = storyHtml.replace(/<meta name="twitter:image" content=".*?" \/>/, `<meta name="twitter:image" content="${ogImage}" />`);
-      
-      fs.writeFileSync(path.join(storyDir, 'index.html'), storyHtml);
-      
-      idx++;
+    if (briefingExists) {
+      const briefing = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+      let idx = 0;
+      for (const story of briefing.stories) {
+        // 1. Generate PNG
+        const svgString = generateOgSvg(story, idx);
+        const resvg = new Resvg(svgString, {
+          background: 'rgba(255, 255, 255, 1)',
+          fitTo: { mode: 'width', value: 1200 },
+        });
+        const pngData = resvg.render();
+        const pngBuffer = pngData.asPng();
+        
+        const pngPath = path.join(dateOgDir, `${story.id}.png`);
+        fs.writeFileSync(pngPath, pngBuffer);
+        
+        // 2. Generate HTML
+        const storyDir = path.join(process.cwd(), 'story', date, story.id);
+        if (!fs.existsSync(storyDir)) fs.mkdirSync(storyDir, { recursive: true });
+        
+        const ogTitle = story.headline.replace(/"/g, '&quot;');
+        const ogDesc = story.tldr.replace(/"/g, '&quot;');
+        const domain = process.env.HOST || "https://thebriefings.netlify.app"; 
+        const ogImage = `${domain}/og-images/${date}/${story.id}.png`;
+        
+        let storyHtml = rootHtml;
+        storyHtml = storyHtml.replace(/<title>.*?<\/title>/, `<title>${ogTitle}</title>`);
+        storyHtml = storyHtml.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${ogTitle}" />`);
+        storyHtml = storyHtml.replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${ogDesc}" />`);
+        storyHtml = storyHtml.replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${ogDesc}" />`);
+        storyHtml = storyHtml.replace(/<meta property="og:image" content=".*?" \/>/, `<meta property="og:image" content="${ogImage}" />`);
+        storyHtml = storyHtml.replace(/<meta name="twitter:image" content=".*?" \/>/, `<meta name="twitter:image" content="${ogImage}" />`);
+        
+        fs.writeFileSync(path.join(storyDir, 'index.html'), injectBaseHref(storyHtml, '../../../'));
+        
+        idx++;
+      }
     }
   }
   

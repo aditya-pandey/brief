@@ -19,7 +19,7 @@ function slug(text) {
 
 function refreshIndex() {
   const entries = readdirSync(DATA_DIR)
-    .filter(f => f.endsWith(".json") && f !== "index.json")
+    .filter(f => f.endsWith(".json") && f !== "index.json" && !f.startsWith("flash-"))
     .map(f => {
       const date = f.replace(".json", "");
       try {

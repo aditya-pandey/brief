@@ -314,6 +314,13 @@
 
       <!-- Flash Editor Fields -->
       <div id="flash-editor-fields" style="display: none;">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="flash-date">Target Date</label>
+            <input type="date" id="flash-date" class="input-date" />
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="flash-raw-json">Paste Flash JSON (25 Stories Array)</label>
           <textarea id="flash-raw-json" class="input-textarea" placeholder="Paste the daily Flash JSON array directly..."></textarea>
@@ -322,8 +329,8 @@
         <div id="flash-validation-panel" style="display: none; border-radius: var(--radius-sm); margin-bottom: 16px;"></div>
 
         <div style="display: flex; gap: 12px; margin-top: 12px;">
-          <button class="btn" id="btn-flash-parse" onclick="runFlashPipeline(false)">Validate & Preview</button>
-          <button class="btn" id="btn-flash-publish" onclick="runFlashPipeline(true)" style="background: var(--green); display: none;">Publish to GitHub</button>
+          <button class="btn" id="btn-flash-parse" onclick="runFlashPipeline(false)">Parse & Preview</button>
+          <button class="btn" id="btn-flash-publish" onclick="runFlashPipeline(true)" style="background: var(--green);">Publish to GitHub</button>
         </div>
       </div>
     </div>
@@ -373,6 +380,7 @@
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     document.getElementById("briefing-date").value = `${year}-${month}-${day}`;
+    document.getElementById("flash-date").value = `${year}-${month}-${day}`;
 
     // Auto-expanding textareas for better mobile UX
     const jsonTextarea = document.getElementById("raw-json");
@@ -473,64 +481,6 @@
         cons.innerHTML = "";
         log("Initializing processing pipeline...");
 
-        function repairJson(str) {
-          let result = '';
-          let inString = false;
-          let i = 0;
-          while (i < str.length) {
-            const char = str[i];
-            if (char === '"') {
-              let backslashes = 0;
-              let j = i - 1;
-              while (j >= 0 && str[j] === '\\') {
-                backslashes++;
-                j--;
-              }
-              const isEscaped = (backslashes % 2) === 1;
-              if (!isEscaped) {
-                if (!inString) {
-                  inString = true;
-                  result += char;
-                } else {
-                  let nextNonWhitespace = '';
-                  let k = i + 1;
-                  while (k < str.length) {
-                    const nextChar = str[k];
-                    if (nextChar !== ' ' && nextChar !== '\t' && nextChar !== '\n' && nextChar !== '\r') {
-                      nextNonWhitespace = nextChar;
-                      break;
-                    }
-                    k++;
-                  }
-                  if (nextNonWhitespace === ':' || nextNonWhitespace === ',' || nextNonWhitespace === '}' || nextNonWhitespace === ']' || nextNonWhitespace === '') {
-                    inString = false;
-                    result += char;
-                  } else {
-                    result += '\\"';
-                  }
-                }
-              } else {
-                result += char;
-              }
-            } else {
-              if (inString) {
-                if (char === '\n') {
-                  result += '\\n';
-                } else if (char === '\r') {
-                  result += '\\r';
-                } else if (char === '\t') {
-                  result += '\\t';
-                } else {
-                  result += char;
-                }
-              } else {
-                result += char;
-              }
-            }
-            i++;
-          }
-          return result;
-        }
 
         const rawJson = document.getElementById("raw-json").value;
         if (!rawJson.trim()) {
@@ -942,6 +892,12 @@
 
     async function runFlashPipeline(shouldPublish = false) {
       try {
+        const date = document.getElementById("flash-date").value;
+        if (!date) {
+          alert("Please select a target date.");
+          return;
+        }
+
         const rawText = document.getElementById("flash-raw-json").value.trim();
         if (!rawText) {
           alert("Please paste the Flash JSON payload.");
@@ -1021,7 +977,10 @@
         valPanel.innerHTML = valHtml;
 
         if (hasErrors) {
-          document.getElementById("btn-flash-publish").style.display = "none";
+          if (shouldPublish) {
+            log("Publish blocked due to validation errors.", true);
+            alert("Validation failed! Please fix the errors listed in the validation panel before publishing.");
+          }
           document.getElementById("flash-results-section").style.display = "none";
           return;
         }
@@ -1031,17 +990,75 @@
         // 3. Render Previews
         renderFlashPreviews(stories, validation.vagueKeywordsByStory);
         document.getElementById("flash-results-section").style.display = "block";
-        document.getElementById("btn-flash-publish").style.display = "inline-flex";
 
         // 4. Publish to GitHub
         if (shouldPublish) {
-          await publishFlashToGitHub(stories);
+          await publishFlashToGitHub(date, stories);
         }
 
       } catch (err) {
         log(`Pipeline failed: ${err.message}`, true);
         alert(`Failed to parse/validate Flash JSON: ${err.message}`);
       }
+    }
+
+    function repairJson(str) {
+      let result = '';
+      let inString = false;
+      let i = 0;
+      while (i < str.length) {
+        const char = str[i];
+        if (char === '"') {
+          let backslashes = 0;
+          let j = i - 1;
+          while (j >= 0 && str[j] === '\\') {
+            backslashes++;
+            j--;
+          }
+          const isEscaped = (backslashes % 2) === 1;
+          if (!isEscaped) {
+            if (!inString) {
+              inString = true;
+              result += char;
+            } else {
+              let nextNonWhitespace = '';
+              let k = i + 1;
+              while (k < str.length) {
+                const nextChar = str[k];
+                if (nextChar !== ' ' && nextChar !== '\t' && nextChar !== '\n' && nextChar !== '\r') {
+                  nextNonWhitespace = nextChar;
+                  break;
+                }
+                k++;
+              }
+              if (nextNonWhitespace === ':' || nextNonWhitespace === ',' || nextNonWhitespace === '}' || nextNonWhitespace === ']' || nextNonWhitespace === '') {
+                inString = false;
+                result += char;
+              } else {
+                result += '\\"';
+              }
+            }
+          } else {
+            result += char;
+          }
+        } else {
+          if (inString) {
+            if (char === '\n') {
+              result += '\\n';
+            } else if (char === '\r') {
+              result += '\\r';
+            } else if (char === '\t') {
+              result += '\\t';
+            } else {
+              result += char;
+            }
+          } else {
+            result += char;
+          }
+        }
+        i++;
+      }
+      return result;
     }
 
     function escapeHtml(s) {
@@ -1059,7 +1076,10 @@
         warnings.push(`Story count is ${count} (expected exactly 25 stories for today).`);
       }
       
-      const validCats = new Set(['india', 'world', 'politics', 'business', 'ai', 'science']);
+      const validCats = new Set([
+        'india', 'global', 'politics', 'economics', 'ai-tech', 'science', 'sports', 'entertainment', 'culture', 'health',
+        'world', 'business', 'ai' // older aliases for backwards compatibility
+      ]);
       const catCount = {};
       
       stories.forEach((s, idx) => {
@@ -1068,21 +1088,22 @@
         const id = s.id;
         const cat = s.cat;
         const ts = s.ts || s.time;
-        const hl = s.hl || s.headline;
-        const body = s.body || s.summary;
-        const fact = s.fact || s.signal;
+        const hl = s.headline || s.hl;
+        const body = s.summary || s.body;
+        const source = s.source || s.src;
         
         if (!id) errors.push(`${prefix} is missing key 'id'.`);
         if (!cat) errors.push(`${prefix} is missing key 'cat'.`);
-        if (!ts) errors.push(`${prefix} is missing key 'ts'.`);
-        if (!hl) errors.push(`${prefix} is missing key 'hl'.`);
-        if (!body) errors.push(`${prefix} is missing key 'body'.`);
-        if (!fact) errors.push(`${prefix} is missing key 'fact'.`);
+        if (!hl) errors.push(`${prefix} is missing key 'headline' or 'hl'.`);
+        if (!body) errors.push(`${prefix} is missing key 'summary' or 'body'.`);
+        if (!source) errors.push(`${prefix} is missing key 'source' or 'src'.`);
+        if (!s.why_it_matters) errors.push(`${prefix} is missing key 'why_it_matters'.`);
+        if (!s.remember) errors.push(`${prefix} is missing key 'remember'.`);
         
         if (cat) {
           const lowerCat = cat.trim().toLowerCase();
           if (!validCats.has(lowerCat)) {
-            errors.push(`${prefix} has invalid category '${cat}'. Must be one of: ${Array.from(validCats).join(', ')}.`);
+            errors.push(`${prefix} has invalid category '${cat}'. Must be one of: ${Array.from(validCats).filter(c => !['world', 'business', 'ai'].includes(c)).join(', ')}.`);
           } else {
             catCount[lowerCat] = (catCount[lowerCat] || 0) + 1;
           }
@@ -1093,7 +1114,7 @@
           const foundVague = [];
           s.who_benefits.forEach(b => {
             const bLower = String(b).trim().toLowerCase();
-            if (vague.some(v => bLower === v || bLower.includes(v))) {
+            if (vague.some(v => bLower === v)) {
               foundVague.push(b);
             }
           });
@@ -1109,7 +1130,7 @@
       const catArray = Array.from(validCats);
       catArray.forEach(c => {
         const count = catCount[c] || 0;
-        if (count === 0) {
+        if (count === 0 && !['world', 'business', 'ai'].includes(c)) {
           warnings.push(`Category '${c}' has 0 stories. Feed might feel imbalanced.`);
         }
       });
@@ -1123,17 +1144,29 @@
       container.innerHTML = "";
       
       const FLASH_COLORS = {
-        india:    '#FF5722',
-        world:    '#3B82F6',
-        politics: '#8B5CF6',
-        business: '#22C55E',
-        ai:       '#06B6D4',
-        science:  '#F59E0B'
+        all:           '#FF5722',
+        india:         '#FF5722',
+        world:         '#3B82F6',
+        global:        '#3B82F6',
+        ai:            '#06B6D4',
+        'ai-tech':     '#06B6D4',
+        politics:      '#8B5CF6',
+        business:      '#22C55E',
+        economics:     '#22C55E',
+        sports:        '#F97316',
+        entertainment: '#EC4899',
+        culture:       '#A78BFA',
+        science:       '#F59E0B',
+        health:        '#34D399'
       };
       
       container.innerHTML = stories.map((s, idx) => {
         const cat = (s.cat || "india").toLowerCase();
         const col = FLASH_COLORS[cat] || '#3E3E50';
+        
+        const hl = s.headline || s.hl;
+        const body = s.summary || s.body;
+        const source = s.source || s.src;
         
         const vague = vagueKeywords[idx] || [];
         const vagueWarningHtml = vague.length > 0
@@ -1146,29 +1179,39 @@
           <span style="border: 1px solid rgba(255,255,255,0.08); font-family: var(--sans); font-size: 10px; border-radius: 10px; padding: 2px 6px; color: var(--ink-2); background: var(--bg-card-h); white-space: nowrap;">${escapeHtml(b)}</span>
         `).join("");
         
+        const whyItMattersHtml = s.why_it_matters
+          ? `<div style="border-left: 2px solid ${col}; padding-left: 8px; font-family: var(--sans); font-size: 11px; color: var(--ink-2); line-height: 1.4; margin-top: 4px;">
+               <strong style="color: var(--ink); font-size: 8px; text-transform: uppercase; letter-spacing: 0.12em;">Why it matters:</strong> ${escapeHtml(s.why_it_matters)}
+             </div>`
+          : "";
+          
+        const rememberHtml = s.remember
+          ? `<div style="border-left: 2px solid #8B5CF6; padding-left: 8px; font-family: var(--sans); font-size: 11px; color: var(--ink-2); line-height: 1.4; margin-top: 4px;">
+               <strong style="color: var(--ink); font-size: 8px; text-transform: uppercase; letter-spacing: 0.12em;">Remember:</strong> ${escapeHtml(s.remember)}
+             </div>`
+          : "";
+          
         return `
           <div style="background: var(--bg-card); border: 1px solid var(--rule); border-top: 4px solid ${col}; border-radius: var(--radius-sm); padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow-sm); text-align: left;">
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
               <span style="color: ${col}; font-weight: 700; text-transform: uppercase;">${escapeHtml(s.cat)}</span>
-              <span style="color: var(--ink-3); font-family: var(--mono);">${escapeHtml(s.ts)}</span>
+              ${ source ? `<span style="color: var(--ink-3); font-family: var(--mono);">${escapeHtml(source)}</span>` : '' }
             </div>
-            <h3 style="font-family: var(--serif); font-size: 16px; font-weight: 700; color: var(--ink); margin: 0; line-height: 1.3;">${escapeHtml(s.hl || s.headline)}</h3>
-            <p style="font-family: var(--sans); font-size: 13px; color: var(--ink-2); line-height: 1.5; margin: 0;">${escapeHtml(s.body || s.summary)}</p>
-            <div style="background: var(--bg); padding: 8px; border-left: 2px solid ${col}; border-radius: 4px; font-family: var(--mono); font-size: 11px; color: var(--ink);">
-              <div style="font-size: 8px; color: var(--ink-3); text-transform: uppercase; margin-bottom: 2px;">Key Fact</div>
-              ${escapeHtml(s.fact || s.signal)}
-            </div>
+            <h3 style="font-family: var(--serif); font-size: 16px; font-weight: 700; color: var(--ink); margin: 0; line-height: 1.3;">${escapeHtml(hl)}</h3>
+            <p style="font-family: var(--sans); font-size: 13px; color: var(--ink-2); line-height: 1.5; margin: 0;">${escapeHtml(body)}</p>
+            ${whyItMattersHtml}
+            ${rememberHtml}
+            ${vagueWarningHtml}
             ${benefitsChips ? `
               <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px;">
                 <span style="font-size: 9px; color: var(--ink-3); text-transform: uppercase; font-family: var(--sans); font-weight: 700;">Benefits:</span>
                 ${benefitsChips}
               </div>` : ""}
-            ${vagueWarningHtml}
           </div>`;
       }).join("");
     }
 
-    async function publishFlashToGitHub(stories) {
+    async function publishFlashToGitHub(date, stories) {
       const owner = localStorage.getItem("gh-owner");
       const repo = localStorage.getItem("gh-repo");
       const token = localStorage.getItem("gh-token");
@@ -1185,48 +1228,152 @@
         "Accept": "application/vnd.github.v3+json"
       };
 
-      log("Checking remote flash.json file on GitHub...");
-      let flashSha = null;
+      log("Authenticating and checking repository contents...");
+      let indexData = [];
+      let indexSha = null;
+      let dailyFileSha = null;
 
+      // 1. Fetch index.json (to get its SHA and current state)
       try {
-        const flashRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/flash.json`, { headers });
-        if (flashRes.ok) {
-          const flashJson = await flashRes.json();
-          flashSha = flashJson.sha;
-          log("Found existing remote flash.json. Preparing to overwrite.");
-        } else if (flashRes.status === 404) {
-          log("Notice: flash.json not found on remote. Will create a new flash.json file.");
+        const indexRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/index.json`, { headers });
+        if (indexRes.ok) {
+          const indexJson = await indexRes.json();
+          indexSha = indexJson.sha;
+          const decodedIndex = atob(indexJson.content.replace(/\s/g, ''));
+          indexData = JSON.parse(decodedIndex);
+          log(`Loaded remote index with ${indexData.length} records.`);
+        } else if (indexRes.status === 404) {
+          log("Notice: index.json not found on remote. Starting a new index.json.");
         } else {
-          throw new Error(`Failed to check flash.json (HTTP ${flashRes.status})`);
+          throw new Error(`Failed to load index.json (HTTP ${indexRes.status})`);
         }
       } catch (err) {
-        log(`Error checking flash.json: ${err.message}`, true);
+        log(`Error: ${err.message}`, true);
         return;
       }
 
-      log("Uploading flash.json contents to remote repository root...");
-      const body = {
-        message: "update: update ⚡ Flash speed news feed",
+      // 2. Fetch data/flash-YYYY-MM-DD.json (if exists) for checking SHA
+      log(`Checking if data/flash-${date}.json exists on remote...`);
+      try {
+        const dailyFileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/flash-${date}.json`, { headers });
+        if (dailyFileRes.ok) {
+          const dailyFileJson = await dailyFileRes.json();
+          dailyFileSha = dailyFileJson.sha;
+          log(`Found existing data/flash-${date}.json.`);
+        } else if (dailyFileRes.status === 404) {
+          log(`Notice: data/flash-${date}.json does not exist. Creating new briefing.`);
+        }
+      } catch (e) {
+        log(`Notice: Failed to fetch daily file: ${e.message}. Will write as new.`);
+      }
+
+      // 3. Update local copy of index.json
+      const existingIdx = indexData.findIndex(x => x.date === date);
+      if (existingIdx === -1) {
+        indexData.push({ date, count: null });
+      }
+
+      // Deduplicate the list to ensure we never have multiple entries for the same date
+      const uniqueIndexData = [];
+      const seenDates = new Set();
+      for (const entry of indexData) {
+        if (!seenDates.has(entry.date)) {
+          seenDates.add(entry.date);
+          uniqueIndexData.push(entry);
+        }
+      }
+      indexData = uniqueIndexData;
+      indexData.sort((a, b) => b.date.localeCompare(a.date));
+
+      // 4. Write daily file contents to data/flash-YYYY-MM-DD.json
+      log(`Writing daily Flash file contents to data/flash-${date}.json...`);
+      const dailyBody = {
+        message: `update: add Flash speed news for ${date}`,
         content: btoa(unescape(encodeURIComponent(JSON.stringify(stories, null, 2)))),
         branch: "main"
       };
-      if (flashSha) body.sha = flashSha;
+      if (dailyFileSha) dailyBody.sha = dailyFileSha;
 
       try {
-        const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/flash.json`, {
+        const writeDailyRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/flash-${date}.json`, {
           method: "PUT",
           headers,
-          body: JSON.stringify(body)
+          body: JSON.stringify(dailyBody)
         });
-        if (res.ok) {
-          log("Success: flash.json written successfully! ⚡🚀");
-          alert("Successfully published Flash speed news! The live feed will refresh in 1-2 minutes.");
+        if (writeDailyRes.ok) {
+          log(`Success: data/flash-${date}.json written successfully.`);
         } else {
-          const errBody = await res.json();
-          throw new Error(`Failed to write flash.json: ${errBody.message}`);
+          const errBody = await writeDailyRes.json();
+          throw new Error(`Failed to write data/flash-${date}.json: ${errBody.message}`);
         }
       } catch (err) {
-        log(`Error writing flash.json: ${err.message}`, true);
+        log(`Error: ${err.message}`, true);
+        return;
+      }
+
+      // 5. If this date is the latest date or newer, update the root flash.json as well
+      if (indexData.length > 0 && date >= indexData[0].date) {
+        log("This is the latest date or newer. Updating remote root flash.json as well...");
+        let rootFlashSha = null;
+        try {
+          const rootFlashRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/flash.json`, { headers });
+          if (rootFlashRes.ok) {
+            const rootFlashJson = await rootFlashRes.json();
+            rootFlashSha = rootFlashJson.sha;
+          }
+        } catch (e) {
+          log(`Notice: Could not fetch root flash.json SHA: ${e.message}. Writing as new.`);
+        }
+
+        const rootFlashBody = {
+          message: "update: update ⚡ Flash speed news feed (root)",
+          content: btoa(unescape(encodeURIComponent(JSON.stringify(stories, null, 2)))),
+          branch: "main"
+        };
+        if (rootFlashSha) rootFlashBody.sha = rootFlashSha;
+
+        try {
+          const writeRootFlashRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/flash.json`, {
+            method: "PUT",
+            headers,
+            body: JSON.stringify(rootFlashBody)
+          });
+          if (writeRootFlashRes.ok) {
+            log("Success: root flash.json written successfully.");
+          } else {
+            const errBody = await writeRootFlashRes.json();
+            log(`Warning: Failed to update root flash.json: ${errBody.message}`, true);
+          }
+        } catch (err) {
+          log(`Warning: Error writing root flash.json: ${err.message}`, true);
+        }
+      }
+
+      // 6. Write index.json
+      log("Updating remote index.json...");
+      const indexBody = {
+        message: `update: index update for ${date} (Flash)`,
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(indexData, null, 2)))),
+        branch: "main"
+      };
+      if (indexSha) indexBody.sha = indexSha;
+
+      try {
+        const writeIndexRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/index.json`, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify(indexBody)
+        });
+        if (writeIndexRes.ok) {
+          log("Success: data/index.json updated successfully.");
+          log("Deployment complete! 🚀 GitHub Pages will rebuild and go live in 1-2 minutes.");
+          alert(`Successfully updated Flash speed news for ${date}! The live feed will refresh shortly.`);
+        } else {
+          const errBody = await writeIndexRes.json();
+          throw new Error(`Failed to update index.json: ${errBody.message}`);
+        }
+      } catch (err) {
+        log(`Error: ${err.message}`, true);
       }
     }
 

@@ -4,17 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Strategic Infrastructure: Zojila Tunnel Nears Final Breakthrough</title>
-  <script>
-    const basePath = (() => {
-      const path = window.location.pathname;
-      const match = path.match(/^(.*?)\/(?:story|day|editor)(?:\/|$)/);
-      if (match) return match[1];
-      return path.replace(/\/+$/, "");
-    })();
-    const base = document.createElement('base');
-    base.href = basePath ? basePath + '/' : '/';
-    document.head.appendChild(base);
-  </script>
+  <base href="../../../" />
   <meta name="description" content="The strategically vital Zojila Tunnel is approaching its final structural breakthrough in the Himalayas. The all-weather link will drastically enhance the Indian Army's tactical mobility and secure year-round connectivity between Kashmir and Ladakh." />
   
   <!-- Favicon and Social Share Images -->
@@ -48,29 +38,32 @@
     <div class="header-inner">
       <a class="wordmark" href="./">The Briefing</a>
       
-      <!-- Persistent Mode Toggle -->
-      <nav class="mode-toggle-nav" id="mode-toggle-nav">
-        <button id="toggle-flash" class="mode-tab active" data-mode="flash">⚡ Flash</button>
-        <button id="toggle-briefing" class="mode-tab" data-mode="briefing">📰 Briefing</button>
-      </nav>
+      <!-- Persistent Mode Toggle Switch -->
+      <div class="mode-toggle-wrapper">
+        <button id="mode-toggle-btn" class="mode-toggle-switch state-flash" aria-label="Switch Mode">
+          <span class="mode-toggle-thumb"></span>
+          <span class="mode-toggle-label flash">⚡ Flash</span>
+          <span class="mode-toggle-label briefing">📰 Briefing</span>
+        </button>
+      </div>
       
       <!-- Desktop Flash Center Progress -->
       <div id="flash-header-center" class="flash-header-center-progress"></div>
 
       <div class="header-right">
-        <div class="header-search" id="header-search-container">
-          <label for="archive-select" class="sr-only">Search by date</label>
-          <div class="date-picker-wrapper" aria-label="Select Date">
-            <svg class="date-picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="16" y1="2" x2="16" y2="6"></line>
-              <line x1="8" y1="2" x2="8" y2="6"></line>
-              <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-            <input type="date" id="archive-select" class="archive-date-picker" aria-label="Search by date" />
-          </div>
+        <div class="header-date-btn" id="header-date-btn" role="button" tabindex="0" aria-label="Change date" title="Jump to another date">
+          <svg class="header-date-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span id="header-date" class="header-date-text"></span>
+          <svg class="header-date-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+          <input type="date" id="archive-select" class="archive-date-picker" aria-label="Search by date" tabindex="-1" />
         </div>
-        <span id="header-date"></span>
         
         <!-- Desktop Flash switch mode navigation -->
         <div id="flash-desktop-right-nav" class="flash-desktop-right-nav">
