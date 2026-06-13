@@ -2181,7 +2181,7 @@ function attachPhysicalDrag(filtered) {
 
   if (physDragCleanup) { physDragCleanup(); physDragCleanup = null; }
 
-  let dragging = false, isVert = null;
+  let dragging = false, isVert = null, animating = false;
   let startY = 0, startX = 0, deltaY = 0;
   let lastY = 0, lastT = 0, velY = 0;
   let curCard = null, nxtCard = null, prvCard = null;
@@ -2198,9 +2198,9 @@ function attachPhysicalDrag(filtered) {
     if (role === 'current') {
       Object.assign(el.style, { zIndex:'20', transform:'translateY(0) scale(1)', opacity:'1', pointerEvents:'auto' });
     } else if (role === 'next') {
-      Object.assign(el.style, { zIndex:'10', transform:'scale(0.94)', opacity:'0.85', pointerEvents:'none' });
+      Object.assign(el.style, { zIndex:'10', transform:'translateY(0) scale(0.94)', opacity:'0.85', pointerEvents:'none' });
     } else if (role === 'prev') {
-      Object.assign(el.style, { zIndex:'10', transform:'translateY(-100%)', opacity:'0', pointerEvents:'none' });
+      Object.assign(el.style, { zIndex:'10', transform:'translateY(-100%) scale(0.94)', opacity:'0', pointerEvents:'none' });
     }
   }
 
@@ -2275,7 +2275,7 @@ function attachPhysicalDrag(filtered) {
   wireFlashNavigation(filtered);
 
   function onStart(e) {
-    if (e.touches.length !== 1) return;
+    if (e.touches.length !== 1 || animating) return;
     dragging = true; isVert = null; deltaY = 0; velY = 0;
     const t = e.touches[0];
     startY = lastY = t.clientY; startX = t.clientX;
@@ -2310,15 +2310,15 @@ function attachPhysicalDrag(filtered) {
     const p = Math.min(Math.abs(edy) / stageH, 1);
     curCard.style.transform = `translateY(${edy}px) scale(${1 - p * 0.02})`;
     if (edy < 0 && nxtCard) {
-      nxtCard.style.transform = `scale(${0.94 + p * 0.06})`;
+      nxtCard.style.transform = `translateY(0) scale(${0.94 + p * 0.06})`;
       nxtCard.style.opacity   = String(0.85 + p * 0.15);
     } else if (edy > 0 && prvCard) {
-      prvCard.style.transform = `translateY(${-stageH + edy}px)`;
+      prvCard.style.transform = `translateY(${-stageH + edy}px) scale(0.94)`;
       prvCard.style.opacity   = String(Math.min(edy / (stageH * 0.6), 0.85));
-      if (nxtCard) { nxtCard.style.transform = 'scale(0.94)'; nxtCard.style.opacity = '0.85'; }
+      if (nxtCard) { nxtCard.style.transform = 'translateY(0) scale(0.94)'; nxtCard.style.opacity = '0.85'; }
     } else {
-      if (nxtCard) { nxtCard.style.transform = 'scale(0.94)'; nxtCard.style.opacity = '0.85'; }
-      if (prvCard) { prvCard.style.transform = 'translateY(-100%)'; prvCard.style.opacity = '0'; }
+      if (nxtCard) { nxtCard.style.transform = 'translateY(0) scale(0.94)'; nxtCard.style.opacity = '0.85'; }
+      if (prvCard) { prvCard.style.transform = 'translateY(-100%) scale(0.94)'; prvCard.style.opacity = '0'; }
     }
   }
 
@@ -2334,10 +2334,11 @@ function attachPhysicalDrag(filtered) {
   function onCancel() { dragging = false; snapBack(); }
 
   function completeNav(dir) {
+    animating = true;
     const outgoing = curCard;
     const incoming = dir > 0 ? nxtCard : prvCard;
     trans(outgoing, EXIT_T);
-    if (outgoing) { outgoing.style.transform = `translateY(${dir > 0 ? '-110' : '110'}%) scale(0.96)`; outgoing.style.opacity = '0'; }
+    if (outgoing) { outgoing.style.transform = `translateY(${dir > 0 ? -(stageH + 30) : (stageH + 30)}px) scale(0.96)`; outgoing.style.opacity = '0'; }
     trans(incoming, EXIT_T);
     if (incoming) { incoming.style.transform = 'translateY(0) scale(1)'; incoming.style.opacity = '1'; }
 
@@ -2351,6 +2352,7 @@ function attachPhysicalDrag(filtered) {
     let done = false;
     function finalize() {
       if (done) return; done = true;
+      animating = false;
       if (outgoing?.parentNode) outgoing.parentNode.removeChild(outgoing);
       currentFlashIndex = newIdx;
       curCard = incoming;
@@ -2387,8 +2389,8 @@ function attachPhysicalDrag(filtered) {
 
   function snapBack() {
     if (curCard) { trans(curCard, SNAPB_T); curCard.style.transform = 'translateY(0) scale(1)'; curCard.style.opacity = '1'; }
-    if (nxtCard) { trans(nxtCard, EXIT_T); nxtCard.style.transform = 'scale(0.94)'; nxtCard.style.opacity = '0.85'; }
-    if (prvCard) { trans(prvCard, EXIT_T); prvCard.style.transform = 'translateY(-100%)'; prvCard.style.opacity = '0'; }
+    if (nxtCard) { trans(nxtCard, EXIT_T); nxtCard.style.transform = 'translateY(0) scale(0.94)'; nxtCard.style.opacity = '0.85'; }
+    if (prvCard) { trans(prvCard, EXIT_T); prvCard.style.transform = 'translateY(-100%) scale(0.94)'; prvCard.style.opacity = '0'; }
   }
 
   stage.addEventListener('touchstart', onStart, { passive: true });
