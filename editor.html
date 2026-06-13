@@ -319,6 +319,10 @@
             <label for="flash-date">Target Date</label>
             <input type="date" id="flash-date" class="input-date" />
           </div>
+          <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 20px;">
+            <input type="checkbox" id="flash-merge-stories" checked style="width: 18px; height: 18px; cursor: pointer;" />
+            <label for="flash-merge-stories" style="cursor: pointer; user-select: none; font-size: 13px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); font-weight: 600;">Merge/append to existing flashes</label>
+          </div>
         </div>
 
         <div class="form-group">
@@ -1252,14 +1256,42 @@
         return;
       }
 
-      // 2. Fetch data/flash-YYYY-MM-DD.json (if exists) for checking SHA
+      // 2. Fetch data/flash-YYYY-MM-DD.json (if exists) for checking SHA and merging
       log(`Checking if data/flash-${date}.json exists on remote...`);
+      const shouldMerge = document.getElementById("flash-merge-stories").checked;
+      let finalStories = [...stories];
       try {
         const dailyFileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/flash-${date}.json`, { headers });
         if (dailyFileRes.ok) {
           const dailyFileJson = await dailyFileRes.json();
           dailyFileSha = dailyFileJson.sha;
           log(`Found existing data/flash-${date}.json.`);
+          if (shouldMerge) {
+            log("Merging new Flash stories into existing daily list...");
+            try {
+              const decodedContent = atob(dailyFileJson.content.replace(/\s/g, ''));
+              const existingStories = JSON.parse(decodedContent);
+              if (Array.isArray(existingStories)) {
+                const mergedStories = [...existingStories];
+                let addedCount = 0;
+                let updatedCount = 0;
+                for (const newStory of stories) {
+                  const idx = mergedStories.findIndex(s => s.id === newStory.id || s.headline.trim().toLowerCase() === newStory.headline.trim().toLowerCase());
+                  if (idx >= 0) {
+                    mergedStories[idx] = newStory;
+                    updatedCount++;
+                  } else {
+                    mergedStories.push(newStory);
+                    addedCount++;
+                  }
+                }
+                finalStories = mergedStories;
+                log(`Merge completed: Added ${addedCount} new, updated ${updatedCount} existing flashes. Total: ${finalStories.length} stories.`);
+              }
+            } catch (mergeErr) {
+              log(`Warning: Failed to parse existing Flash file for merge: ${mergeErr.message}. Will overwrite instead.`, true);
+            }
+          }
         } else if (dailyFileRes.status === 404) {
           log(`Notice: data/flash-${date}.json does not exist. Creating new briefing.`);
         }
@@ -1289,7 +1321,7 @@
       log(`Writing daily Flash file contents to data/flash-${date}.json...`);
       const dailyBody = {
         message: `update: add Flash speed news for ${date}`,
-        content: btoa(unescape(encodeURIComponent(JSON.stringify(stories, null, 2)))),
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(finalStories, null, 2)))),
         branch: "main"
       };
       if (dailyFileSha) dailyBody.sha = dailyFileSha;
@@ -1327,7 +1359,7 @@
 
         const rootFlashBody = {
           message: "update: update ⚡ Flash speed news feed (root)",
-          content: btoa(unescape(encodeURIComponent(JSON.stringify(stories, null, 2)))),
+          content: btoa(unescape(encodeURIComponent(JSON.stringify(finalStories, null, 2)))),
           branch: "main"
         };
         if (rootFlashSha) rootFlashBody.sha = rootFlashSha;

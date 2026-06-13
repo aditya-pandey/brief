@@ -105,8 +105,27 @@ img { max-width: 100%; display: block; }
 .header-row-bottom {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding-bottom: 8px;
   flex-shrink: 0;
+  width: 100%;
+}
+.flash-header-counter {
+  display: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-2);
+  background: var(--bg-card-h);
+  border: 1px solid var(--rule);
+  padding: 4px 10px;
+  border-radius: 12px;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+body.mode-flash-active .flash-header-counter {
+  display: flex;
 }
 .wordmark {
   font-family: var(--serif); font-weight: 900; font-size: 22px;

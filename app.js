@@ -2161,6 +2161,18 @@ function wireFlashNavigation(filtered) {
   });
 }
 
+function updateFlashCounter(index, total) {
+  const ctr = $("flash-header-counter");
+  if (!ctr) return;
+  if (total === 0) {
+    ctr.textContent = "0 / 0";
+  } else if (index >= total) {
+    ctr.textContent = "Completed";
+  } else {
+    ctr.textContent = `${index + 1} / ${total}`;
+  }
+}
+
 function navigateFlash(direction, filtered) {
   const newIdx = currentFlashIndex + direction;
   if (newIdx < 0 || newIdx > filtered.length) return;
@@ -2171,9 +2183,8 @@ function navigateFlash(direction, filtered) {
 function updateFlashProgressUI(filtered) {
   const total = filtered.length;
   const fill    = document.querySelector('.flash-progress-fill');
-  const counter = document.querySelector('.flash-nav-counter');
   if (fill)    fill.style.width    = `${Math.min(((currentFlashIndex + 1) / total) * 100, 100)}%`;
-  if (counter) counter.textContent = currentFlashIndex >= total ? 'Completed' : `${currentFlashIndex + 1} / ${total}`;
+  updateFlashCounter(currentFlashIndex, total);
 }
 
 /* ── Physical card drag — 1:1 finger tracking with spring physics ── */
@@ -2370,9 +2381,8 @@ function attachPhysicalDrag(filtered) {
     const newIdx = currentFlashIndex + dir;
     const total  = filtered.length;
     const fill = document.querySelector('.flash-progress-fill');
-    const ctr  = document.querySelector('.flash-nav-counter');
     if (fill) { fill.style.transition = 'width 0.3s ease'; fill.style.width = `${Math.min(((newIdx + 1) / total) * 100, 100)}%`; }
-    if (ctr)  ctr.textContent = newIdx >= total ? 'Completed' : `${newIdx + 1} / ${total}`;
+    updateFlashCounter(newIdx, total);
 
     let done = false;
     function finalize() {
@@ -2780,10 +2790,8 @@ function renderFlashMobileLayout(filtered, targetDate) {
         <div class="flash-progress-track">
           <div class="flash-progress-fill" style="width:0%;"></div>
         </div>
-        <div class="flash-nav-row" style="justify-content:center;">
-          <div class="flash-nav-center"><span class="flash-nav-counter">0 / 0</span></div>
-        </div>
       </div>`;
+    updateFlashCounter(0, 0);
     wireFlashCategories();
     return;
   }
@@ -2791,7 +2799,6 @@ function renderFlashMobileLayout(filtered, targetDate) {
   const firstCol = getCategoryColor(filtered[0].cat);
   const firstRgb = getCategoryColorRgb(filtered[0].cat);
   const progressPct = Math.min(((currentFlashIndex + 1) / total) * 100, 100);
-  const counterText = currentFlashIndex >= total ? 'Completed' : `${currentFlashIndex + 1} / ${total}`;
 
   app.innerHTML = `
     <div class="flash-container" style="--cat-color:${firstCol};--cat-color-rgb:${firstRgb};">
@@ -2802,11 +2809,9 @@ function renderFlashMobileLayout(filtered, targetDate) {
       <div class="flash-progress-track">
         <div class="flash-progress-fill" style="width:${progressPct}%;transition:width 0.3s ease;"></div>
       </div>
-      <div class="flash-nav-row" style="justify-content:center;">
-        <div class="flash-nav-center"><span class="flash-nav-counter">${counterText}</span></div>
-      </div>
     </div>`;
 
+  updateFlashCounter(currentFlashIndex, total);
   wireFlashCategories();
   attachPhysicalDrag(filtered);
 }
@@ -3127,6 +3132,8 @@ function updateModeToggleUI() {
     if (segFlash)    { segFlash.classList.remove("active"); }
     if (segBriefing) { segBriefing.classList.add("active"); }
     if (wordmark) { wordmark.href = `${BASE_PATH}/briefings`; }
+    const ctr = $("flash-header-counter");
+    if (ctr) ctr.textContent = "";
   }
 }
 
