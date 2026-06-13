@@ -56,7 +56,7 @@ jobs:
         run: |
           git config user.name  "briefing-bot"
           git config user.email "actions@github.com"
-          git add data/ og-images/ story/ day/
+          git add data/ og-images/ story/ day/ flash/
           if git diff --staged --quiet; then
             echo "No data changes to commit."
           else
