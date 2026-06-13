@@ -191,6 +191,7 @@ function initDatePicker() {
     sel.addEventListener("change", async e => {
       const selected = e.target.value;
       if (selected) {
+        trackEvent("change_date", "DatePicker", selected);
         const resetDatePickerValue = () => {
           let p = location.pathname;
           if (p.endsWith("/index.html")) p = p.slice(0, -11);
@@ -2118,6 +2119,7 @@ function wireFlashCategories() {
     if (pill) {
       activeFlashCategory = pill.dataset.cat;
       currentFlashIndex = 0;
+      trackEvent("select_category", "Flash Navigation", activeFlashCategory);
       renderFlashView();
     }
   });
@@ -2448,6 +2450,16 @@ async function trackViewCount(storyId) {
   }
   
   let views = localReads[storyId] || 0;
+
+  // Track page view and event in Google Analytics
+  const story = flashStories.find(s => s.id === storyId);
+  if (story) {
+    const pageTitle = `The Briefing | Flash — ${story.headline || story.hl}`;
+    const pagePath = `/flash/story/${storyId}`;
+    trackPageView(pagePath, pageTitle);
+    trackEvent("view_flash_story", "Flash News", story.cat);
+  }
+
   return views;
 }
 
@@ -2472,11 +2484,13 @@ function toggleBookmark(story) {
     saved.splice(idx, 1);
     localStorage.setItem("flash_saved", JSON.stringify(saved));
     showToast("Removed from bookmarks");
+    trackEvent("bookmark_remove", "Engagement", story.headline || story.hl || story.id);
     return false; // not saved
   } else {
     saved.push(story);
     localStorage.setItem("flash_saved", JSON.stringify(saved));
     showToast("Saved to bookmarks");
+    trackEvent("bookmark_add", "Engagement", story.headline || story.hl || story.id);
     return true; // saved
   }
 }
@@ -2642,6 +2656,11 @@ async function renderFlashView(date = null) {
   
   try {
     await loadFlash(targetDate);
+    
+    // Track page view for the Flash feed / daily archive
+    const pageTitle = targetDate ? `The Briefing | Flash — ${fmtHeaderDate(targetDate)}` : "The Briefing | Flash";
+    const pagePath = targetDate ? `/flash/day/${targetDate}` : "/flash";
+    trackPageView(pagePath, pageTitle);
   } catch (err) {
     app.innerHTML = `<div class="error-state">Couldn't load Flash stories for ${esc(targetDate || 'today')} · ${esc(err.message)}</div>`;
     return;
@@ -3280,6 +3299,7 @@ function initSearch() {
       if (empty) empty.style.display = "none";
       debounceTimer = setTimeout(() => {
         const results = searchAll(q);
+        trackEvent("search", "Engagement", q);
         renderSearchResults(results, q);
       }, 120);
     });
@@ -3398,6 +3418,7 @@ function renderSearchResults(results, query) {
     item.addEventListener("click", () => {
       const type = item.dataset.type;
       const id   = item.dataset.id;
+      trackEvent("click_search_result", "Engagement", `${type}:${id}`);
       const overlay = $("search-overlay");
       const input   = $("search-input");
       if (overlay) overlay.classList.remove("open");
