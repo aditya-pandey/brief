@@ -2688,27 +2688,27 @@ function buildFlashCardInnerHTML(s, col, isSaved) {
     ? `<div class="flash-benefits-container"><span class="flash-benefits-label">Benefits:</span>${benefitsHtml}</div>` : '';
 
   const whyItMattersHtml = s.why_it_matters ? `<div class="flash-why-it-matters" style="--cat-color:${col};">
-    <div class="flash-section-icon flash-why-icon">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
-      </svg>
-    </div>
-    <div class="flash-section-content">
+    <div class="flash-section-header">
+      <div class="flash-section-icon flash-why-icon">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
       <span class="flash-why-label">Why It Matters</span>
-      <span class="flash-why-value">${esc(s.why_it_matters)}</span>
     </div>
+    <span class="flash-why-value">${esc(s.why_it_matters)}</span>
   </div>` : '';
 
   const rememberHtml = s.remember ? `<div class="flash-remember-box">
-    <div class="flash-section-icon flash-remember-icon">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-      </svg>
-    </div>
-    <div class="flash-section-content">
+    <div class="flash-section-header">
+      <div class="flash-section-icon flash-remember-icon">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </div>
       <span class="flash-remember-label">Remember</span>
-      <span class="flash-remember-value">${esc(s.remember)}</span>
     </div>
+    <span class="flash-remember-value">${esc(s.remember)}</span>
   </div>` : '';
 
   return `
