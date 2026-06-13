@@ -939,6 +939,21 @@
 
         log(`Successfully parsed JSON array with ${stories.length} stories.`);
 
+        // Auto-generate source_search if missing
+        let updatedAny = false;
+        stories.forEach(s => {
+          if (!s.source_search) {
+            const headlineText = s.headline || s.hl || '';
+            const sourceText = s.source || s.src || '';
+            s.source_search = `${headlineText} ${sourceText}`.trim();
+            updatedAny = true;
+          }
+        });
+        if (updatedAny) {
+          log("Auto-generated missing 'source_search' fields for the stories.");
+          document.getElementById("flash-raw-json").value = JSON.stringify(stories, null, 2);
+        }
+
         // 2. Validate Stories
         const validation = validateFlashStories(stories);
         
@@ -1103,6 +1118,7 @@
         if (!source) errors.push(`${prefix} is missing key 'source' or 'src'.`);
         if (!s.why_it_matters) errors.push(`${prefix} is missing key 'why_it_matters'.`);
         if (!s.remember) errors.push(`${prefix} is missing key 'remember'.`);
+        if (!s.source_search) errors.push(`${prefix} is missing key 'source_search'.`);
         
         if (cat) {
           const lowerCat = cat.trim().toLowerCase();
@@ -1199,7 +1215,16 @@
           <div style="background: var(--bg-card); border: 1px solid var(--rule); border-top: 4px solid ${col}; border-radius: var(--radius-sm); padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow-sm); text-align: left;">
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
               <span style="color: ${col}; font-weight: 700; text-transform: uppercase;">${escapeHtml(s.cat)}</span>
-              ${ source ? `<span style="color: var(--ink-3); font-family: var(--mono);">${escapeHtml(source)}</span>` : '' }
+              ${(() => {
+                if (!source) return '';
+                const text = escapeHtml(source);
+                const newspaperSvg = `<svg viewBox="0 0 24 24" width="10.5" height="10.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -1px; opacity: 0.8; display: inline-block;"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"></path></svg>`;
+                const label = `<span style="opacity: 0.65; font-weight: normal; margin-right: 3px;">Source:</span>`;
+                if (s.source_search) {
+                  return `<span style="color: var(--ink-3); font-family: var(--mono); display: inline-flex; align-items: center;">${newspaperSvg}${label}<a href="https://www.google.com/search?q=${encodeURIComponent(s.source_search)}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; cursor: pointer;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">${text}&nbsp;↗</a></span>`;
+                }
+                return `<span style="color: var(--ink-3); font-family: var(--mono); display: inline-flex; align-items: center;">${newspaperSvg}${label}<span>${text}</span></span>`;
+              })()}
             </div>
             <h3 style="font-family: var(--serif); font-size: 16px; font-weight: 700; color: var(--ink); margin: 0; line-height: 1.3;">${escapeHtml(hl)}</h3>
             <p style="font-family: var(--sans); font-size: 13px; color: var(--ink-2); line-height: 1.5; margin: 0;">${escapeHtml(body)}</p>

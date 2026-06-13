@@ -3246,6 +3246,13 @@ body.mode-flash-active #progress-bar {
   -webkit-touch-callout: none;
 }
 
+.flash-card-body,
+.flash-card-body * {
+  user-select: text;
+  -webkit-user-select: text;
+  -webkit-touch-callout: default;
+}
+
 /* Card Header Row — illustration + category badge + source on one line */
 .flash-card-header {
   display: flex;
@@ -3295,10 +3302,26 @@ body.mode-flash-active #progress-bar {
   font-size: 10px;
   color: var(--ink-3);
   flex-shrink: 0;
-  max-width: 130px;
+  display: inline-flex;
+  align-items: center;
+}
+.flash-source-link {
+  color: inherit !important;
+  text-decoration: underline;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+.flash-source-link:hover {
+  color: var(--accent) !important;
+}
+.flash-source-name-text {
+  display: inline-block;
+  max-width: 90px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  vertical-align: bottom;
 }
 .flash-visual-dashes {
   display: none;
@@ -4356,6 +4379,13 @@ body.mode-flash-active #progress-bar {
     font-family: var(--mono);
     font-size: 11px;
     color: var(--ink-3);
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .desktop-hero-card .flash-source-name-text,
+  .desktop-grid-card .flash-source-name-text {
+    max-width: 250px;
   }
 
   /* Headlines - fully visible */

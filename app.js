@@ -2708,6 +2708,17 @@ async function renderFlashView(date = null) {
   }
 }
 
+function getFlashSourceHtml(s, timeClass = 'flash-time') {
+  if (!s.source && !s.src) return '';
+  const sourceText = esc(s.source || s.src);
+  const newspaperSvg = `<svg viewBox="0 0 24 24" width="10.5" height="10.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -1px; opacity: 0.8; display: inline-block;"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"></path></svg>`;
+  const label = `<span style="opacity: 0.65; font-weight: normal; margin-right: 3px;">Source:</span>`;
+  if (s.source_search) {
+    return `<span class="${timeClass}">${newspaperSvg}${label}<a href="https://www.google.com/search?q=${encodeURIComponent(s.source_search)}" target="_blank" rel="noopener noreferrer" class="flash-source-link"><span class="flash-source-name-text">${sourceText}</span>&nbsp;↗</a></span>`;
+  }
+  return `<span class="${timeClass}">${newspaperSvg}${label}<span>${sourceText}</span></span>`;
+}
+
 /* ── Mobile Layout Renderer ── */
 /* ── Flash card inner-HTML builder (reused by animation + render) ── */
 function buildFlashCardInnerHTML(s, col, isSaved) {
@@ -2745,7 +2756,7 @@ function buildFlashCardInnerHTML(s, col, isSaved) {
       <div class="flash-card-visual">${getFlashIllustration(s.cat, s.id)}</div>
       <span class="flash-cat-badge">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
       <span class="flash-header-spacer"></span>
-      ${(s.source || s.src) ? `<span class="flash-time">${esc(s.source || s.src)}</span>` : ''}
+      ${getFlashSourceHtml(s, 'flash-time')}
     </div>
     <div class="flash-card-body">
       <h2 class="flash-headline">${esc(s.headline || s.hl)}</h2>
@@ -2892,7 +2903,7 @@ function renderDesktopGrid(filtered, targetDate) {
     <div class="desktop-hero-card" data-id="${esc(heroStory.id)}" style="--cat-color: ${heroCol}; --cat-color-rgb: ${heroRgb};">
       <div class="hero-card-header">
         <span class="hero-cat-badge" style="background: rgba(${heroRgb}, 0.1); color: ${heroCol};">${esc(FLASH_LABELS[heroStory.cat] || heroStory.cat)}</span>
-        ${ heroSource ? `<span class="hero-time">${esc(heroSource)}</span>` : '' }
+        ${getFlashSourceHtml(heroStory, 'hero-time')}
       </div>
       <div class="desktop-card-visual">
         ${getFlashIllustration(heroStory.cat, heroStory.id)}
@@ -2976,7 +2987,7 @@ function renderDesktopGrid(filtered, targetDate) {
       <div class="desktop-grid-card" data-id="${esc(s.id)}" style="--cat-color: ${col}; --cat-color-rgb: ${rgb};">
         <div class="grid-card-header">
           <span class="grid-cat-badge" style="background: rgba(${rgb}, 0.1); color: ${col};">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
-          ${ sSource ? `<span class="grid-time">${esc(sSource)}</span>` : '' }
+          ${getFlashSourceHtml(s, 'grid-time')}
         </div>
         <div class="desktop-card-visual">
           ${getFlashIllustration(s.cat, s.id)}
