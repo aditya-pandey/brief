@@ -2312,6 +2312,7 @@ function attachPhysicalDrag(filtered) {
     if (edy < 0 && nxtCard) {
       nxtCard.style.transform = `translateY(0) scale(${0.94 + p * 0.06})`;
       nxtCard.style.opacity   = String(0.85 + p * 0.15);
+      if (prvCard) { prvCard.style.transform = 'translateY(-100%) scale(0.94)'; prvCard.style.opacity = '0'; }
     } else if (edy > 0 && prvCard) {
       prvCard.style.transform = `translateY(${-stageH + edy}px) scale(0.94)`;
       prvCard.style.opacity   = String(Math.min(edy / (stageH * 0.6), 0.85));
@@ -2353,7 +2354,8 @@ function attachPhysicalDrag(filtered) {
     function finalize() {
       if (done) return; done = true;
       animating = false;
-      if (outgoing?.parentNode) outgoing.parentNode.removeChild(outgoing);
+      // Sweep all cards except incoming — removes outgoing + any direction-reversal ghosts
+      Array.from(stage.children).forEach(c => { if (c !== incoming) stage.removeChild(c); });
       currentFlashIndex = newIdx;
       curCard = incoming;
       if (curCard) { curCard.style.zIndex = '20'; trans(curCard, ''); curCard.style.pointerEvents = 'auto'; }
