@@ -18,8 +18,7 @@ let activeFlashCategory = "all";
 let currentFlashIndex = 0;
 const flashReadsSessionSet = new Set();
 let selectedFlashStoryId = null;
-let flashScrollObserver = null;
-let flashActiveFiltered = [];
+let physDragCleanup = null;
 
 /* ── Analytics tracking helpers ──────────────────────────────── */
 function trackPageView(path, title) {
@@ -2161,14 +2160,10 @@ function wireFlashNavigation(filtered) {
 }
 
 function navigateFlash(direction, filtered) {
-  const stage = $('flash-card-stage');
-  if (!stage) return;
   const newIdx = currentFlashIndex + direction;
   if (newIdx < 0 || newIdx > filtered.length) return;
-  const targetCard = stage.querySelector(`[data-idx="${newIdx}"]`);
-  if (!targetCard) return;
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  stage.scrollTo({ top: targetCard.offsetTop, behavior: reduced ? 'instant' : 'smooth' });
+  currentFlashIndex = newIdx;
+  renderFlashView();
 }
 
 function updateFlashProgressUI(filtered) {
@@ -2179,31 +2174,234 @@ function updateFlashProgressUI(filtered) {
   if (counter) counter.textContent = currentFlashIndex >= total ? 'Completed' : `${currentFlashIndex + 1} / ${total}`;
 }
 
-function initFlashScrollObserver(filtered) {
-  if (flashScrollObserver) {
-    flashScrollObserver.disconnect();
-    flashScrollObserver = null;
-  }
+/* ── Physical card drag — 1:1 finger tracking with spring physics ── */
+function attachPhysicalDrag(filtered) {
   const stage = $('flash-card-stage');
   if (!stage) return;
-  flashActiveFiltered = filtered;
 
-  flashScrollObserver = new IntersectionObserver(entries => {
-    for (const entry of entries) {
-      if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
-        const idx = parseInt(entry.target.dataset.idx, 10);
-        if (!isNaN(idx) && idx !== currentFlashIndex) {
-          currentFlashIndex = idx;
-          updateFlashProgressUI(filtered);
-          if (idx < filtered.length) {
-            trackViewCount(filtered[idx].id);
-          }
-        }
+  if (physDragCleanup) { physDragCleanup(); physDragCleanup = null; }
+
+  let dragging = false, isVert = null;
+  let startY = 0, startX = 0, deltaY = 0;
+  let lastY = 0, lastT = 0, velY = 0;
+  let curCard = null, nxtCard = null, prvCard = null;
+  let stageH = 0;
+
+  const EXIT_T  = '360ms cubic-bezier(0.22, 1, 0.36, 1)';
+  const SNAPB_T = '420ms cubic-bezier(0.34, 1.04, 0.64, 1)';
+
+  function trans(el, t) { if (el) el.style.transition = t; }
+
+  function setRole(el, role) {
+    if (!el) return;
+    el.style.transition = '';
+    if (role === 'current') {
+      Object.assign(el.style, { zIndex:'20', transform:'translateY(0) scale(1)', opacity:'1', pointerEvents:'auto' });
+    } else if (role === 'next') {
+      Object.assign(el.style, { zIndex:'10', transform:'scale(0.94)', opacity:'0.85', pointerEvents:'none' });
+    } else if (role === 'prev') {
+      Object.assign(el.style, { zIndex:'10', transform:'translateY(-100%)', opacity:'0', pointerEvents:'none' });
+    }
+  }
+
+  function mkStory(s, role) {
+    const col   = getCategoryColor(s.cat);
+    const rgb   = getCategoryColorRgb(s.cat);
+    const saved = getSavedStories().some(fs => fs.id === s.id);
+    const el = document.createElement('div');
+    el.className = 'flash-card';
+    el.dataset.id  = s.id;
+    el.dataset.idx = String(filtered.indexOf(s));
+    el.style.cssText = `--cat-color:${col};--cat-color-rgb:${rgb};`;
+    el.innerHTML = buildFlashCardInnerHTML(s, col, saved);
+    setRole(el, role);
+    return el;
+  }
+
+  function mkAllDone(role) {
+    const el = document.createElement('div');
+    el.className = 'flash-card all-done-card';
+    el.dataset.idx = String(filtered.length);
+    el.innerHTML = `
+      <div style="margin:auto;display:flex;flex-direction:column;align-items:center;text-align:center;gap:20px;width:100%;padding:20px 0;">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--teal-bg);color:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div>
+          <h2 class="flash-headline" style="font-size:22px;font-weight:900;margin-bottom:8px;">You're All Caught Up!</h2>
+          <p style="font-family:var(--body);font-size:15px;color:var(--ink-2);line-height:1.6;margin:0;">You've read all of today's speed news updates.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px;">
+          <button class="desktop-action-btn desktop-go-deeper-btn" id="all-done-briefings-btn" style="width:100%;justify-content:center;font-size:12px;padding:10px;">📰 Explore Deep Dives</button>
+          <button class="desktop-action-btn" id="all-done-restart-btn" style="width:100%;justify-content:center;font-size:11px;padding:8px;">↺ Back to First Card</button>
+        </div>
+      </div>`;
+    setRole(el, role);
+    return el;
+  }
+
+  function wireAllDone() {
+    const r = stage.querySelector('#all-done-restart-btn');
+    const b = stage.querySelector('#all-done-briefings-btn');
+    if (r) r.onclick = () => { currentFlashIndex = 0; renderFlashView(); };
+    if (b) b.onclick = () => { switchToBriefingMode(); navigate(`${BASE_PATH}/briefings`); };
+  }
+
+  function buildDeck() {
+    stage.innerHTML = '';
+    stageH = stage.clientHeight || 600;
+    const idx   = currentFlashIndex;
+    const total = filtered.length;
+
+    prvCard = idx > 0 ? mkStory(filtered[idx - 1], 'prev') : null;
+    if (prvCard) stage.appendChild(prvCard);
+
+    if (idx < total) {
+      const ni = idx + 1;
+      nxtCard = ni < total ? mkStory(filtered[ni], 'next') : mkAllDone('next');
+    } else {
+      nxtCard = null;
+    }
+    if (nxtCard) stage.appendChild(nxtCard);
+
+    curCard = idx < total ? mkStory(filtered[idx], 'current') : mkAllDone('current');
+    stage.appendChild(curCard);
+
+    if (idx >= total) wireAllDone();
+    else trackViewCount(filtered[idx].id);
+  }
+
+  buildDeck();
+  wireFlashNavigation(filtered);
+
+  function onStart(e) {
+    if (e.touches.length !== 1) return;
+    dragging = true; isVert = null; deltaY = 0; velY = 0;
+    const t = e.touches[0];
+    startY = lastY = t.clientY; startX = t.clientX;
+    lastT = e.timeStamp;
+    stageH = stage.clientHeight || stageH;
+    trans(curCard, ''); trans(nxtCard, ''); trans(prvCard, '');
+  }
+
+  function onMove(e) {
+    if (!dragging || e.touches.length !== 1) {
+      if (dragging) { dragging = false; snapBack(); }
+      return;
+    }
+    const t = e.touches[0];
+    const dy = t.clientY - startY, dx = t.clientX - startX;
+    if (isVert === null && (Math.abs(dy) > 4 || Math.abs(dx) > 4)) {
+      isVert = Math.abs(dy) > Math.abs(dx);
+    }
+    if (!isVert) return;
+    if (e.cancelable) e.preventDefault();
+    const now = e.timeStamp, dt = now - lastT;
+    if (dt > 0) velY = (t.clientY - lastY) / dt;
+    lastY = t.clientY; lastT = now; deltaY = dy;
+    updateVis(dy);
+  }
+
+  function updateVis(dy) {
+    if (!curCard) return;
+    let edy = dy;
+    if (dy < 0 && !nxtCard) edy = dy * 0.25;
+    if (dy > 0 && !prvCard) edy = dy * 0.25;
+    const p = Math.min(Math.abs(edy) / stageH, 1);
+    curCard.style.transform = `translateY(${edy}px) scale(${1 - p * 0.02})`;
+    if (edy < 0 && nxtCard) {
+      nxtCard.style.transform = `scale(${0.94 + p * 0.06})`;
+      nxtCard.style.opacity   = String(0.85 + p * 0.15);
+    } else if (edy > 0 && prvCard) {
+      prvCard.style.transform = `translateY(${-stageH + edy}px)`;
+      prvCard.style.opacity   = String(Math.min(edy / (stageH * 0.6), 0.85));
+      if (nxtCard) { nxtCard.style.transform = 'scale(0.94)'; nxtCard.style.opacity = '0.85'; }
+    } else {
+      if (nxtCard) { nxtCard.style.transform = 'scale(0.94)'; nxtCard.style.opacity = '0.85'; }
+      if (prvCard) { prvCard.style.transform = 'translateY(-100%)'; prvCard.style.opacity = '0'; }
+    }
+  }
+
+  function onEnd() {
+    if (!dragging) return; dragging = false;
+    if (!isVert) return;
+    const DIST = stageH * 0.28, VEL = 0.35;
+    if      ((deltaY < -DIST || velY < -VEL) && nxtCard) completeNav(1);
+    else if ((deltaY >  DIST || velY >  VEL) && prvCard)  completeNav(-1);
+    else snapBack();
+  }
+
+  function onCancel() { dragging = false; snapBack(); }
+
+  function completeNav(dir) {
+    const outgoing = curCard;
+    const incoming = dir > 0 ? nxtCard : prvCard;
+    trans(outgoing, EXIT_T);
+    if (outgoing) { outgoing.style.transform = `translateY(${dir > 0 ? '-110' : '110'}%) scale(0.96)`; outgoing.style.opacity = '0'; }
+    trans(incoming, EXIT_T);
+    if (incoming) { incoming.style.transform = 'translateY(0) scale(1)'; incoming.style.opacity = '1'; }
+
+    const newIdx = currentFlashIndex + dir;
+    const total  = filtered.length;
+    const fill = document.querySelector('.flash-progress-fill');
+    const ctr  = document.querySelector('.flash-nav-counter');
+    if (fill) { fill.style.transition = 'width 0.3s ease'; fill.style.width = `${Math.min(((newIdx + 1) / total) * 100, 100)}%`; }
+    if (ctr)  ctr.textContent = newIdx >= total ? 'Completed' : `${newIdx + 1} / ${total}`;
+
+    let done = false;
+    function finalize() {
+      if (done) return; done = true;
+      if (outgoing?.parentNode) outgoing.parentNode.removeChild(outgoing);
+      currentFlashIndex = newIdx;
+      curCard = incoming;
+      if (curCard) { curCard.style.zIndex = '20'; trans(curCard, ''); curCard.style.pointerEvents = 'auto'; }
+
+      if (newIdx >= total) {
+        nxtCard = null;
+        prvCard = newIdx > 0 ? mkStory(filtered[newIdx - 1], 'prev') : null;
+        if (prvCard) stage.insertBefore(prvCard, curCard);
+        wireAllDone();
+        return;
+      }
+
+      trackViewCount(filtered[newIdx].id);
+
+      if (dir > 0) {
+        const ni = newIdx + 1;
+        nxtCard = ni < total ? mkStory(filtered[ni], 'next') : ni === total ? mkAllDone('next') : null;
+        if (nxtCard) stage.insertBefore(nxtCard, curCard);
+        prvCard = newIdx > 0 ? mkStory(filtered[newIdx - 1], 'prev') : null;
+        if (prvCard) stage.insertBefore(prvCard, nxtCard || curCard);
+      } else {
+        const pi = newIdx - 1;
+        prvCard = pi >= 0 ? mkStory(filtered[pi], 'prev') : null;
+        if (prvCard) stage.insertBefore(prvCard, curCard);
+        const ni = newIdx + 1;
+        nxtCard = ni < total ? mkStory(filtered[ni], 'next') : ni === total ? mkAllDone('next') : null;
+        if (nxtCard) stage.insertBefore(nxtCard, curCard);
       }
     }
-  }, { root: stage, threshold: 0.6 });
+    if (outgoing) outgoing.addEventListener('transitionend', finalize, { once: true });
+    setTimeout(finalize, 440);
+  }
 
-  stage.querySelectorAll('.flash-card').forEach(card => flashScrollObserver.observe(card));
+  function snapBack() {
+    if (curCard) { trans(curCard, SNAPB_T); curCard.style.transform = 'translateY(0) scale(1)'; curCard.style.opacity = '1'; }
+    if (nxtCard) { trans(nxtCard, EXIT_T); nxtCard.style.transform = 'scale(0.94)'; nxtCard.style.opacity = '0.85'; }
+    if (prvCard) { trans(prvCard, EXIT_T); prvCard.style.transform = 'translateY(-100%)'; prvCard.style.opacity = '0'; }
+  }
+
+  stage.addEventListener('touchstart', onStart, { passive: true });
+  stage.addEventListener('touchmove', onMove, { passive: false });
+  stage.addEventListener('touchend', onEnd, { passive: true });
+  stage.addEventListener('touchcancel', onCancel, { passive: true });
+
+  physDragCleanup = () => {
+    stage.removeEventListener('touchstart', onStart);
+    stage.removeEventListener('touchmove', onMove);
+    stage.removeEventListener('touchend', onEnd);
+    stage.removeEventListener('touchcancel', onCancel);
+  };
 }
 
 async function trackViewCount(storyId) {
@@ -2567,37 +2765,6 @@ function renderFlashMobileLayout(filtered, targetDate) {
     return;
   }
 
-  const saved = getSavedStories();
-
-  const storyCardsHtml = filtered.map((s, idx) => {
-    const col    = getCategoryColor(s.cat);
-    const rgb    = getCategoryColorRgb(s.cat);
-    const isSaved = saved.some(fs => fs.id === s.id);
-    return `<div class="flash-card" data-idx="${idx}" data-id="${esc(s.id)}" style="--cat-color:${col};--cat-color-rgb:${rgb};">${buildFlashCardInnerHTML(s, col, isSaved)}</div>`;
-  }).join('');
-
-  const allDoneHtml = `
-    <div class="flash-card all-done-card" data-idx="${total}" style="justify-content:center;align-items:center;text-align:center;gap:20px;">
-      <div style="margin:0 auto;width:64px;height:64px;border-radius:50%;background:var(--teal-bg);color:var(--teal);display:flex;align-items:center;justify-content:center;">
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-        </svg>
-      </div>
-      <div>
-        <h2 class="flash-headline" style="font-size:22px;font-weight:900;margin-bottom:8px;">You're All Caught Up!</h2>
-        <p style="font-family:var(--body);font-size:15px;color:var(--ink-2);line-height:1.6;margin:0;">You've read all of today's speed news updates.</p>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px;margin:10px auto 0;">
-        <button class="desktop-action-btn desktop-go-deeper-btn" id="all-done-briefings-btn" style="width:100%;justify-content:center;font-size:12px;padding:10px;">
-          📰 Explore Deep Dives
-        </button>
-        <button class="desktop-action-btn" id="all-done-restart-btn" style="width:100%;justify-content:center;font-size:11px;padding:8px;">
-          ↺ Back to First Card
-        </button>
-      </div>
-    </div>`;
-
   const firstCol = getCategoryColor(filtered[0].cat);
   const firstRgb = getCategoryColorRgb(filtered[0].cat);
   const progressPct = Math.min(((currentFlashIndex + 1) / total) * 100, 100);
@@ -2608,12 +2775,9 @@ function renderFlashMobileLayout(filtered, targetDate) {
       <div class="flash-categories-bar" id="flash-cats">
         ${renderFlashCategoryPills()}
       </div>
-      <div class="flash-card-stage" id="flash-card-stage">
-        ${storyCardsHtml}
-        ${allDoneHtml}
-      </div>
+      <div class="flash-card-stage" id="flash-card-stage"></div>
       <div class="flash-progress-track">
-        <div class="flash-progress-fill" style="width:${progressPct}%;"></div>
+        <div class="flash-progress-fill" style="width:${progressPct}%;transition:width 0.3s ease;"></div>
       </div>
       <div class="flash-nav-row" style="justify-content:center;">
         <div class="flash-nav-center"><span class="flash-nav-counter">${counterText}</span></div>
@@ -2621,25 +2785,7 @@ function renderFlashMobileLayout(filtered, targetDate) {
     </div>`;
 
   wireFlashCategories();
-  wireFlashNavigation(filtered);
-  initFlashScrollObserver(filtered);
-
-  const restartBtn = $('all-done-restart-btn');
-  if (restartBtn) restartBtn.onclick = () => { currentFlashIndex = 0; renderFlashView(); };
-  const briefingsBtn = $('all-done-briefings-btn');
-  if (briefingsBtn) briefingsBtn.onclick = () => { switchToBriefingMode(); navigate(`${BASE_PATH}/briefings`); };
-
-  // Restore scroll position after layout (double-RAF ensures dimensions are resolved)
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    const stage = $('flash-card-stage');
-    if (!stage) return;
-    const target = stage.querySelector(`[data-idx="${currentFlashIndex}"]`);
-    if (target && currentFlashIndex > 0) {
-      stage.scrollTo({ top: target.offsetTop, behavior: 'instant' });
-    }
-  }));
-
-  if (currentFlashIndex < total) trackViewCount(filtered[currentFlashIndex].id);
+  attachPhysicalDrag(filtered);
 }
 
 /* ── Desktop Layout Renderer ── */
