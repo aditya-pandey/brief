@@ -18,6 +18,8 @@ let activeFlashCategory = "all";
 let currentFlashIndex = 0;
 const flashReadsSessionSet = new Set();
 let selectedFlashStoryId = null;
+let flashScrollObserver = null;
+let flashActiveFiltered = [];
 
 /* ── Analytics tracking helpers ──────────────────────────────── */
 function trackPageView(path, title) {
@@ -2123,292 +2125,85 @@ function wireFlashCategories() {
 }
 
 function wireFlashNavigation(filtered) {
-  const prevBtn = $("flash-prev");
-  const nextBtn = $("flash-next");
-  const bookmarkBtn = $("flash-bookmark-btn");
-  const goDeeperBtn = $("flash-go-deeper-btn");
-  
-  if (prevBtn) {
-    prevBtn.onclick = () => {
-      navigateFlash(-1, filtered);
-    };
-  }
-  if (nextBtn) {
-    nextBtn.onclick = () => {
-      navigateFlash(1, filtered);
-    };
-  }
-  if (bookmarkBtn) {
-    bookmarkBtn.onclick = () => {
-      const activeStory = filtered[currentFlashIndex];
-      const active = toggleBookmark(activeStory);
-      bookmarkBtn.classList.toggle("saved", active);
-      
-      const col = getCategoryColor(activeStory.cat);
-      bookmarkBtn.style.color = active ? col : "";
-      
-      const svg = bookmarkBtn.querySelector("svg");
-      if (svg) {
-        svg.setAttribute("fill", active ? "currentColor" : "none");
-      }
-      const label = bookmarkBtn.querySelector("span");
-      if (label) {
-        label.textContent = active ? "Saved" : "Save";
-      }
-    };
-  }
-  const shareBtn = $("flash-share-btn");
-  if (shareBtn) {
-    shareBtn.onclick = () => {
-      const activeStory = filtered[currentFlashIndex];
-      const url = `${window.location.origin}${BASE_PATH}/flash/story/${activeStory.id}`;
-      const headline = activeStory.headline || activeStory.hl;
-      openShareSheet(url, headline);
-    };
-  }
-  if (goDeeperBtn) {
-    goDeeperBtn.onclick = () => {
-      const activeStory = filtered[currentFlashIndex];
-      const latestDate = indexEntries[0]?.date;
-      if (latestDate) {
-        // Switch to briefing mode
-        currentMode = "briefing";
-        localStorage.setItem("currentMode", "briefing");
-        document.body.classList.remove("mode-flash-active");
-        
-        // update header nav active tab
-        $("toggle-briefing").classList.add("active");
-        $("toggle-flash").classList.remove("active");
-        
-        navigate(`${BASE_PATH}/story/${latestDate}/${activeStory.id}`);
-      }
-    };
-  }
+  const stage = $('flash-card-stage');
+  if (!stage) return;
+
+  stage.addEventListener('click', e => {
+    const bookmarkBtn = e.target.closest('.flash-bookmark-btn');
+    const shareBtn    = e.target.closest('.flash-share-btn');
+
+    if (bookmarkBtn) {
+      const storyId = bookmarkBtn.dataset.id;
+      const story = filtered.find(s => s.id === storyId);
+      if (!story) return;
+      const active = toggleBookmark(story);
+      const col = getCategoryColor(story.cat);
+      stage.querySelectorAll('.flash-bookmark-btn').forEach(btn => {
+        if (btn.dataset.id !== storyId) return;
+        btn.classList.toggle('saved', active);
+        btn.style.color = active ? col : '';
+        const svg = btn.querySelector('svg');
+        if (svg) svg.setAttribute('fill', active ? 'currentColor' : 'none');
+        const label = btn.querySelector('span');
+        if (label) label.textContent = active ? 'Saved' : 'Save';
+      });
+      updateSavedBadge();
+    }
+
+    if (shareBtn) {
+      const storyId = shareBtn.dataset.id;
+      const story = filtered.find(s => s.id === storyId);
+      if (!story) return;
+      const url = `${window.location.origin}${BASE_PATH}/flash/story/${storyId}`;
+      openShareSheet(url, story.headline || story.hl);
+    }
+  });
 }
 
 function navigateFlash(direction, filtered) {
-  const nextIdx = currentFlashIndex + direction;
-  if (nextIdx < 0 || nextIdx > filtered.length) return;
-
   const stage = $('flash-card-stage');
-  const oldCard = $('flash-card');
-
-  if (!stage || !oldCard) {
-    currentFlashIndex = nextIdx;
-    renderFlashView();
-    return;
-  }
-
-  oldCard.style.pointerEvents = 'none';
-
-  // Build the incoming card element directly in the stage
-  const nextS = filtered[nextIdx];
-  let newCardEl = null;
-  if (nextS) {
-    const col = getCategoryColor(nextS.cat);
-    const rgb = getCategoryColorRgb(nextS.cat);
-    const isSaved = getSavedStories().some(fs => fs.id === nextS.id);
-    newCardEl = document.createElement('div');
-    newCardEl.className = 'flash-card';
-    newCardEl.style.cssText =
-      `position:absolute;inset:0;z-index:9;pointer-events:none;` +
-      `--cat-color:${col};--cat-color-rgb:${rgb};` +
-      `transform:translateY(${direction > 0 ? '100%' : '-100%'});`;
-    newCardEl.innerHTML = buildFlashCardInnerHTML(nextS, col, isSaved);
-    stage.appendChild(newCardEl);
-    newCardEl.getBoundingClientRect(); // force reflow before transition
-  }
-
-  // Smooth simultaneous slide — both cards move together like one physical stack
-  const DUR = '420ms';
-  const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
-
-  oldCard.style.transition = `transform ${DUR} ${EASE}`;
-  oldCard.style.transform = direction > 0 ? 'translateY(-100%)' : 'translateY(100%)';
-
-  if (newCardEl) {
-    newCardEl.style.transition = `transform ${DUR} ${EASE}`;
-    newCardEl.style.transform = 'translateY(0)';
-  }
-
-  // Update progress + counter immediately (no waiting for animation)
-  const total = filtered.length;
-  const fill = document.querySelector('.flash-progress-fill');
-  const counter = document.querySelector('.flash-nav-counter');
-  if (fill) fill.style.width = `${Math.min(((nextIdx + 1) / total) * 100, 100)}%`;
-  if (counter) counter.textContent = nextIdx >= total ? 'Completed' : `${nextIdx + 1} / ${total}`;
-
-  let settled = false;
-  const settle = () => {
-    if (settled) return;
-    settled = true;
-    currentFlashIndex = nextIdx;
-    renderFlashView();
-  };
-  oldCard.addEventListener('transitionend', settle, { once: true });
-  setTimeout(settle, 480); // fallback if transitionend misfires
+  if (!stage) return;
+  const newIdx = currentFlashIndex + direction;
+  if (newIdx < 0 || newIdx > filtered.length) return;
+  const targetCard = stage.querySelector(`[data-idx="${newIdx}"]`);
+  if (!targetCard) return;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  stage.scrollTo({ top: targetCard.offsetTop, behavior: reduced ? 'instant' : 'smooth' });
 }
 
-let flashDragging = false;
-let flashStartY = 0;
-let flashCurrY = 0;
-let flashCardEl = null;
-let wheelTimeout = null;
+function updateFlashProgressUI(filtered) {
+  const total = filtered.length;
+  const fill    = document.querySelector('.flash-progress-fill');
+  const counter = document.querySelector('.flash-nav-counter');
+  if (fill)    fill.style.width    = `${Math.min(((currentFlashIndex + 1) / total) * 100, 100)}%`;
+  if (counter) counter.textContent = currentFlashIndex >= total ? 'Completed' : `${currentFlashIndex + 1} / ${total}`;
+}
 
-function attachFlashDrag(filtered) {
-  flashCardEl = $('flash-card');
-  if (!flashCardEl) return;
-
-  let peekCardEl = null;
-  let peekDir = 0;
-
-  // Build and insert the "peek" card (next/prev card visible behind current during drag)
-  function buildPeekCard(dir) {
-    const stage = $('flash-card-stage');
-    if (!stage) return null;
-    // Remove any existing peek
-    if (peekCardEl && peekCardEl.parentNode) peekCardEl.parentNode.removeChild(peekCardEl);
-    const peekIdx = currentFlashIndex + dir;
-    const peekS = filtered[peekIdx];
-    if (!peekS) return null;
-    const col = getCategoryColor(peekS.cat);
-    const rgb = getCategoryColorRgb(peekS.cat);
-    const isSaved = getSavedStories().some(fs => fs.id === peekS.id);
-    const el = document.createElement('div');
-    el.className = 'flash-card';
-    el.id = 'flash-card-peek';
-    el.style.cssText =
-      `position:absolute;inset:0;z-index:9;pointer-events:none;` +
-      `--cat-color:${col};--cat-color-rgb:${rgb};transition:none;` +
-      `transform:translateY(${dir > 0 ? '100%' : '-100%'});`;
-    el.innerHTML = buildFlashCardInnerHTML(peekS, col, isSaved);
-    stage.appendChild(el);
-    el.getBoundingClientRect(); // force reflow
-    return el;
+function initFlashScrollObserver(filtered) {
+  if (flashScrollObserver) {
+    flashScrollObserver.disconnect();
+    flashScrollObserver = null;
   }
+  const stage = $('flash-card-stage');
+  if (!stage) return;
+  flashActiveFiltered = filtered;
 
-  flashCardEl.addEventListener('touchstart', fStart, { passive: true });
-  flashCardEl.addEventListener('touchmove',  fMove,  { passive: false });
-  flashCardEl.addEventListener('touchend',   fEnd);
-  flashCardEl.addEventListener('mousedown',  fStart);
-
-  flashCardEl.addEventListener('wheel', e => {
-    e.preventDefault();
-    if (wheelTimeout) return;
-    navigateFlash(e.deltaY > 0 ? 1 : -1, filtered);
-    wheelTimeout = setTimeout(() => { wheelTimeout = null; }, 600);
-  }, { passive: false });
-
-  function fStart(e) {
-    flashDragging = true;
-    flashCurrY = 0;
-    peekDir = 0;
-    peekCardEl = null;
-    flashStartY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
-    if (flashCardEl) flashCardEl.style.transition = 'none';
-    document.addEventListener('mousemove', fMove);
-    document.addEventListener('mouseup',   fEnd);
-  }
-
-  function fMove(e) {
-    if (!flashDragging || !flashCardEl) return;
-    const y = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
-    flashCurrY = y - flashStartY;
-    if (e.cancelable) e.preventDefault();
-
-    // Create peek card once direction is established (after 8px movement)
-    const dir = flashCurrY < 0 ? 1 : -1;
-    if (dir !== peekDir && Math.abs(flashCurrY) > 8) {
-      peekDir = dir;
-      peekCardEl = buildPeekCard(dir);
-    }
-
-    // Move current card with finger
-    flashCardEl.style.transform = `translateY(${flashCurrY}px)`;
-
-    // Peek card follows directly behind — locked to the opposite edge
-    if (peekCardEl) {
-      const stageH = ($('flash-card-stage') || {}).offsetHeight || window.innerHeight;
-      // dir>0: peek sits below (stageH px below), slides up as card moves up
-      // dir<0: peek sits above (-stageH px above), slides down
-      const peekY = dir > 0
-        ? stageH  + flashCurrY
-        : -stageH + flashCurrY;
-      peekCardEl.style.transform = `translateY(${peekY}px)`;
-    }
-
-    // Subtle directional tint on active card edges
-    const overlayTop    = $('flash-drag-top');
-    const overlayBottom = $('flash-drag-bottom');
-    const intensity = Math.min(Math.abs(flashCurrY) / 160, 1) * 0.15;
-    if (overlayTop)    overlayTop.style.opacity    = flashCurrY > 0 ? intensity : 0;
-    if (overlayBottom) overlayBottom.style.opacity = flashCurrY < 0 ? intensity : 0;
-  }
-
-  function fEnd() {
-    if (!flashDragging) return;
-    flashDragging = false;
-    document.removeEventListener('mousemove', fMove);
-    document.removeEventListener('mouseup',   fEnd);
-
-    const overlayTop    = $('flash-drag-top');
-    const overlayBottom = $('flash-drag-bottom');
-    if (overlayTop)    overlayTop.style.opacity    = '0';
-    if (overlayBottom) overlayBottom.style.opacity = '0';
-
-    const THRESH = 64;
-    const DUR  = '300ms';
-    const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
-
-    function completeNav(dir) {
-      // Complete the card exit from wherever it currently is
-      flashCardEl.style.transition = `transform ${DUR} ${EASE}`;
-      flashCardEl.style.transform  = dir > 0 ? 'translateY(-105%)' : 'translateY(105%)';
-
-      if (peekCardEl) {
-        peekCardEl.style.transition = `transform ${DUR} ${EASE}`;
-        peekCardEl.style.transform  = 'translateY(0)';
-      }
-
-      // Update counter/progress bar immediately
-      const nextIdx = currentFlashIndex + dir;
-      const total   = filtered.length;
-      const fill    = document.querySelector('.flash-progress-fill');
-      const counter = document.querySelector('.flash-nav-counter');
-      if (fill)    fill.style.width      = `${Math.min(((nextIdx + 1) / total) * 100, 100)}%`;
-      if (counter) counter.textContent   = nextIdx >= total ? 'Completed' : `${nextIdx + 1} / ${total}`;
-
-      let done = false;
-      const finish = () => {
-        if (done) return;
-        done = true;
-        peekCardEl = null;
-        currentFlashIndex = nextIdx;
-        renderFlashView();
-      };
-      flashCardEl.addEventListener('transitionend', finish, { once: true });
-      setTimeout(finish, 380);
-    }
-
-    if (flashCurrY < -THRESH && currentFlashIndex < filtered.length) {
-      completeNav(1);
-    } else if (flashCurrY > THRESH && currentFlashIndex > 0) {
-      completeNav(-1);
-    } else {
-      // Snap back — bounce the current card home and dismiss peek
-      if (peekCardEl) {
-        const p = peekCardEl;
-        peekCardEl = null;
-        p.style.transition = `transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)`;
-        p.style.transform  = peekDir > 0 ? 'translateY(100%)' : 'translateY(-100%)';
-        setTimeout(() => { if (p.parentNode) p.parentNode.removeChild(p); }, 380);
-      }
-      if (flashCardEl) {
-        flashCardEl.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
-        flashCardEl.style.transform  = '';
+  flashScrollObserver = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
+        const idx = parseInt(entry.target.dataset.idx, 10);
+        if (!isNaN(idx) && idx !== currentFlashIndex) {
+          currentFlashIndex = idx;
+          updateFlashProgressUI(filtered);
+          if (idx < filtered.length) {
+            trackViewCount(filtered[idx].id);
+          }
+        }
       }
     }
-  }
+  }, { root: stage, threshold: 0.6 });
+
+  stage.querySelectorAll('.flash-card').forEach(card => flashScrollObserver.observe(card));
 }
 
 async function trackViewCount(storyId) {
@@ -2715,8 +2510,6 @@ function buildFlashCardInnerHTML(s, col, isSaved) {
   </div>` : '';
 
   return `
-    <div class="flash-drag-overlay top" id="flash-drag-top">PREV</div>
-    <div class="flash-drag-overlay bottom" id="flash-drag-bottom">NEXT</div>
     <div class="flash-card-header">
       <div class="flash-card-visual">${getFlashIllustration(s.cat, s.id)}</div>
       <span class="flash-cat-badge">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
@@ -2730,14 +2523,14 @@ function buildFlashCardInnerHTML(s, col, isSaved) {
       ${whyItMattersHtml}${rememberHtml}${benefitsSection}
     </div>
     <div class="flash-card-footer">
-      <button class="flash-footer-action ${isSaved ? 'saved' : ''}" id="flash-bookmark-btn" aria-label="Save story"${isSaved ? ` style="color:${col};"` : ''}>
+      <button class="flash-footer-action flash-bookmark-btn ${isSaved ? 'saved' : ''}" data-id="${esc(s.id)}" aria-label="Save story"${isSaved ? ` style="color:${col};"` : ''}>
         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="${isSaved ? 'currentColor' : 'none'}" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
         </svg>
         <span>${isSaved ? 'Saved' : 'Save'}</span>
       </button>
       <div class="flash-footer-sep"></div>
-      <button class="flash-footer-action" id="flash-share-btn" aria-label="Share story">
+      <button class="flash-footer-action flash-share-btn" data-id="${esc(s.id)}" aria-label="Share story">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle>
           <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
@@ -2750,162 +2543,103 @@ function buildFlashCardInnerHTML(s, col, isSaved) {
 function renderFlashMobileLayout(filtered, targetDate) {
   const total = filtered.length;
   currentFlashIndex = Math.max(0, Math.min(total, currentFlashIndex));
-  
-  if (total > 0 && currentFlashIndex === total) {
-    app.innerHTML = `
-      <div class="flash-container">
-        <div class="flash-categories-bar" id="flash-cats">
-          ${renderFlashCategoryPills()}
-        </div>
-        
-        <div class="flash-card-stage" id="flash-card-stage">
-          <div class="flash-card all-done-card" id="flash-card" style="justify-content: center; text-align: center; gap: 20px;">
-            <div class="all-done-icon-wrapper" style="margin: 0 auto; width: 64px; height: 64px; border-radius: 50%; background: var(--teal-bg); color: var(--teal); display: flex; align-items: center; justify-content: center;">
-              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
-            </div>
-            
-            <div>
-              <h2 class="flash-headline" style="font-size: 22px; font-weight: 900; margin-bottom: 8px;">You're All Caught Up!</h2>
-              <p class="flash-summary" style="font-family: var(--body); font-size: 15px; color: var(--ink-2); line-height: 1.6; display: block; -webkit-line-clamp: unset;">
-                You've swiped through all of today's speed news updates. Discover the deeper analysis behind today's events, or browse the archives.
-              </p>
-            </div>
-            
-            <div class="all-done-actions" style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 260px; margin: 10px auto 0;">
-              <button class="desktop-action-btn desktop-go-deeper-btn" id="all-done-briefings-btn" style="width: 100%; justify-content: center; font-size: 12px; padding: 10px;">
-                📰 Explore Deep Dives
-              </button>
-              <button class="desktop-action-btn" id="all-done-restart-btn" style="width: 100%; justify-content: center; font-size: 11px; padding: 8px;">
-                ↺ Back to First Card
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <div class="flash-progress-track">
-          <div class="flash-progress-fill" style="width: 100%;"></div>
-        </div>
-        
-        <div class="flash-nav-row" style="justify-content: center;">
-          <div class="flash-nav-center">
-            <span class="flash-nav-counter">Completed</span>
-          </div>
-        </div>
-      </div>`;
-      
-    wireFlashCategories();
-    
-    // Wire special actions
-    const restartBtn = $("all-done-restart-btn");
-    if (restartBtn) {
-      restartBtn.onclick = () => {
-        currentFlashIndex = 0;
-        renderFlashView();
-      };
-    }
-    const briefingsBtn = $("all-done-briefings-btn");
-    if (briefingsBtn) {
-      briefingsBtn.onclick = () => {
-        switchToBriefingMode();
-        navigate(`${BASE_PATH}/briefings`);
-      };
-    }
-    
-    attachFlashDrag(filtered);
-    return;
-  }
-  
+
   if (total === 0) {
     app.innerHTML = `
       <div class="flash-container">
         <div class="flash-categories-bar" id="flash-cats">
           ${renderFlashCategoryPills()}
         </div>
-        
         <div class="flash-card-stage">
-          <div class="saved-empty-state">
+          <div class="flash-card" style="justify-content:center;align-items:center;">
             <div class="saved-empty-icon">◦</div>
             <div class="saved-empty-text">No stories available in this category.</div>
           </div>
         </div>
-        
         <div class="flash-progress-track">
-          <div class="flash-progress-fill" style="width: 0%;"></div>
+          <div class="flash-progress-fill" style="width:0%;"></div>
         </div>
-        
-        <div class="flash-nav-row" style="justify-content: center;">
-          <div class="flash-nav-center">
-            <span class="flash-nav-counter">0 / 0</span>
-          </div>
+        <div class="flash-nav-row" style="justify-content:center;">
+          <div class="flash-nav-center"><span class="flash-nav-counter">0 / 0</span></div>
         </div>
       </div>`;
-    
     wireFlashCategories();
-
     return;
   }
-  
-  const s = filtered[currentFlashIndex];
-  const col = getCategoryColor(s.cat);
-  const rgb = getCategoryColorRgb(s.cat);
-  
+
   const saved = getSavedStories();
-  const isSaved = saved.some(fs => fs.id === s.id);
-  
-  let showGoDeeper = s.hasDeepDive;
-  if (!showGoDeeper) {
-    const latestDate = indexEntries[0]?.date;
-    if (latestDate) {
-      try {
-        const todayPayload = dayCache[latestDate];
-        if (todayPayload) {
-          showGoDeeper = todayPayload.stories.some(ts => ts.id === s.id);
-        }
-      } catch(e) {}
-    }
-  }
-  
+
+  const storyCardsHtml = filtered.map((s, idx) => {
+    const col    = getCategoryColor(s.cat);
+    const rgb    = getCategoryColorRgb(s.cat);
+    const isSaved = saved.some(fs => fs.id === s.id);
+    return `<div class="flash-card" data-idx="${idx}" data-id="${esc(s.id)}" style="--cat-color:${col};--cat-color-rgb:${rgb};">${buildFlashCardInnerHTML(s, col, isSaved)}</div>`;
+  }).join('');
+
+  const allDoneHtml = `
+    <div class="flash-card all-done-card" data-idx="${total}" style="justify-content:center;align-items:center;text-align:center;gap:20px;">
+      <div style="margin:0 auto;width:64px;height:64px;border-radius:50%;background:var(--teal-bg);color:var(--teal);display:flex;align-items:center;justify-content:center;">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      <div>
+        <h2 class="flash-headline" style="font-size:22px;font-weight:900;margin-bottom:8px;">You're All Caught Up!</h2>
+        <p style="font-family:var(--body);font-size:15px;color:var(--ink-2);line-height:1.6;margin:0;">You've read all of today's speed news updates.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px;margin:10px auto 0;">
+        <button class="desktop-action-btn desktop-go-deeper-btn" id="all-done-briefings-btn" style="width:100%;justify-content:center;font-size:12px;padding:10px;">
+          📰 Explore Deep Dives
+        </button>
+        <button class="desktop-action-btn" id="all-done-restart-btn" style="width:100%;justify-content:center;font-size:11px;padding:8px;">
+          ↺ Back to First Card
+        </button>
+      </div>
+    </div>`;
+
+  const firstCol = getCategoryColor(filtered[0].cat);
+  const firstRgb = getCategoryColorRgb(filtered[0].cat);
+  const progressPct = Math.min(((currentFlashIndex + 1) / total) * 100, 100);
+  const counterText = currentFlashIndex >= total ? 'Completed' : `${currentFlashIndex + 1} / ${total}`;
+
   app.innerHTML = `
-    <div class="flash-container" style="--cat-color: ${col}; --cat-color-rgb: ${rgb};">
+    <div class="flash-container" style="--cat-color:${firstCol};--cat-color-rgb:${firstRgb};">
       <div class="flash-categories-bar" id="flash-cats">
         ${renderFlashCategoryPills()}
       </div>
-      
       <div class="flash-card-stage" id="flash-card-stage">
-        <div class="flash-card" id="flash-card">
-          ${buildFlashCardInnerHTML(s, col, isSaved)}
-        </div>
+        ${storyCardsHtml}
+        ${allDoneHtml}
       </div>
-      
       <div class="flash-progress-track">
-        <div class="flash-progress-fill" style="width: ${((currentFlashIndex + 1) / total) * 100}%;"></div>
+        <div class="flash-progress-fill" style="width:${progressPct}%;"></div>
       </div>
-      
-      <div class="flash-nav-row" style="justify-content: center;">
-        <div class="flash-nav-center">
-          <span class="flash-nav-counter">${currentFlashIndex + 1} / ${total}</span>
-        </div>
+      <div class="flash-nav-row" style="justify-content:center;">
+        <div class="flash-nav-center"><span class="flash-nav-counter">${counterText}</span></div>
       </div>
     </div>`;
-    
+
   wireFlashCategories();
   wireFlashNavigation(filtered);
-  attachFlashDrag(filtered);
+  initFlashScrollObserver(filtered);
 
-  
-  trackViewCount(s.id).then(resolvedViews => {
-    const vc = $("views-count");
-    if (vc) {
-      vc.textContent = resolvedViews;
+  const restartBtn = $('all-done-restart-btn');
+  if (restartBtn) restartBtn.onclick = () => { currentFlashIndex = 0; renderFlashView(); };
+  const briefingsBtn = $('all-done-briefings-btn');
+  if (briefingsBtn) briefingsBtn.onclick = () => { switchToBriefingMode(); navigate(`${BASE_PATH}/briefings`); };
+
+  // Restore scroll position after layout (double-RAF ensures dimensions are resolved)
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const stage = $('flash-card-stage');
+    if (!stage) return;
+    const target = stage.querySelector(`[data-idx="${currentFlashIndex}"]`);
+    if (target && currentFlashIndex > 0) {
+      stage.scrollTo({ top: target.offsetTop, behavior: 'instant' });
     }
-    const pill = document.querySelector(".flash-trending-pill");
-    if (pill) {
-      pill.style.opacity = resolvedViews >= 1000 ? 1 : 0.4;
-    }
-  });
+  }));
+
+  if (currentFlashIndex < total) trackViewCount(filtered[currentFlashIndex].id);
 }
 
 /* ── Desktop Layout Renderer ── */
@@ -3214,11 +2948,13 @@ function updateModeToggleUI() {
   
   if (currentMode === "flash") {
     document.body.classList.add("mode-flash-active");
+    document.documentElement.classList.add("mode-flash-active");
     if (segFlash)    { segFlash.classList.add("active"); }
     if (segBriefing) { segBriefing.classList.remove("active"); }
     if (wordmark) { wordmark.href = `${BASE_PATH}/flash`; }
   } else {
     document.body.classList.remove("mode-flash-active");
+    document.documentElement.classList.remove("mode-flash-active");
     if (segFlash)    { segFlash.classList.remove("active"); }
     if (segBriefing) { segBriefing.classList.add("active"); }
     if (wordmark) { wordmark.href = `${BASE_PATH}/briefings`; }
