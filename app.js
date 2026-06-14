@@ -3221,7 +3221,7 @@ function checkAndShowNudge() {
   const viewedCount = window.flashSessionViewedIds ? window.flashSessionViewedIds.size : 0;
   const timeSpent = window.flashTimeSpentInFlash || 0;
   
-  if (viewedCount >= 5 || timeSpent >= 5) {
+  if (viewedCount >= 10 || timeSpent >= 25) {
     let nudge = $("flash-nudge-card");
     if (!nudge) {
       nudge = document.createElement("div");
