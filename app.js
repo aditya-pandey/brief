@@ -2281,7 +2281,11 @@ function attachPhysicalDrag(filtered) {
     stage.appendChild(curCard);
 
     if (idx >= total) wireAllDone();
-    else trackViewCount(filtered[idx].id);
+    else {
+      trackViewCount(filtered[idx].id);
+      window.flashSessionViewedIds.add(filtered[idx].id);
+      checkAndShowNudge();
+    }
   }
 
   buildDeck();
@@ -2403,6 +2407,8 @@ function attachPhysicalDrag(filtered) {
       }
 
       trackViewCount(filtered[newIdx].id);
+      window.flashSessionViewedIds.add(filtered[newIdx].id);
+      checkAndShowNudge();
 
       if (dir > 0) {
         const ni = newIdx + 1;
@@ -2850,7 +2856,10 @@ function renderFlashDesktopLayout(filtered, targetDate) {
   
   wireFlashCategories();
   wireFlashDesktopEvents(filtered, targetDate);
-
+  if (filtered.length > 0) {
+    filtered.slice(0, 5).forEach(s => window.flashSessionViewedIds.add(s.id));
+    checkAndShowNudge();
+  }
 }
 
 function renderDesktopGrid(filtered, targetDate) {
@@ -3111,18 +3120,93 @@ function wireFlashDesktopEvents(filtered, targetDate) {
   });
 }
 
-function switchToBriefingMode() {
-  currentMode = "briefing";
-  localStorage.setItem("currentMode", "briefing");
-  updateModeToggleUI();
-}
-
 function updateSavedBadge() {
   const badge = $("saved-count-badge");
   if (badge) {
     const savedCount = getSavedStories().length;
     badge.textContent = savedCount;
     badge.style.display = savedCount > 0 ? "inline-flex" : "none";
+  }
+}
+
+function switchToBriefingMode() {
+  currentMode = "briefing";
+  localStorage.setItem("currentMode", "briefing");
+  updateModeToggleUI();
+}
+
+window.flashSessionViewedIds = window.flashSessionViewedIds || new Set();
+window.flashTimeSpentInFlash = window.flashTimeSpentInFlash || 0;
+window.flashTimer = window.flashTimer || null;
+
+function checkAndShowNudge() {
+  if (currentMode !== "flash") {
+    const nudge = $("flash-nudge-card");
+    if (nudge) nudge.classList.remove("active");
+    return;
+  }
+  
+  if (sessionStorage.getItem("nudgeDismissed") === "true") {
+    const nudge = $("flash-nudge-card");
+    if (nudge) nudge.classList.remove("active");
+    return;
+  }
+
+  const viewedCount = window.flashSessionViewedIds ? window.flashSessionViewedIds.size : 0;
+  const timeSpent = window.flashTimeSpentInFlash || 0;
+  
+  if (viewedCount >= 5 || timeSpent >= 5) {
+    let nudge = $("flash-nudge-card");
+    if (!nudge) {
+      nudge = document.createElement("div");
+      nudge.id = "flash-nudge-card";
+      nudge.className = "flash-nudge-card";
+      nudge.innerHTML = `
+        <button class="flash-nudge-close" id="flash-nudge-close" aria-label="Dismiss nudge">×</button>
+        <div class="flash-nudge-icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+          </svg>
+        </div>
+        <div class="flash-nudge-body">
+          <div class="flash-nudge-title">Want deeper insights?</div>
+          <div class="flash-nudge-text">Explore today's key stories with more context and analysis.</div>
+          <div class="flash-nudge-counter" id="flash-nudge-counter">You've viewed ${viewedCount} stories</div>
+        </div>
+        <button class="flash-nudge-btn" id="flash-nudge-btn">
+          Explore Deep Dives <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-left:2px; stroke: currentColor;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
+      `;
+      document.body.appendChild(nudge);
+      
+      const closeBtn = nudge.querySelector("#flash-nudge-close");
+      if (closeBtn) {
+        closeBtn.onclick = () => {
+          sessionStorage.setItem("nudgeDismissed", "true");
+          nudge.classList.remove("active");
+        };
+      }
+      
+      const ctaBtn = nudge.querySelector("#flash-nudge-btn");
+      if (ctaBtn) {
+        ctaBtn.onclick = () => {
+          sessionStorage.setItem("nudgeDismissed", "true");
+          nudge.classList.remove("active");
+          switchToBriefingMode();
+          navigate(`${BASE_PATH}/briefings`);
+        };
+      }
+    } else {
+      const counterEl = nudge.querySelector("#flash-nudge-counter");
+      if (counterEl) {
+        counterEl.textContent = `You've viewed ${viewedCount} stories`;
+      }
+    }
+    
+    setTimeout(() => {
+      nudge.classList.add("active");
+    }, 50);
   }
 }
 
@@ -3137,6 +3221,18 @@ function updateModeToggleUI() {
     if (segFlash)    { segFlash.classList.add("active"); }
     if (segBriefing) { segBriefing.classList.remove("active"); }
     if (wordmark) { wordmark.href = `${BASE_PATH}/flash`; }
+    
+    if (!window.flashTimer) {
+      window.flashTimer = setInterval(() => {
+        if (currentMode === "flash") {
+          window.flashTimeSpentInFlash++;
+          checkAndShowNudge();
+        } else {
+          clearInterval(window.flashTimer);
+          window.flashTimer = null;
+        }
+      }, 1000);
+    }
   } else {
     document.body.classList.remove("mode-flash-active");
     document.documentElement.classList.remove("mode-flash-active");
@@ -3145,6 +3241,15 @@ function updateModeToggleUI() {
     if (wordmark) { wordmark.href = `${BASE_PATH}/briefings`; }
     const ctr = $("flash-header-counter");
     if (ctr) ctr.textContent = "";
+    
+    const nudge = $("flash-nudge-card");
+    if (nudge) {
+      nudge.classList.remove("active");
+    }
+    if (window.flashTimer) {
+      clearInterval(window.flashTimer);
+      window.flashTimer = null;
+    }
   }
 }
 

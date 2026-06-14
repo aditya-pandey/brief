@@ -26,7 +26,7 @@
   --shadow-lg:   0 18px 54px rgba(17,24,39,.12), 0 6px 16px rgba(17,24,39,.07);
   --radius:      16px;
   --radius-sm:   10px;
-  --header-h:    92px;
+  --header-h:    112px;
 
   --serif:  'Fraunces', Georgia, serif;
   --body:   'Source Serif 4', Georgia, serif;
@@ -105,7 +105,7 @@ img { max-width: 100%; display: block; }
 .header-row-bottom {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding-bottom: 8px;
   flex-shrink: 0;
   width: 100%;
@@ -116,16 +116,18 @@ img { max-width: 100%; display: block; }
   font-size: 11px;
   font-weight: 700;
   color: var(--ink-2);
-  background: var(--bg-card-h);
+  background: var(--bg-2);
   border: 1px solid var(--rule);
-  padding: 4px 10px;
-  border-radius: 12px;
+  padding: 0 14px;
+  border-radius: 16px;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 body.mode-flash-active .flash-header-counter {
-  display: flex;
+  display: inline-flex;
 }
 .wordmark {
   font-family: var(--serif); font-weight: 900; font-size: 22px;
@@ -3176,36 +3178,72 @@ body.mode-flash-active #progress-bar {
 
 /* ── Segmented Mode Toggle Pill ──────────────────────────────── */
 .mode-seg-toggle {
-  display: inline-flex;
-  align-items: center;
+  display: flex;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  align-items: stretch;
   background: var(--bg-2);
   border: 1px solid var(--rule);
-  border-radius: 30px;
-  padding: 3px;
-  gap: 2px;
+  border-radius: 16px;
+  padding: 4px;
+  gap: 4px;
 }
 .seg-btn {
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 700;
-  padding: 6px 20px;
-  border-radius: 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 12px;
   border: none;
   background: transparent;
   color: var(--ink-3);
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
-  line-height: 1;
+}
+.seg-btn-title {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.25;
+}
+.seg-btn-subtitle {
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--ink-3);
+  opacity: 0.8;
+  margin-top: 3px;
+  line-height: 1.2;
+}
+.seg-btn:not(.active):hover {
+  background: var(--bg-card-h);
+  color: var(--ink-2);
 }
 .seg-btn.active {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.seg-btn.seg-flash.active {
   background: var(--accent);
   color: #fff;
-  box-shadow: 0 1px 4px rgba(0,0,0,.15);
+}
+.seg-btn.seg-flash.active .seg-btn-subtitle {
+  color: #fff;
+  opacity: 0.9;
 }
 .seg-btn.seg-briefing.active {
   background: var(--ink);
   color: var(--bg);
+}
+.seg-btn.seg-briefing.active .seg-btn-subtitle {
+  color: var(--bg);
+  opacity: 0.9;
 }
 
 /* Old mode toggle — kept for JS compatibility, hidden */
@@ -4100,7 +4138,7 @@ body.mode-flash-active #progress-bar {
 /* Responsive adjustments for Flash toggling in header */
 @media (max-width: 768px) {
   :root {
-    --header-h: 86px !important;
+    --header-h: 106px !important;
   }
   #site-header {
     height: var(--header-h) !important;
@@ -4123,8 +4161,13 @@ body.mode-flash-active #progress-bar {
   .flash-logo-badge { display: none !important; }
   /* Seg toggle on mobile */
   .seg-btn {
-    font-size: 11px !important;
-    padding: 5px 14px !important;
+    padding: 6px 10px !important;
+  }
+  .seg-btn-title {
+    font-size: 13px !important;
+  }
+  .seg-btn-subtitle {
+    font-size: 9px !important;
   }
   .header-right { gap: 6px !important; }
   /* All header icon buttons compact on mobile */
@@ -4177,11 +4220,19 @@ body.mode-flash-active #progress-bar {
 
 /* ── iPhone SE and very small screens (≤375px) ──────────────── */
 @media (max-width: 375px) {
-  :root { --header-h: 80px !important; }
+  :root { --header-h: 96px !important; }
   .header-inner { padding: 0 10px !important; }
   .header-row-top { height: 44px !important; }
   .wordmark { font-size: 16px !important; }
-  .seg-btn { font-size: 10px !important; padding: 4px 11px !important; }
+  .seg-btn {
+    padding: 4px 8px !important;
+  }
+  .seg-btn-title {
+    font-size: 12px !important;
+  }
+  .seg-btn-subtitle {
+    font-size: 8px !important;
+  }
   .header-right { gap: 4px !important; }
   .hdr-icon-btn, #theme-toggle { width: 28px !important; height: 28px !important; }
   .hdr-icon-btn svg, #theme-toggle svg { width: 14px !important; height: 14px !important; }
@@ -4725,4 +4776,145 @@ body.mode-flash-active #progress-bar {
 [data-theme="dark"] .share-opt-icon.black-bg { background: #f4f7fb; color: #111827; }
 .share-opt-icon.grey-bg { background: #6b7280; }
 .share-opt-icon.blue-bg { background: #3b82f6; }
+
+/* ── Flash Insight Nudge Card ───────────────────────────────── */
+.flash-nudge-card {
+  position: absolute;
+  bottom: 60px;
+  left: 16px;
+  right: 16px;
+  background: #FAF5FF;
+  border: 1px solid #E9D5FF;
+  border-radius: 16px;
+  padding: 16px 36px 16px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 8px 30px rgba(109, 40, 217, 0.12);
+  z-index: 100;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+.flash-nudge-card.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+[data-theme="dark"] .flash-nudge-card {
+  background: #1E1B4B;
+  border-color: #4C1D95;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+.flash-nudge-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: var(--ink-3);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.flash-nudge-close:hover {
+  color: var(--ink-2);
+}
+
+.flash-nudge-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #ECE9FE;
+  color: #6D28D9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+[data-theme="dark"] .flash-nudge-icon {
+  background: #312E81;
+  color: #A78BFA;
+}
+
+.flash-nudge-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.flash-nudge-title {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.25;
+  margin-bottom: 2px;
+}
+.flash-nudge-text {
+  font-family: var(--sans);
+  font-size: 11.5px;
+  color: var(--ink-2);
+  line-height: 1.35;
+}
+.flash-nudge-counter {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--ink-3);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.flash-nudge-btn {
+  background: #6D28D9;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 2px 6px rgba(109, 40, 217, 0.2);
+}
+.flash-nudge-btn:hover {
+  background: #5B21B6;
+}
+.flash-nudge-btn:active {
+  transform: scale(0.97);
+}
+
+@media (max-width: 480px) {
+  .flash-nudge-card {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px 28px 14px 12px;
+  }
+  .flash-nudge-icon {
+    width: 36px;
+    height: 36px;
+  }
+  .flash-nudge-btn {
+    width: 100%;
+    text-align: center;
+    margin-top: 4px;
+  }
+}
+
+@media (min-width: 992px) {
+  .flash-nudge-card {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    left: auto;
+    width: 380px;
+    z-index: 1000;
+    box-shadow: var(--shadow-lg);
+  }
+}
 
