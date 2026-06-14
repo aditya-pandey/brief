@@ -2198,6 +2198,30 @@ body:has(.deck-container) { overflow: hidden; }
 }
 .footer-brand { font-family: var(--serif); font-weight: 900; font-size: 15px; color: var(--ink-2); white-space: nowrap; }
 .footer-copy { font-family: var(--mono); font-size: 10px; color: var(--ink-3); line-height: 1.7; letter-spacing: .03em; }
+.footer-links {
+  display: flex;
+  gap: 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  margin-left: auto;
+}
+.footer-link {
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+.footer-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+@media (max-width: 768px) {
+  .footer-links {
+    margin-left: 0;
+    margin-top: 8px;
+    width: 100%;
+  }
+}
 
 /* Hide footer on story pages — it competes with internal scroll */
 body:has(.desktop-story-layout) #site-footer,
