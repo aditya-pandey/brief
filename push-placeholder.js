@@ -21,6 +21,11 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
+// Default VAPID public key — matches the key in netlify/functions/subscribe.js.
+// This allows the browser push subscription to work even when the server
+// endpoint is not yet deployed or reachable.
+const DEFAULT_VAPID_PUBLIC_KEY = 'BJrBx4le_mdP2q8kiI1n5SWKYO1aqg1uzefNzn1TvVI1Uuc84pPbsSw3sBIsuoYiEUWJzDJiIcvas2YzAZhG_uk';
+
 // Helper to determine the API base path for functions
 function getApiUrl() {
   // Try Netlify standard functions path
@@ -82,18 +87,22 @@ export async function subscribeUserToPush() {
 
     const registration = await navigator.serviceWorker.ready;
 
-    // 1. Fetch public VAPID key from subscribe endpoint
-    const keyResponse = await fetch(getApiUrl());
-    if (!keyResponse.ok) {
-      throw new Error(`Failed to retrieve VAPID keys: ${keyResponse.statusText}`);
-    }
-    const { publicKey } = await keyResponse.json();
-    if (!publicKey) {
-      throw new Error('No VAPID public key returned from subscription server.');
+    // 1. Fetch public VAPID key — try server first, fall back to hardcoded default
+    let vapidPublicKey = DEFAULT_VAPID_PUBLIC_KEY;
+    try {
+      const keyResponse = await fetch(getApiUrl());
+      if (keyResponse.ok) {
+        const data = await keyResponse.json();
+        if (data.publicKey) {
+          vapidPublicKey = data.publicKey;
+        }
+      }
+    } catch (fetchErr) {
+      console.warn('[PWA Push Client] Could not reach subscribe endpoint, using default VAPID key.', fetchErr.message);
     }
 
     // 2. Subscribe user via pushManager
-    const applicationServerKey = urlBase64ToUint8Array(publicKey);
+    const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: applicationServerKey
@@ -101,19 +110,22 @@ export async function subscribeUserToPush() {
 
     console.log('[PWA Push Client] Browser subscription established:', subscription);
 
-    // 3. Register subscription on backend Netlify Function
-    const saveResponse = await fetch(getApiUrl(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(subscription)
-    });
-
-    if (!saveResponse.ok) {
-      const errorData = await saveResponse.json();
-      throw new Error(errorData.error || 'Failed to save subscription details on backend.');
+    // 3. Try to register subscription on backend Netlify Function (non-fatal)
+    try {
+      const saveResponse = await fetch(getApiUrl(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription)
+      });
+      if (saveResponse.ok) {
+        console.log('[PWA Push Client] Subscription saved on backend.');
+      } else {
+        console.warn('[PWA Push Client] Backend save returned non-OK status:', saveResponse.status);
+      }
+    } catch (saveErr) {
+      console.warn('[PWA Push Client] Backend not reachable, subscription is local-only for now.', saveErr.message);
     }
 
-    console.log('[PWA Push Client] Subscription successfully saved on backend.');
     return subscription;
   } catch (error) {
     console.error('[PWA Push Client] Failed to subscribe user:', error);
@@ -132,15 +144,18 @@ export async function unsubscribeUserFromPush() {
       return false;
     }
 
-    // 1. Remove subscription from backend Netlify Function
-    const deleteResponse = await fetch(getApiUrl(), {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ endpoint: subscription.endpoint })
-    });
-
-    if (!deleteResponse.ok) {
-      console.warn('[PWA Push Client] Unsubscribe cleanup on backend failed or was already removed.');
+    // 1. Try to remove subscription from backend Netlify Function (non-fatal)
+    try {
+      const deleteResponse = await fetch(getApiUrl(), {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint: subscription.endpoint })
+      });
+      if (!deleteResponse.ok) {
+        console.warn('[PWA Push Client] Unsubscribe cleanup on backend failed or was already removed.');
+      }
+    } catch (deleteErr) {
+      console.warn('[PWA Push Client] Backend not reachable for unsubscribe cleanup.', deleteErr.message);
     }
 
     // 2. Unsubscribe on browser PushManager

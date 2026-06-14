@@ -3493,13 +3493,8 @@ body.mode-flash-active #progress-bar {
   line-height: 1.4;
   color: var(--ink-2);
   margin-bottom: 0;
-  flex: 1;
-  overflow-y: auto;
-  scrollbar-width: none;
+  flex-shrink: 0;
   display: block;
-}
-.flash-summary::-webkit-scrollbar {
-  display: none;
 }
 .flash-summary p {
   margin: 0;
@@ -4208,51 +4203,92 @@ body.mode-flash-active #progress-bar {
   }
   .flash-container {
     height: 100% !important;
-    /* max() picks up the device's gesture-nav inset (requires viewport-fit=cover);
-       the 16px floor gives breathing room on devices where env() returns 0 */
-    padding: 8px 12px max(env(safe-area-inset-bottom), 16px) !important;
+    padding: 6px 12px max(env(safe-area-inset-bottom), 4px) !important;
   }
   .flash-card-stage {
     margin-top: 4px !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 4px !important;
+  }
+  .flash-headline {
+    font-size: 20px !important;
   }
   .flash-summary {
     -webkit-line-clamp: unset !important;
     display: block !important;
+    margin-bottom: auto !important;
+    font-size: 14.5px !important;
+    line-height: 1.45 !important;
   }
 }
 
 /* ── iPhone SE and very small screens (≤375px) ──────────────── */
 @media (max-width: 375px) {
-  :root { --header-h: 96px !important; }
+  :root { --header-h: 92px !important; }
   .header-inner { padding: 0 10px !important; }
-  .header-row-top { height: 44px !important; }
+  .header-row-top { height: 42px !important; }
   .wordmark { font-size: 16px !important; }
-  .seg-btn {
-    padding: 4px 8px !important;
-  }
-  .seg-btn-title {
-    font-size: 12px !important;
-  }
-  .seg-btn-subtitle {
-    font-size: 8px !important;
-  }
+  .seg-btn { padding: 4px 8px !important; }
+  .seg-btn-title { font-size: 12px !important; }
+  .seg-btn-subtitle { font-size: 8px !important; }
   .header-right { gap: 4px !important; }
   .hdr-icon-btn, #theme-toggle { width: 28px !important; height: 28px !important; }
   .hdr-icon-btn svg, #theme-toggle svg { width: 14px !important; height: 14px !important; }
   .header-date-btn { width: 28px !important; height: 28px !important; }
-  /* Flash card compact layout for tiny screens */
-  .flash-card { padding: 10px 12px !important; }
-  .flash-headline { font-size: 16px !important; line-height: 1.2 !important; }
-  .flash-card-visual { width: 34px !important; height: 34px !important; padding: 4px !important; }
-  .flash-cat-badge { font-size: 8px !important; padding: 3px 7px !important; }
-  .flash-summary { font-size: 12px !important; }
-  .flash-why-it-matters, .flash-remember-box { gap: 4px !important; }
-  .flash-section-icon { width: 16px !important; height: 16px !important; }
-  .flash-why-value, .flash-remember-value { font-size: 11px !important; line-height: 1.3 !important; }
-  .flash-footer-action { font-size: 12px !important; padding: 9px 6px !important; }
-  .flash-cat-pill { padding: 4px 9px !important; font-size: 9.5px !important; }
-  .flash-categories-bar { gap: 5px !important; padding-bottom: 6px !important; }
+
+  .flash-container {
+    padding: 8px 12px max(env(safe-area-inset-bottom), 4px) !important;
+  }
+
+  .flash-card { padding: 8px 12px !important; }
+  .flash-card-header { margin-bottom: 6px !important; gap: 8px !important; }
+  .flash-card-body { gap: 8px !important; padding-bottom: 8px !important; } /* padding-bottom to allow full scroll visibility */
+  .flash-headline { font-size: 15px !important; line-height: 1.2 !important; }
+  .flash-card-visual { width: 32px !important; height: 32px !important; padding: 6px !important; }
+  .flash-cat-badge { font-size: 8px !important; padding: 4px 6px !important; }
+  .flash-summary { font-size: 12px !important; line-height: 1.35 !important; margin-bottom: auto !important; }
+  .flash-divider { margin-bottom: 0 !important; }
+
+  .flash-signal-box { padding: 6px 8px !important; margin-bottom: 4px !important; }
+  .flash-signal-label { font-size: 7.5px !important; }
+  .flash-signal-value { font-size: 10px !important; }
+  .flash-why-it-matters, .flash-remember-box { gap: 3px !important; padding-left: 8px !important; margin-bottom: 3px !important; }
+  .flash-section-icon { width: 12px !important; height: 12px !important; }
+  .flash-section-icon svg { width: 7px !important; height: 7px !important; }
+  .flash-why-label, .flash-remember-label { font-size: 7.5px !important; }
+  .flash-why-value, .flash-remember-value { font-size: 10px !important; line-height: 1.25 !important; }
+  .flash-benefits-container { gap: 4px !important; }
+  .flash-benefit-chip { font-size: 7.5px !important; padding: 2px 6px !important; }
+  .flash-benefits-label { font-size: 7.5px !important; }
+
+  .flash-card-footer { margin-top: auto !important; padding-top: 4px !important; }
+  .flash-footer-action { font-size: 10px !important; padding: 4px 4px !important; }
+  .flash-footer-action svg { width: 14px !important; height: 14px !important; }
+
+  .flash-progress-track { display: block !important; margin-bottom: 4px !important; }
+  .flash-nav-row { gap: 8px !important; }
+  .flash-nav-btn { width: 38px !important; height: 38px !important; }
+  .flash-nav-btn svg { width: 16px !important; height: 16px !important; }
+  .flash-nav-center { gap: 8px !important; }
+  .flash-nav-counter { font-size: 11px !important; }
+  .flash-dots-container { display: flex !important; }
+
+  .flash-cat-pill { padding: 4px 10px !important; font-size: 10.5px !important; }
+  .flash-categories-bar { gap: 6px !important; padding: 4px 0 !important; }
+
+  .flash-card-stage { margin-top: 4px !important; margin-bottom: 8px !important; }
+
+  .flash-nudge-card {
+    bottom: 56px !important;
+    left: 12px !important;
+    right: 12px !important;
+    padding: 12px 28px 12px 12px !important;
+    gap: 10px !important;
+    border-radius: 12px !important;
+  }
+  .flash-nudge-icon { width: 36px !important; height: 36px !important; }
+  .flash-nudge-title { font-size: 14px !important; }
+  .flash-nudge-text { font-size: 11.5px !important; }
+  .flash-nudge-btn { padding: 8px 16px !important; font-size: 11px !important; }
 }
 
 /* ── iPad / Tablet (768px – 1024px) ───────────────────────── */
