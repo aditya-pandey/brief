@@ -28,7 +28,9 @@
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
 
-    gtag('config', 'G-602K6P5H7B');
+    gtag('config', 'G-602K6P5H7B', {
+      send_page_view: false
+    });
   </script>
 
   <!-- PWA Manifest & Icons -->
@@ -88,12 +90,24 @@
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       console.log(`[PWA] User response to the install prompt: ${outcome}`);
+      if (typeof gtag === 'function') {
+        gtag('event', 'pwa_install_prompt_response', {
+          event_category: 'PWA',
+          event_label: outcome
+        });
+      }
       deferredPrompt = null;
       return outcome === 'accepted';
     };
 
     window.addEventListener('appinstalled', (evt) => {
       console.log('[PWA] The Briefings was installed successfully.');
+      if (typeof gtag === 'function') {
+        gtag('event', 'pwa_installed', {
+          event_category: 'PWA',
+          event_label: 'Success'
+        });
+      }
     });
   </script>
 </head>

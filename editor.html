@@ -313,6 +313,7 @@
         <div style="display: flex; gap: 12px; margin-top: 12px;">
           <button class="btn" id="btn-parse" onclick="runPipeline(false)">Parse & Preview</button>
           <button class="btn" id="btn-publish" onclick="runPipeline(true)" style="background: var(--green);">Publish to GitHub</button>
+          <button class="btn" id="btn-notify" onclick="dispatchPushNotifications()" style="background: var(--accent);">🔔 Send Push Notifications</button>
         </div>
       </div>
 
@@ -339,6 +340,7 @@
         <div style="display: flex; gap: 12px; margin-top: 12px;">
           <button class="btn" id="btn-flash-parse" onclick="runFlashPipeline(false)">Parse & Preview</button>
           <button class="btn" id="btn-flash-publish" onclick="runFlashPipeline(true)" style="background: var(--green);">Publish to GitHub</button>
+          <button class="btn" id="btn-flash-notify" onclick="dispatchPushNotifications()" style="background: var(--accent);">🔔 Send Push Notifications</button>
         </div>
       </div>
     </div>
@@ -716,6 +718,31 @@
         }
       } catch (err) {
         log(`Error: ${err.message}`, true);
+      }
+    }
+
+    // Push Notification Dispatcher
+    async function dispatchPushNotifications() {
+      const secret = prompt("Enter the ADMIN_SECRET to dispatch notifications to all users:");
+      if (!secret) return;
+
+      log("Dispatching push notifications via Netlify Function...");
+      try {
+        const res = await fetch('/.netlify/functions/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ secret })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          log(`[Notification Success] ${data.message}`);
+          alert(`Success! ${data.message}`);
+        } else {
+          throw new Error(data.error || 'Unknown error');
+        }
+      } catch (err) {
+        log(`[Notification Error] ${err.message}`, true);
+        alert(`Failed to send notifications: ${err.message}`);
       }
     }
 

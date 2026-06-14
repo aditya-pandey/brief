@@ -26,9 +26,10 @@ function trackPageView(path, title) {
     document.title = title;
   }
   if (typeof gtag === "function") {
-    gtag("config", "G-602K6P5H7B", {
+    gtag("event", "page_view", {
       page_path: path,
-      page_title: document.title || "The Briefing"
+      page_title: document.title || "The Briefing",
+      page_location: window.location.origin + (BASE_PATH || "") + path
     });
   }
 }
@@ -41,6 +42,27 @@ function trackEvent(action, category, label, value = null) {
     };
     if (value !== null) params.value = value;
     gtag("event", action, params);
+  }
+}
+
+function getShareUrl(channel, customUrl = null) {
+  const targetUrl = customUrl || window.location.href;
+  try {
+    const urlObj = new URL(targetUrl);
+    const trackingParams = [
+      'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+      'gclid', 'fbclid', 'msclkid'
+    ];
+    trackingParams.forEach(param => urlObj.searchParams.delete(param));
+    
+    urlObj.searchParams.set('utm_source', channel);
+    urlObj.searchParams.set('utm_medium', 'social');
+    urlObj.searchParams.set('utm_campaign', 'share');
+    
+    return urlObj.toString();
+  } catch (e) {
+    console.error("Failed to parse share URL:", e);
+    return targetUrl;
   }
 }
 
@@ -137,20 +159,26 @@ async function initPushNotifications() {
 
     trigger.onclick = async () => {
       trigger.disabled = true;
+      let attemptingSubscribe = false;
       try {
         const status = await pushService.getSubscriptionStatus();
+        attemptingSubscribe = !status.subscribed;
         if (status.subscribed) {
           await pushService.unsubscribeUserFromPush();
           updateBellUI(false);
           showToast("Notifications disabled.");
+          trackEvent("push_unsubscribe", "PWA", "Success");
         } else {
           await pushService.subscribeUserToPush();
           updateBellUI(true);
           showToast("Notifications enabled!");
+          trackEvent("push_subscribe", "PWA", "Success");
         }
       } catch (err) {
         console.error("Failed to toggle subscription:", err);
         showToast("Error: " + (err.message || "Unknown error"));
+        const action = attemptingSubscribe ? "push_subscribe" : "push_unsubscribe";
+        trackEvent(action, "PWA", "Error: " + (err.message || "Unknown error"));
       } finally {
         trigger.disabled = false;
       }
@@ -1094,6 +1122,7 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
 
   // Swiper state and gesture handlers
   let activeTabIdx = 0;
+  let storyCompleted = false;
   let startX = 0;
   let startY = 0;
 
@@ -1110,6 +1139,11 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
 
   function setActiveTab(idx) {
     activeTabIdx = Math.max(0, Math.min(allSlides.length - 1, idx));
+    
+    if (activeTabIdx === allSlides.length - 1 && !storyCompleted) {
+      storyCompleted = true;
+      trackEvent("story_complete", "Engagement", s.headline);
+    }
     
     // Update wrapper transform
     wrapper.style.transform = `translateX(-${activeTabIdx * 100}%)`;
@@ -1220,7 +1254,7 @@ function wireEngagementEvents(container, s) {
   container.querySelectorAll(".share-copy").forEach(btn => {
     btn.addEventListener("click", (e) => {
       const target = e.currentTarget;
-      const url = window.location.href;
+      const url = getShareUrl("copy_link");
       trackEvent("share_action", "Engagement", "Copy Link", s.headline);
       navigator.clipboard.writeText(url).then(() => {
         const origText = target.innerHTML;
@@ -1237,7 +1271,7 @@ function wireEngagementEvents(container, s) {
   // Share X
   container.querySelectorAll(".share-x").forEach(btn => {
     btn.addEventListener("click", () => {
-      const url = encodeURIComponent(window.location.href);
+      const url = encodeURIComponent(getShareUrl("twitter"));
       const text = encodeURIComponent(`Check out this deep dive: "${s.headline}" on The Briefing`);
       trackEvent("share_action", "Engagement", "Twitter X", s.headline);
       window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, "_blank");
@@ -1247,7 +1281,7 @@ function wireEngagementEvents(container, s) {
   // Share WA
   container.querySelectorAll(".share-wa").forEach(btn => {
     btn.addEventListener("click", () => {
-      const url = encodeURIComponent(window.location.href);
+      const url = encodeURIComponent(getShareUrl("whatsapp"));
       const text = encodeURIComponent(`Check out this deep dive: "${s.headline}" on The Briefing - `);
       trackEvent("share_action", "Engagement", "WhatsApp", s.headline);
       window.open(`https://api.whatsapp.com/send?text=${text}${url}`, "_blank");
@@ -1257,7 +1291,7 @@ function wireEngagementEvents(container, s) {
   // Share LI (for desktop / general)
   container.querySelectorAll(".share-li").forEach(btn => {
     btn.addEventListener("click", () => {
-      const url = encodeURIComponent(window.location.href);
+      const url = encodeURIComponent(getShareUrl("linkedin"));
       trackEvent("share_action", "Engagement", "LinkedIn", s.headline);
       window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, "_blank");
     });
@@ -1265,12 +1299,13 @@ function wireEngagementEvents(container, s) {
 
   // Native share (mobile only)
   container.querySelector(".share-native")?.addEventListener("click", () => {
+    const url = getShareUrl("native_share");
     trackEvent("share_action", "Engagement", "Native Share", s.headline);
     if (navigator.share) {
       navigator.share({
         title: s.headline,
         text: `Check out this deep dive on The Briefing: "${s.headline}"`,
-        url: window.location.href
+        url: url
       }).catch(err => console.log("Error sharing:", err));
     } else {
       container.querySelector(".share-copy")?.click();
@@ -1391,6 +1426,23 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
   // Wire events for sharing & feedback
   wireEngagementEvents(wrap, s);
 
+  // Set up intersection observer to track story completion on desktop
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          trackEvent("story_complete", "Engagement", s.headline);
+          observer.disconnect();
+        }
+      });
+    }, { threshold: 0.1 });
+    
+    setTimeout(() => {
+      const target = wrap.querySelector(".desktop-story-nav");
+      if (target) observer.observe(target);
+    }, 500);
+  }
+
   return wrap;
 }
 
@@ -1408,7 +1460,7 @@ async function renderHome(date) {
   const isLatest = date === indexEntries[0]?.date;
 
   const pageTitle = isLatest ? "The Briefing — Daily News, Decoded" : `The Briefing — Archive ${fmtHeaderDate(date)}`;
-  const pagePath = isLatest ? "/" : `/#/day/${date}`;
+  const pagePath = isLatest ? "/" : `/briefings/day/${date}`;
   trackPageView(pagePath, pageTitle);
 
   $("header-date").textContent = fmtHeaderDate(date).toUpperCase();
@@ -1498,7 +1550,7 @@ async function renderStory(date, id) {
   const s = stories[storyIdx];
 
   const pageTitle = `The Briefing | ${s.headline}`;
-  const pagePath = `/#/story/${date}/${id}`;
+  const pagePath = `/story/${date}/${id}`;
   trackPageView(pagePath, pageTitle);
 
   $("header-date").textContent = fmtHeaderDate(date).toUpperCase();
@@ -2030,7 +2082,7 @@ function openShareSheet(url, headline) {
   
   if (wa) {
     wa.onclick = () => {
-      const shareUrl = encodeURIComponent(url);
+      const shareUrl = encodeURIComponent(getShareUrl("whatsapp", url));
       const text = encodeURIComponent(`Check out this Flash news on The Briefing: "${headline}" - `);
       if (typeof trackEvent === 'function') trackEvent("share_action", "Engagement", "WhatsApp", headline);
       window.open(`https://api.whatsapp.com/send?text=${text}${shareUrl}`, "_blank");
@@ -2039,7 +2091,7 @@ function openShareSheet(url, headline) {
   }
   if (x) {
     x.onclick = () => {
-      const shareUrl = encodeURIComponent(url);
+      const shareUrl = encodeURIComponent(getShareUrl("twitter", url));
       const text = encodeURIComponent(`Check out this Flash news: "${headline}" on The Briefing`);
       if (typeof trackEvent === 'function') trackEvent("share_action", "Engagement", "Twitter X", headline);
       window.open(`https://twitter.com/intent/tweet?url=${shareUrl}&text=${text}`, "_blank");
@@ -2049,15 +2101,18 @@ function openShareSheet(url, headline) {
   if (copy) {
     // "Share Anywhere" — use native system share sheet, fallback to clipboard
     copy.onclick = () => {
-      if (typeof trackEvent === 'function') trackEvent("share_action", "Engagement", "Share Anywhere", headline);
       if (navigator.share) {
+        const shareUrl = getShareUrl("native_share", url);
+        if (typeof trackEvent === 'function') trackEvent("share_action", "Engagement", "Share Anywhere", headline);
         navigator.share({
           title: headline,
           text: `Check out this Flash news on The Briefing: "${headline}"`,
-          url: url
+          url: shareUrl
         }).catch(err => console.log("Share cancelled:", err));
       } else {
-        navigator.clipboard.writeText(url).then(() => {
+        const shareUrl = getShareUrl("copy_link", url);
+        if (typeof trackEvent === 'function') trackEvent("share_action", "Engagement", "Copy Link", headline);
+        navigator.clipboard.writeText(shareUrl).then(() => {
           showToast("Copied shareable link to clipboard");
         }).catch(() => {
           showToast("Failed to copy link");
@@ -2070,8 +2125,9 @@ function openShareSheet(url, headline) {
     // "Copy Link" fallback button
     native.style.display = "flex";
     native.onclick = () => {
+      const shareUrl = getShareUrl("copy_link", url);
       if (typeof trackEvent === 'function') trackEvent("share_action", "Engagement", "Copy Link", headline);
-      navigator.clipboard.writeText(url).then(() => {
+      navigator.clipboard.writeText(shareUrl).then(() => {
         showToast("Copied link to clipboard");
       }).catch(() => {
         showToast("Failed to copy link");
@@ -3391,6 +3447,7 @@ function initSavedStories() {
     const item = e.target.closest(".related-flash-item");
     if (item) {
       const storyId = item.dataset.id;
+      trackEvent("click_related_flash", "Engagement", storyId);
       openFlashStory(storyId);
     }
   });
@@ -3664,6 +3721,7 @@ window.showPwaBanner = function() {
     </div>
   `;
   document.body.appendChild(banner);
+  trackEvent("pwa_banner_shown", "PWA", "Banner Displayed");
 
   requestAnimationFrame(() => {
     banner.classList.add('visible');
@@ -3675,6 +3733,7 @@ window.showPwaBanner = function() {
   };
 
   document.getElementById('pwa-install-btn').onclick = async () => {
+    trackEvent("pwa_install_click", "PWA", "Install Clicked");
     if (window.showInstallPrompt) {
       await window.showInstallPrompt();
     }
@@ -3682,6 +3741,7 @@ window.showPwaBanner = function() {
   };
 
   document.getElementById('pwa-dismiss-btn').onclick = () => {
+    trackEvent("pwa_install_dismiss", "PWA", "Not Now Clicked");
     localStorage.setItem('pwa_install_dismissed', Date.now().toString());
     removeBanner();
   };

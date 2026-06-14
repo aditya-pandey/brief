@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "endpoint": "https://updates.push.services.mozilla.com/wpush/v2/gAAAAABqLqHxVqwF-Hucj78NE7FF3yMmdT4KvoanUalPFvbJPaD_lxSd1KGwJ7q7rrNfMqxKqFwbwnmBCf0NKqE5U_Bs_R-TNDPQn8LomWF-QcVTKcmNlJC9hBmXLxI7QhXGSfyqE-aYyjucnflZNKTo1_UA_RtIR2kRfQjO2kMeJ2K91u__NLs",
+    "expirationTime": null,
+    "keys": {
+      "auth": "d-NnJb34iPU0R1SUzBhsmQ",
+      "p256dh": "BLap5Wo0vghz8rqFNy1-tHWiEkL15wFD4ESTPI3wOi8iW4XFxwI6dxjSGBHKKOEa4OazuegxUK4zeb8vtByGLeI"
+    }
+  },
+  {
+    "endpoint": "https://fcm.googleapis.com/fcm/send/cfx-YzNK39o:APA91bEJmw8oaY9TVcYQgAbyuwRKt00WWI_4TwXOIR-B7oJvGHA24gTkG5HtbMMMl6EEcTYOxhyh0q5RDIas30aviP7zf5sGCcTm5Mo-5EsBAL_CSpiiMULvl0NqlP-YD3DYKoCOOn6z",
+    "expirationTime": null,
+    "keys": {
+      "p256dh": "BKZiPRhdn6F7v7qk3TnxDefA4ufEROn5K-twesE5Hi7PwrnC5liXhVGADz06_gHlly7xUnfqmT6bkB8jv2y-3_g",
+      "auth": "LlzvkadmQaqxeNS-SS1Cvw"
+    }
+  }
+]
