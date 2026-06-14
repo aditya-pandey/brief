@@ -368,7 +368,7 @@ function getFlashIllustrationPaths(cat, storyId) {
        <line x1="82" y1="87" x2="118" y2="87" ${common} />
        <line x1="82" y1="112" x2="118" y2="112" ${common} />
        <line x1="90" y1="137" x2="110" y2="137" ${common} />`,
-      `<line x1="70" y1="130" x2="135" y2="65" ${common} stroke-width="3" />
+      `<line x1="70" y1="130" x2="135" y2="65" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
        <line x1="100" y1="100" x2="80" y2="150" ${common} />
        <line x1="100" y1="100" x2="120" y2="150" ${common} />
        <polygon points="145,50 150,55 145,60 140,55" fill="currentColor" />
@@ -418,7 +418,7 @@ function getFlashIllustrationPaths(cat, storyId) {
        <circle cx="80" cy="85" r="5" fill="currentColor" />
        <circle cx="110" cy="90" r="5" fill="currentColor" />
        <circle cx="95" cy="115" r="5" fill="currentColor" />
-       <path d="M 130 70 L 65 135" ${common} stroke-width="3" />`,
+       <path d="M 130 70 L 65 135" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />`,
       `<path d="M 100 50 L 78 110 L 78 145 L 122 145 L 122 110 Z" ${common} />
        <line x1="100" y1="50" x2="100" y2="110" ${common} />
        <circle cx="100" cy="110" r="3" fill="currentColor" />`,
