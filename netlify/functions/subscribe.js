@@ -67,7 +67,7 @@ export default async (req, context) => {
 
       if (getStore) {
         const store = getStore({ name: 'subscriptions' });
-        const key = Buffer.from(body.endpoint).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+        const key = btoa(body.endpoint).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
         await store.setJSON(key, body);
       } else {
         const subs = readLocalSubscriptions();
@@ -95,7 +95,7 @@ export default async (req, context) => {
 
       if (getStore) {
         const store = getStore({ name: 'subscriptions' });
-        const key = Buffer.from(body.endpoint).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+        const key = btoa(body.endpoint).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
         await store.delete(key);
       } else {
         const subs = readLocalSubscriptions();
@@ -110,7 +110,7 @@ export default async (req, context) => {
     }
   } catch (err) {
     console.error('[PWA subscribe function] Error:', err);
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: err.message, stack: err.stack }), {
       status: 500,
       headers
     });

@@ -3637,3 +3637,58 @@ initModeToggle();
 initSavedStories();
 initDatePicker();
 route();
+
+window.showPwaBanner = function() {
+  const dismissed = localStorage.getItem('pwa_install_dismissed');
+  if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
+
+  if (document.getElementById('pwa-banner')) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'pwa-banner';
+  banner.className = 'pwa-install-banner';
+  
+  const iconPath = window.location.pathname.includes('/flash') || window.location.pathname.includes('/story') ? '../icon-192.png' : './icon-192.png';
+
+  banner.innerHTML = `
+    <div class="pwa-install-icon">
+      <img src="${iconPath}" alt="Icon">
+    </div>
+    <div class="pwa-install-text">
+      <h4>Install The Briefing</h4>
+      <p>Get daily deep dives right on your home screen.</p>
+    </div>
+    <div class="pwa-install-actions">
+      <button id="pwa-install-btn" class="pwa-btn">Install</button>
+      <button id="pwa-dismiss-btn" class="pwa-btn secondary">Not Now</button>
+    </div>
+  `;
+  document.body.appendChild(banner);
+
+  requestAnimationFrame(() => {
+    banner.classList.add('visible');
+  });
+
+  const removeBanner = () => {
+    banner.classList.remove('visible');
+    setTimeout(() => banner.remove(), 400);
+  };
+
+  document.getElementById('pwa-install-btn').onclick = async () => {
+    if (window.showInstallPrompt) {
+      await window.showInstallPrompt();
+    }
+    removeBanner();
+  };
+
+  document.getElementById('pwa-dismiss-btn').onclick = () => {
+    localStorage.setItem('pwa_install_dismissed', Date.now().toString());
+    removeBanner();
+  };
+};
+
+window.addEventListener("DOMContentLoaded", () => {
+  if (window.__pwaBannerReady) {
+    window.showPwaBanner();
+  }
+});

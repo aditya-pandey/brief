@@ -1,9 +1,9 @@
-const CACHE_NAME = 'briefings-cache-v4';
+const CACHE_NAME = 'briefings-cache-v5';
 
 const PRECACHE_ASSETS = [
   './',
   './index.html',
-  './styles.css?v=8',
+  './styles.css?v=9',
   './app.js?v=10',
   './manifest.json',
   './icon-briefing.png',
