@@ -4221,8 +4221,8 @@ body.mode-flash-active #progress-bar {
   }
 }
 
-/* ── iPhone SE and very small screens (≤375px) ──────────────── */
-@media (max-width: 375px) {
+/* ── iPhone SE, Galaxy S24, and compact screens ──────────────── */
+@media (max-width: 375px), (max-width: 414px) and (max-height: 760px) {
   :root { --header-h: 92px !important; }
   .header-inner { padding: 0 10px !important; }
   .header-row-top { height: 42px !important; }
