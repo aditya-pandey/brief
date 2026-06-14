@@ -30,6 +30,70 @@
 
     gtag('config', 'G-602K6P5H7B');
   </script>
+
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="manifest.json" />
+  
+  <meta name="theme-color" content="#0B1020" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="The Briefings" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <!-- PWA Service Worker & Installation Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(reg => {
+            console.log('[PWA] Service Worker registered successfully with scope:', reg.scope);
+            
+            reg.onupdatefound = () => {
+              const installingWorker = reg.installing;
+              if (installingWorker) {
+                installingWorker.onstatechange = () => {
+                  if (installingWorker.state === 'installed') {
+                    if (navigator.serviceWorker.controller) {
+                      console.log('[PWA] New content is available; please refresh.');
+                    } else {
+                      console.log('[PWA] Content is cached for offline use.');
+                    }
+                  }
+                };
+              }
+            };
+          })
+          .catch(err => {
+            console.error('[PWA] Service Worker registration failed:', err);
+          });
+      });
+    }
+
+    // Install prompt handling
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log('[PWA] beforeinstallprompt event captured and deferred.');
+    });
+
+    // Expose showInstallPrompt function to window so UI can trigger it
+    window.showInstallPrompt = async function() {
+      if (!deferredPrompt) {
+        console.log('[PWA] No deferred install prompt available.');
+        return false;
+      }
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`[PWA] User response to the install prompt: ${outcome}`);
+      deferredPrompt = null;
+      return outcome === 'accepted';
+    };
+
+    window.addEventListener('appinstalled', (evt) => {
+      console.log('[PWA] The Briefings was installed successfully.');
+    });
+  </script>
 </head>
 <body>
 
@@ -79,6 +143,20 @@
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
             </svg>
             <span class="saved-count-badge" id="saved-count-badge"></span>
+          </button>
+
+          <button id="notification-trigger" class="hdr-icon-btn" aria-label="Enable notifications" title="Enable Notifications">
+            <svg id="icon-bell-off" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              <path d="M18.63 13A17.89 17.89 0 0 1 18 8"></path>
+              <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"></path>
+              <path d="M18 8a6 6 0 0 0-9.33-5"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+            <svg id="icon-bell" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
           </button>
 
           <button id="theme-toggle" aria-label="Toggle dark mode">

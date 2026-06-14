@@ -118,6 +118,72 @@ $("theme-toggle").onclick = () => {
   trackEvent("theme_toggle", "Preferences", next);
 };
 
+/* ── Push Notifications ───────────────────────────────────── */
+async function initPushNotifications() {
+  const trigger = $("notification-trigger");
+  if (!trigger) return;
+
+  try {
+    const pushService = await import('./push-placeholder.js');
+    
+    // Check current state
+    const { supported, subscribed } = await pushService.getSubscriptionStatus();
+    if (!supported) {
+      trigger.style.display = "none";
+      return;
+    }
+
+    updateBellUI(subscribed);
+
+    trigger.onclick = async () => {
+      trigger.disabled = true;
+      try {
+        const status = await pushService.getSubscriptionStatus();
+        if (status.subscribed) {
+          await pushService.unsubscribeUserFromPush();
+          updateBellUI(false);
+          showToast("Notifications disabled.");
+        } else {
+          await pushService.subscribeUserToPush();
+          updateBellUI(true);
+          showToast("Notifications enabled!");
+        }
+      } catch (err) {
+        console.error("Failed to toggle subscription:", err);
+        showToast("Error updating notification settings.");
+      } finally {
+        trigger.disabled = false;
+      }
+    };
+  } catch (e) {
+    console.error("Failed to load push module:", e);
+  }
+}
+
+function updateBellUI(subscribed) {
+  const trigger = $("notification-trigger");
+  const iconOn = $("icon-bell");
+  const iconOff = $("icon-bell-off");
+  if (!trigger || !iconOn || !iconOff) return;
+
+  if (subscribed) {
+    trigger.classList.add("active");
+    iconOn.classList.remove("hidden");
+    iconOff.classList.add("hidden");
+    trigger.title = "Disable Notifications";
+  } else {
+    trigger.classList.remove("active");
+    iconOn.classList.add("hidden");
+    iconOff.classList.remove("hidden");
+    trigger.title = "Enable Notifications";
+  }
+}
+
+// Initialize on load
+window.addEventListener("DOMContentLoaded", () => {
+  initPushNotifications();
+});
+
 /* ── Progress bar ──────────────────────────────────────────── */
 let progressActive = false;
 function startProgress() {

@@ -192,6 +192,10 @@ body.mode-flash-active .wordmark .logo-flash {
 [data-theme="dark"] #icon-sun { display: none; }
 [data-theme="dark"] #icon-moon { display: block; }
 
+.hidden { display: none !important; }
+#notification-trigger.active { color: var(--accent); border-color: var(--accent); background: var(--accent-bg); }
+#notification-trigger.active:hover { opacity: 0.8; }
+
 /* ── Reading progress bar ───────────────────────────────────── */
 #progress-bar {
   position: absolute; bottom: -1px; left: 0;
