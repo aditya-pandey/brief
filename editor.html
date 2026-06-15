@@ -1053,6 +1053,51 @@
     }
 
     function repairJson(str) {
+      function isClosingQuote(str, i) {
+        let k = i + 1;
+        let nextChar = '';
+        while (k < str.length) {
+          const c = str[k];
+          if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
+            nextChar = c;
+            break;
+          }
+          k++;
+        }
+        
+        if (nextChar === ':' || nextChar === '}' || nextChar === ']' || nextChar === '') {
+          return true;
+        }
+        
+        if (nextChar === ',') {
+          let m = k + 1;
+          let afterCommaChar = '';
+          while (m < str.length) {
+            const c = str[m];
+            if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
+              afterCommaChar = c;
+              break;
+            }
+            m++;
+          }
+          
+          if (afterCommaChar === '"' || afterCommaChar === '{' || afterCommaChar === '[' || 
+              afterCommaChar === '}' || afterCommaChar === ']' || 
+              (afterCommaChar >= '0' && afterCommaChar <= '9') || afterCommaChar === '-') {
+            return true;
+          }
+          
+          const remaining = str.slice(m);
+          if (remaining.startsWith('true') || remaining.startsWith('false') || remaining.startsWith('null')) {
+            return true;
+          }
+          
+          return false;
+        }
+        
+        return false;
+      }
+
       let result = '';
       let inString = false;
       let i = 0;
@@ -1071,17 +1116,7 @@
               inString = true;
               result += char;
             } else {
-              let nextNonWhitespace = '';
-              let k = i + 1;
-              while (k < str.length) {
-                const nextChar = str[k];
-                if (nextChar !== ' ' && nextChar !== '\t' && nextChar !== '\n' && nextChar !== '\r') {
-                  nextNonWhitespace = nextChar;
-                  break;
-                }
-                k++;
-              }
-              if (nextNonWhitespace === ':' || nextNonWhitespace === ',' || nextNonWhitespace === '}' || nextNonWhitespace === ']' || nextNonWhitespace === '') {
+              if (isClosingQuote(str, i)) {
                 inString = false;
                 result += char;
               } else {
