@@ -2293,6 +2293,12 @@ function updateFlashCounter(index, total) {
   } else {
     ctr.textContent = `${index + 1} / ${total}`;
   }
+
+  // Update floating reset button visibility dynamically
+  const resetBtn = document.getElementById("flash-reset-to-first");
+  if (resetBtn) {
+    resetBtn.style.display = (index > 0 && index < total) ? "flex" : "none";
+  }
 }
 
 function navigateFlash(direction, filtered) {
@@ -2358,18 +2364,70 @@ function attachPhysicalDrag(filtered) {
     el.className = 'flash-card all-done-card';
     el.dataset.idx = String(filtered.length);
     el.innerHTML = `
-      <div style="margin:auto;display:flex;flex-direction:column;align-items:center;text-align:center;gap:20px;width:100%;padding:20px 0;">
-        <div style="width:64px;height:64px;border-radius:50%;background:var(--teal-bg);color:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <div style="display:flex; flex-direction:column; align-items:center; text-align:center; height: 100%; justify-content: space-between; width:100%; padding: 10px 0 6px 0; box-sizing: border-box; position: relative;">
+        <!-- Checkmark SVG badge container -->
+        <div style="margin-top: auto; margin-bottom: 8px;">
+          <svg width="130" height="130" viewBox="0 0 150 150" style="display: block; margin: 0 auto;">
+            <!-- Spark lines -->
+            <line x1="40" y1="45" x2="35" y2="40" stroke="var(--ink-3)" stroke-width="1.8" stroke-linecap="round" opacity="0.4" />
+            <line x1="110" y1="45" x2="115" y2="40" stroke="var(--ink-3)" stroke-width="1.8" stroke-linecap="round" opacity="0.4" />
+            <line x1="28" y1="84" x2="22" y2="86" stroke="var(--ink-3)" stroke-width="1.8" stroke-linecap="round" opacity="0.4" />
+            <line x1="122" y1="84" x2="128" y2="86" stroke="var(--ink-3)" stroke-width="1.8" stroke-linecap="round" opacity="0.4" />
+            <line x1="56" y1="115" x2="52" y2="120" stroke="var(--ink-3)" stroke-width="1.8" stroke-linecap="round" opacity="0.4" />
+            <line x1="94" y1="115" x2="98" y2="120" stroke="var(--ink-3)" stroke-width="1.8" stroke-linecap="round" opacity="0.4" />
+            
+            <!-- Background circle for checkmark -->
+            <circle cx="75" cy="75" r="28" fill="#e6f6f4" />
+            <circle cx="75" cy="75" r="28" stroke="#0f9b8e" stroke-width="1.5" stroke-dasharray="3 3" fill="none" opacity="0.35" />
+            
+            <!-- Checkmark path -->
+            <path d="M66 74l6 6 12-12" stroke="#0f9b8e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+            
+            <!-- Colorful sparkles -->
+            <!-- Orange circle left -->
+            <circle cx="28" cy="70" r="3" fill="#f59e0b" />
+            <!-- Purple circle right -->
+            <circle cx="122" cy="72" r="3" fill="#a855f7" />
+            <!-- Yellow diamond top-left -->
+            <polygon points="56,36 58,40 56,44 54,40" fill="#f59e0b" transform="rotate(15 56 40)" />
+            <!-- Blue diamond top-left -->
+            <polygon points="38,54 41,56 38,58 35,56" fill="#06b6d4" />
+            <!-- Purple diamond top-right -->
+            <polygon points="108,36 110,40 108,44 106,40" fill="#a855f7" />
+            <!-- Green diamond bottom-right -->
+            <polygon points="118,103 121,105 118,107 115,105" fill="#22c55e" />
+          </svg>
         </div>
-        <div>
-          <h2 class="flash-headline" style="font-size:22px;font-weight:900;margin-bottom:8px;">You're All Caught Up!</h2>
-          <p style="font-family:var(--body);font-size:15px;color:var(--ink-2);line-height:1.6;margin:0;">You've read all of today's speed news updates.</p>
+        
+        <!-- Text Section -->
+        <div style="margin-bottom: 20px; padding: 0 10px;">
+          <h2 class="flash-headline" style="font-size: 23px; font-weight: 700; color: var(--ink); margin: 0 0 10px 0; font-family: 'Manrope', var(--sans); letter-spacing: -0.01em;">You're All Caught Up!</h2>
+          <p style="font-family: var(--sans); font-weight: 400; font-size: 13px; color: var(--ink-2); line-height: 1.55; margin: 0;">
+            You've read all of today's speed news updates.<br>Check back later for more quick updates.
+          </p>
         </div>
-        <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px;">
-          <button class="desktop-action-btn desktop-go-deeper-btn" id="all-done-briefings-btn" style="width:100%;justify-content:center;font-size:12px;padding:10px;">📰 Explore Deep Dives</button>
-          <button class="desktop-action-btn" id="all-done-restart-btn" style="width:100%;justify-content:center;font-size:11px;padding:8px;">↺ Back to First Card</button>
+        
+        <!-- Action Buttons -->
+        <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width: 280px; margin-bottom: auto; padding: 0 10px; box-sizing: border-box;">
+          <!-- Explore Deep Dives -->
+          <button class="desktop-action-btn" id="all-done-briefings-btn" style="width: 100%; height: 42px; border-radius: 8px; border: none; background: var(--ink); color: var(--bg); font-family: var(--sans); font-weight: 500; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"/></svg>
+            Explore Deep Dives
+          </button>
+          <!-- Back to First Card -->
+          <button class="desktop-action-btn" id="all-done-restart-btn" style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid var(--rule); background: var(--bg-card); color: var(--ink); font-family: var(--sans); font-weight: 500; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--bg-card-h)'" onmouseout="this.style.backgroundColor='var(--bg-card)'">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
+            Back to First Card
+          </button>
         </div>
+        
+        <!-- Illustration Section -->
+        <div style="margin-top: auto; margin-bottom: 20px; width: 100%; pointer-events: none; user-select: none;">
+          <img src="/newspaper-illustration.png" alt="Newspaper Illustration" style="width: 90%; max-width: 290px; height: auto; max-height: 145px; display: block; margin: 0 auto; opacity: 0.95; object-fit: contain;" />
+        </div>
+        
+        <!-- Solid bottom accent line -->
+        <div style="position: absolute; bottom: -8px; left: -12px; right: -12px; height: 4px; background: var(--accent); border-radius: 0 0 var(--radius) var(--radius);"></div>
       </div>`;
     setRole(el, role);
     return el;
@@ -2940,15 +2998,26 @@ function renderFlashMobileLayout(filtered, targetDate) {
   const progressPct = Math.min(((currentFlashIndex + 1) / total) * 100, 100);
 
   app.innerHTML = `
-    <div class="flash-container" style="--cat-color:${firstCol};--cat-color-rgb:${firstRgb};">
+    <div class="flash-container" style="--cat-color:${firstCol};--cat-color-rgb:${firstRgb}; position: relative;">
       <div class="flash-categories-bar" id="flash-cats">
         ${renderFlashCategoryPills()}
       </div>
       <div class="flash-card-stage" id="flash-card-stage"></div>
+      <button id="flash-reset-to-first" class="flash-reset-btn" style="display: ${(currentFlashIndex > 0 && currentFlashIndex < total) ? 'flex' : 'none'};" aria-label="Back to first card">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+      </button>
       <div class="flash-progress-track">
         <div class="flash-progress-fill" style="width:${progressPct}%;transition:width 0.3s ease;"></div>
       </div>
     </div>`;
+
+  const resetBtn = document.getElementById("flash-reset-to-first");
+  if (resetBtn) {
+    resetBtn.onclick = () => {
+      currentFlashIndex = 0;
+      renderFlashView();
+    };
+  }
 
   updateFlashCounter(currentFlashIndex, total);
   wireFlashCategories();
