@@ -659,7 +659,7 @@
       const uniqueIndexData = [];
       const seenDates = new Set();
       for (const entry of indexData) {
-        if (!seenDates.has(entry.date)) {
+        if (!seenDates.has(entry.date) && /^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
           seenDates.add(entry.date);
           uniqueIndexData.push(entry);
         }
@@ -1400,7 +1400,7 @@
       const uniqueIndexData = [];
       const seenDates = new Set();
       for (const entry of indexData) {
-        if (!seenDates.has(entry.date)) {
+        if (!seenDates.has(entry.date) && /^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
           seenDates.add(entry.date);
           uniqueIndexData.push(entry);
         }

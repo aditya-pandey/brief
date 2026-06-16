@@ -12,204 +12,436 @@ function hashStr(str) {
   return Math.abs(hash);
 }
 
-// Generate an OG-sized SVG (1200x630)
-function generateOgSvg(story, idx = 0) {
-  const text = ((story.headline || "") + " " + (story.tldr || "")).toLowerCase();
-  let hash = Math.abs(hashStr(story.id || story.headline || "default"));
-  function rand() {
-    let x = Math.sin(hash++) * 10000;
-    return x - Math.floor(x);
-  }
-  
-  const bgs = ["#F4F4F5", "#F8FAFC", "#FAF5FF", "#FDF4FF", "#FFFBEB", "#F0FDF4", "#F0F9FF", "#FEF2F2", "#FFF7ED"];
-  const bg = bgs[Math.floor(rand() * bgs.length)];
+// XML-escape text to prevent SVG parsing failures
+function escapeXml(unsafe) {
+  if (!unsafe) return "";
+  return unsafe.replace(/[<>&'"]/g, (c) => {
+    switch (c) {
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '&': return '&amp;';
+      case '\'': return '&apos;';
+      case '"': return '&quot;';
+      default: return c;
+    }
+  });
+}
 
-  // For static OG images, always use dark ink for contrast against pastel bg
-  const stroke = "#1c1917"; 
-  const sw = "1.5"; 
-  const common = `fill="none" stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"`;
+// Custom text wrapping algorithm
+function wrapText(text, maxChars) {
+  if (!text) return [];
+  const words = text.split(/\s+/);
+  const lines = [];
+  let currentLine = "";
 
-  const library = {
-    conflict: [
-      `<path d="M 100 40 A 60 60 0 0 0 100 160" ${common} />
-       <path d="M 110 40 A 60 60 0 0 1 110 160" ${common} />
-       <polyline points="105,30 90,80 120,120 95,170" ${common} />`,
-      `<line x1="100" y1="40" x2="100" y2="160" ${common} />
-       <line x1="50" y1="70" x2="150" y2="70" ${common} />
-       <polygon points="50,70 30,120 70,120" ${common} />
-       <polygon points="150,70 130,120 170,120" ${common} />
-       <line x1="70" y1="160" x2="130" y2="160" ${common} />`,
-      `<polyline points="40,60 80,100 40,140" ${common} />
-       <polyline points="160,60 120,100 160,140" ${common} />
-       <line x1="100" y1="40" x2="100" y2="160" ${common} stroke-dasharray="4 4"/>`,
-      `<path d="M 50 60 Q 100 40 150 60 L 150 100 Q 150 150 100 170 Q 50 150 50 100 Z" ${common} />
-       <line x1="100" y1="45" x2="100" y2="170" ${common} />`,
-      `<line x1="60" y1="140" x2="130" y2="70" ${common} />
-       <rect x="120" y="50" width="40" height="20" transform="rotate(45 140 60)" ${common} />
-       <line x1="40" y1="150" x2="80" y2="150" ${common} />`,
-      `<polyline points="60,60 140,60 140,140 80,140 80,80 120,80 120,120" ${common} />
-       <line x1="100" y1="100" x2="100" y2="160" ${common} />
-       <line x1="40" y1="100" x2="60" y2="100" ${common} />`,
-      `<rect x="80" y="40" width="40" height="120" ${common} />
-       <polygon points="70,100 130,90 130,110 70,120" fill="${bg}" stroke="${bg}" stroke-width="4" />
-       <polyline points="75,100 100,95 125,110" ${common} />`
-    ],
-    economy: [
-      `<rect x="50" y="120" width="20" height="40" ${common} />
-       <rect x="90" y="90" width="20" height="70" ${common} />
-       <rect x="130" y="50" width="20" height="110" ${common} />
-       <path d="M 30 140 Q 80 140 100 80 T 170 30" ${common} />
-       <line x1="30" y1="160" x2="170" y2="160" ${common} />`,
-      `<circle cx="100" cy="100" r="50" ${common} />
-       <circle cx="100" cy="100" r="25" ${common} />
-       <line x1="100" y1="50" x2="100" y2="75" ${common} />
-       <line x1="143" y1="125" x2="122" y2="112" ${common} />
-       <line x1="57" y1="125" x2="78" y2="112" ${common} />`,
-      `<circle cx="70" cy="100" r="30" ${common} />
-       <circle cx="130" cy="100" r="30" ${common} />
-       <path d="M 70 50 Q 100 30 130 50" ${common} />
-       <polygon points="120,40 135,50 120,60" fill="${stroke}" />
-       <path d="M 130 150 Q 100 170 70 150" ${common} />
-       <polygon points="80,140 65,150 80,160" fill="${stroke}" />`,
-      `<polyline points="40,160 40,130 80,130 80,100 120,100 120,70 160,70 160,40" ${common} />
-       <line x1="40" y1="160" x2="160" y2="160" ${common} />`,
-      `<line x1="70" y1="40" x2="70" y2="120" ${common} />
-       <rect x="60" y="60" width="20" height="40" fill="${stroke}" />
-       <line x1="130" y1="80" x2="130" y2="160" ${common} />
-       <rect x="120" y="100" width="20" height="40" ${common} />`,
-      `<path d="M 40 140 Q 100 140 100 100 T 160 60" ${common} />
-       <path d="M 40 160 Q 100 160 100 120 T 160 80" ${common} stroke-dasharray="4 4" />`
-    ],
-    tech: [
-      `<ellipse cx="100" cy="100" rx="60" ry="20" transform="rotate(30 100 100)" ${common} />
-       <ellipse cx="100" cy="100" rx="60" ry="20" transform="rotate(150 100 100)" ${common} />
-       <circle cx="100" cy="100" r="6" fill="${stroke}" />
-       <circle cx="50" cy="70" r="3" fill="${stroke}" />
-       <circle cx="150" cy="130" r="3" fill="${stroke}" />`,
-      `<rect x="60" y="60" width="80" height="80" rx="4" ${common} />
-       <rect x="80" y="80" width="40" height="40" rx="2" ${common} />
-       <line x1="60" y1="80" x2="40" y2="80" ${common} />
-       <line x1="60" y1="100" x2="40" y2="100" ${common} />
-       <line x1="60" y1="120" x2="40" y2="120" ${common} />
-       <line x1="140" y1="80" x2="160" y2="80" ${common} />
-       <line x1="140" y1="100" x2="160" y2="100" ${common} />
-       <line x1="140" y1="120" x2="160" y2="120" ${common} />
-       <line x1="80" y1="60" x2="80" y2="40" ${common} />
-       <line x1="100" y1="60" x2="100" y2="40" ${common} />
-       <line x1="120" y1="60" x2="120" y2="40" ${common} />
-       <line x1="80" y1="140" x2="80" y2="160" ${common} />
-       <line x1="100" y1="140" x2="100" y2="160" ${common} />
-       <line x1="120" y1="140" x2="120" y2="160" ${common} />`,
-      `<circle cx="100" cy="100" r="40" ${common} stroke-dasharray="4 4" />
-       <circle cx="100" cy="60" r="5" fill="${stroke}" />
-       <circle cx="65" cy="120" r="5" fill="${stroke}" />
-       <circle cx="135" cy="120" r="5" fill="${stroke}" />
-       <circle cx="100" cy="100" r="3" fill="${stroke}" />
-       <line x1="100" y1="60" x2="100" y2="100" ${common} />
-       <line x1="65" y1="120" x2="100" y2="100" ${common} />
-       <line x1="135" y1="120" x2="100" y2="100" ${common} />
-       <line x1="65" y1="120" x2="135" y2="120" ${common} />`,
-      `<path d="M 40 160 A 120 120 0 0 1 160 40" ${common} />
-       <path d="M 40 160 A 80 80 0 0 1 120 80" ${common} />
-       <path d="M 40 160 A 40 40 0 0 1 80 120" ${common} />
-       <circle cx="40" cy="160" r="6" fill="${stroke}" />
-       <circle cx="110" cy="90" r="4" fill="${stroke}" />`,
-      `<rect x="60" y="60" width="20" height="20" ${common} />
-       <rect x="90" y="60" width="20" height="20" fill="${stroke}" />
-       <rect x="120" y="60" width="20" height="20" ${common} />
-       <rect x="60" y="90" width="20" height="20" fill="${stroke}" />
-       <rect x="90" y="90" width="20" height="20" ${common} />
-       <rect x="120" y="90" width="20" height="20" fill="${stroke}" />
-       <rect x="60" y="120" width="20" height="20" ${common} />
-       <rect x="90" y="120" width="20" height="20" fill="${stroke}" />
-       <rect x="120" y="120" width="20" height="20" ${common} />`,
-      `<polyline points="30,100 60,100 75,60 90,140 105,40 120,120 135,100 170,100" ${common} />`
-    ],
-    politics: [
-      `<polygon points="100,50 40,80 160,80" ${common} />
-       <rect x="50" y="80" width="10" height="60" ${common} />
-       <rect x="80" y="80" width="10" height="60" ${common} />
-       <rect x="110" y="80" width="10" height="60" ${common} />
-       <rect x="140" y="80" width="10" height="60" ${common} />
-       <rect x="30" y="140" width="140" height="10" ${common} />`,
-      `<circle cx="100" cy="100" r="50" ${common} />
-       <ellipse cx="100" cy="100" rx="20" ry="50" ${common} />
-       <line x1="50" y1="100" x2="150" y2="100" ${common} />
-       <line x1="100" y1="40" x2="100" y2="160" ${common} />`,
-      `<rect x="80" y="80" width="40" height="60" ${common} />
-       <rect x="70" y="140" width="60" height="10" ${common} />
-       <line x1="100" y1="80" x2="100" y2="50" ${common} />
-       <circle cx="100" cy="45" r="5" fill="${stroke}" />
-       <line x1="90" y1="90" x2="110" y2="90" ${common} />
-       <line x1="90" y1="100" x2="110" y2="100" ${common} />`,
-      `<path d="M 60 100 A 40 40 0 0 1 140 100" ${common} />
-       <rect x="50" y="100" width="100" height="20" ${common} />
-       <rect x="40" y="120" width="120" height="10" ${common} />
-       <line x1="100" y1="60" x2="100" y2="40" ${common} />`,
-      `<line x1="40" y1="100" x2="160" y2="100" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-       <circle cx="70" cy="70" r="10" ${common} />
-       <circle cx="100" cy="70" r="10" fill="${stroke}" />
-       <circle cx="130" cy="70" r="10" ${common} />
-       <circle cx="70" cy="130" r="10" fill="${stroke}" />
-       <circle cx="100" cy="130" r="10" ${common} />
-       <circle cx="130" cy="130" r="10" fill="${stroke}" />`,
-      `<line x1="40" y1="50" x2="160" y2="50" ${common} />
-       <polygon points="60,50 100,50 80,120" ${common} />
-       <polygon points="110,50 150,50 130,140" fill="${stroke}" opacity="0.8"/>`
-    ],
-    balance: [
-      `<circle cx="100" cy="130" r="30" ${common} />
-       <circle cx="100" cy="80" r="20" ${common} />
-       <circle cx="100" cy="45" r="15" ${common} />
-       <line x1="40" y1="160" x2="160" y2="160" ${common} />`,
-      `<circle cx="100" cy="100" r="50" ${common} />
-       <line x1="30" y1="100" x2="170" y2="100" ${common} />
-       <line x1="60" y1="110" x2="140" y2="110" ${common} />
-       <line x1="80" y1="120" x2="120" y2="120" ${common} />`,
-      `<circle cx="85" cy="100" r="40" ${common} />
-       <circle cx="115" cy="100" r="40" ${common} />
-       <path d="M 100 63 L 100 137" ${common} stroke-dasharray="2 4"/>`,
-      `<polygon points="60,60 140,60 100,100" ${common} />
-       <polygon points="60,140 140,140 100,100" ${common} />
-       <line x1="80" y1="120" x2="120" y2="120" ${common} stroke-dasharray="2 2" />`,
-      `<path d="M 60 120 A 40 40 0 0 1 140 120" ${common} />
-       <line x1="30" y1="120" x2="170" y2="120" ${common} />
-       <line x1="100" y1="80" x2="100" y2="60" ${common} />
-       <line x1="128" y1="92" x2="142" y2="78" ${common} />
-       <line x1="72" y1="92" x2="58" y2="78" ${common} />`,
-      `<line x1="100" y1="40" x2="100" y2="140" ${common} stroke-dasharray="4 4" />
-       <circle cx="100" cy="140" r="15" fill="${stroke}" />
-       <path d="M 60 140 A 40 40 0 0 0 140 140" ${common} />`
-    ]
-  };
-
-  const categories = {
-    conflict: ["strike", "war", "conflict", "tension", "crisis", "attack", "threat", "protest", "violence", "court", "lawsuit", "invalidates", "clash", "friction", "strains", "rejects"],
-    economy: ["economy", "market", "funding", "growth", "bank", "trade", "tax", "fee", "investment", "price", "billion", "rupee", "dollar"],
-    tech: ["tech", "ai", "space", "science", "digital", "data", "software", "apple", "google", "meta", "cyber"],
-    politics: ["election", "vote", "president", "minister", "law", "policy", "government", "parliament", "senate", "ruling", "judge", "diplomatic"]
-  };
-
-  let activeTheme = "balance";
-  let maxMatches = 0;
-  for (const [theme, words] of Object.entries(categories)) {
-    let matches = 0;
-    words.forEach(w => { if (text.includes(w)) matches++; });
-    if (matches > maxMatches) {
-      maxMatches = matches;
-      activeTheme = theme;
+  for (const word of words) {
+    if ((currentLine + " " + word).trim().length <= maxChars) {
+      currentLine = currentLine ? currentLine + " " + word : word;
+    } else {
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+      currentLine = word;
     }
   }
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+  return lines;
+}
 
-  const icons = library[activeTheme];
-  const icon = icons[Math.floor(rand() * icons.length)];
-  
-  // Return a full 1200x630 SVG
+// Convert YYYY-MM-DD to "MONTH DD, YYYY"
+function formatDateStr(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return "";
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr.toUpperCase();
+  const months = [
+    "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
+    "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"
+  ];
+  const year = parts[0];
+  const monthIdx = parseInt(parts[1], 10) - 1;
+  const day = parseInt(parts[2], 10);
+  if (monthIdx >= 0 && monthIdx < 12) {
+    return `${months[monthIdx]} ${day}, ${year}`;
+  }
+  return dateStr.toUpperCase();
+}
+
+function getCategoryLabel(story, isFlash) {
+  if (isFlash) {
+    let cat = (story.cat || "").toLowerCase();
+    if (cat === "world") return "GLOBAL";
+    if (cat === "business") return "ECONOMY";
+    if (cat === "ai" || cat === "tech" || cat === "ai-tech") return "AI & TECH";
+    return cat.toUpperCase();
+  } else {
+    const text = ((story.headline || "") + " " + (story.tldr || "")).toLowerCase();
+    const categories = {
+      conflict: ["strike", "war", "conflict", "tension", "crisis", "attack", "threat", "protest", "violence", "court", "lawsuit", "invalidates", "clash", "friction", "strains", "rejects"],
+      economy: ["economy", "market", "funding", "growth", "bank", "trade", "tax", "fee", "investment", "price", "billion", "rupee", "dollar"],
+      tech: ["tech", "ai", "space", "science", "digital", "data", "software", "apple", "google", "meta", "cyber"],
+      politics: ["election", "vote", "president", "minister", "law", "policy", "government", "parliament", "senate", "ruling", "judge", "diplomatic"]
+    };
+    let activeTheme = "";
+    let maxMatches = 0;
+    for (const [theme, words] of Object.entries(categories)) {
+      let matches = 0;
+      words.forEach(w => { if (text.includes(w)) matches++; });
+      if (matches > maxMatches) {
+        maxMatches = matches;
+        activeTheme = theme;
+      }
+    }
+    if (activeTheme) {
+      if (activeTheme === "conflict") return "CONFLICT";
+      if (activeTheme === "economy") return "ECONOMY";
+      if (activeTheme === "tech") return "AI & TECH";
+      if (activeTheme === "politics") return "POLITICS";
+    }
+    if (story.region) {
+      return story.region.toUpperCase();
+    }
+    return "DEEP DIVE";
+  }
+}
+
+const CATEGORY_COLORS = {
+  INDIA: '#F97316',
+  GLOBAL: '#3B82F6',
+  POLITICS: '#EF4444',
+  ECONOMY: '#10B981',
+  ECONOMICS: '#10B981',
+  'AI & TECH': '#6366F1',
+  TECH: '#6366F1',
+  SCIENCE: '#F59E0B',
+  SPORTS: '#F97316',
+  ENTERTAINMENT: '#EC4899',
+  CULTURE: '#A78BFA',
+  HEALTH: '#34D399',
+  CONFLICT: '#EF4444',
+  'DEEP DIVE': '#3F3E50'
+};
+
+function getCategoryColor(label) {
+  const l = (label || "").toUpperCase();
+  return CATEGORY_COLORS[l] || '#3F3E50';
+}
+
+function getVectorArtForCategory(label) {
+  const l = (label || "").toUpperCase();
+  if (l === "SCIENCE") {
+    return `
+      <!-- Mountain 1 -->
+      <path d="M 700,540 L 780,440 L 890,510 L 980,410 L 1080,480 L 1140,430 L 1140,540 Z" fill="#0F172A" />
+      <!-- Mountain 2 -->
+      <path d="M 700,540 L 830,470 L 930,520 L 1040,450 L 1140,540 Z" fill="#020617" opacity="0.8" />
+      <!-- Crescent Moon -->
+      <path d="M 1010,210 A 30,30 0 1,0 1040,240 A 24,24 0 1,1 1010,210 Z" fill="#FFFBEB" opacity="0.9" />
+      <!-- Stars -->
+      <circle cx="770" cy="200" r="2" fill="#FFF" opacity="0.8"/>
+      <circle cx="820" cy="160" r="3" fill="#FFF" opacity="0.9"/>
+      <circle cx="890" cy="220" r="1.5" fill="#FFF" opacity="0.6"/>
+      <circle cx="940" cy="180" r="2" fill="#FFF" opacity="0.7"/>
+      <circle cx="790" cy="280" r="2.5" fill="#FFF" opacity="0.8"/>
+      <circle cx="960" cy="270" r="1.5" fill="#FFF" opacity="0.5"/>
+      <path d="M 850,150 L 850,158 M 846,154 L 854,154" stroke="#FFF" stroke-width="1" opacity="0.9" />
+      <path d="M 780,240 L 780,246 M 777,243 L 783,243" stroke="#FFF" stroke-width="1" opacity="0.8" />
+    `;
+  }
+  if (l === "AI & TECH" || l === "TECH") {
+    return `
+      <!-- Connections -->
+      <line x1="820" y1="220" x2="920" y2="180" stroke="#FFF" stroke-width="1.5" opacity="0.4" />
+      <line x1="820" y1="220" x2="860" y2="320" stroke="#FFF" stroke-width="1.5" opacity="0.4" />
+      <line x1="920" y1="180" x2="1020" y2="240" stroke="#FFF" stroke-width="1.5" opacity="0.4" />
+      <line x1="920" y1="180" x2="980" y2="340" stroke="#FFF" stroke-width="1.5" opacity="0.4" />
+      <line x1="860" y1="320" x2="980" y2="340" stroke="#FFF" stroke-width="1.5" opacity="0.4" />
+      <line x1="860" y1="320" x2="910" y2="440" stroke="#FFF" stroke-width="1.5" opacity="0.4" />
+      <line x1="980" y1="340" x2="910" y2="440" stroke="#FFF" stroke-width="1.5" opacity="0.4" />
+      <line x1="980" y1="340" x2="1050" y2="400" stroke="#FFF" stroke-width="1.5" opacity="0.4" />
+      <line x1="910" y1="440" x2="1050" y2="400" stroke="#FFF" stroke-width="1.5" opacity="0.4" />
+      <line x1="1020" y1="240" x2="1050" y2="400" stroke="#FFF" stroke-width="1.5" opacity="0.4" />
+      
+      <!-- Nodes -->
+      <circle cx="820" cy="220" r="12" fill="#FFF" fill-opacity="0.15" /><circle cx="820" cy="220" r="4" fill="#FFF" />
+      <circle cx="920" cy="180" r="12" fill="#FFF" fill-opacity="0.15" /><circle cx="920" cy="180" r="4" fill="#FFF" />
+      <circle cx="1020" cy="240" r="12" fill="#FFF" fill-opacity="0.15" /><circle cx="1020" cy="240" r="4" fill="#FFF" />
+      <circle cx="860" cy="320" r="12" fill="#FFF" fill-opacity="0.15" /><circle cx="860" cy="320" r="4" fill="#FFF" />
+      <circle cx="980" cy="340" r="12" fill="#FFF" fill-opacity="0.15" /><circle cx="980" cy="340" r="4" fill="#FFF" />
+      <circle cx="910" cy="440" r="12" fill="#FFF" fill-opacity="0.15" /><circle cx="910" cy="440" r="4" fill="#FFF" />
+      <circle cx="1050" cy="400" r="12" fill="#FFF" fill-opacity="0.15" /><circle cx="1050" cy="400" r="4" fill="#FFF" />
+
+      <!-- Center Processor -->
+      <rect x="895" y="255" width="50" height="50" rx="6" ry="6" fill="#FFF" fill-opacity="0.15" stroke="#FFF" stroke-width="2" stroke-opacity="0.8" />
+      <rect x="905" y="265" width="30" height="30" rx="3" ry="3" fill="#FFF" fill-opacity="0.25" stroke="#FFF" stroke-width="1.5" stroke-opacity="0.9" />
+      <!-- Pins -->
+      <line x1="910" y1="255" x2="910" y2="247" stroke="#FFF" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.7" />
+      <line x1="920" y1="255" x2="920" y2="247" stroke="#FFF" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.7" />
+      <line x1="930" y1="255" x2="930" y2="247" stroke="#FFF" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.7" />
+      <line x1="910" y1="305" x2="910" y2="313" stroke="#FFF" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.7" />
+      <line x1="920" y1="305" x2="920" y2="313" stroke="#FFF" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.7" />
+      <line x1="930" y1="305" x2="930" y2="313" stroke="#FFF" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.7" />
+      <line x1="895" y1="270" x2="887" y2="270" stroke="#FFF" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.7" />
+      <line x1="895" y1="280" x2="887" y2="280" stroke="#FFF" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.7" />
+      <line x1="895" y1="290" x2="887" y2="290" stroke="#FFF" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.7" />
+      <line x1="945" y1="270" x2="953" y2="270" stroke="#FFF" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.7" />
+      <line x1="945" y1="280" x2="953" y2="280" stroke="#FFF" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.7" />
+      <line x1="945" y1="290" x2="953" y2="290" stroke="#FFF" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.7" />
+    `;
+  }
+  if (l === "ECONOMY" || l === "ECONOMICS") {
+    return `
+      <!-- Grid Lines -->
+      <line x1="700" y1="220" x2="1140" y2="220" stroke="#FFF" stroke-width="1" opacity="0.15" />
+      <line x1="700" y1="300" x2="1140" y2="300" stroke="#FFF" stroke-width="1" opacity="0.15" />
+      <line x1="700" y1="380" x2="1140" y2="380" stroke="#FFF" stroke-width="1" opacity="0.15" />
+      <line x1="700" y1="460" x2="1140" y2="460" stroke="#FFF" stroke-width="1" opacity="0.15" />
+      <line x1="780" y1="120" x2="780" y2="540" stroke="#FFF" stroke-width="1" opacity="0.15" />
+      <line x1="890" y1="120" x2="890" y2="540" stroke="#FFF" stroke-width="1" opacity="0.15" />
+      <line x1="1000" y1="120" x2="1000" y2="540" stroke="#FFF" stroke-width="1" opacity="0.15" />
+      <line x1="1110" y1="120" x2="1110" y2="540" stroke="#FFF" stroke-width="1" opacity="0.15" />
+
+      <!-- Area below curve -->
+      <path d="M 710,540 L 710,480 Q 820,440 920,320 T 1130,180 L 1130,540 Z" fill="#FFF" fill-opacity="0.1" />
+
+      <!-- Curve -->
+      <path d="M 710,480 Q 820,440 920,320 T 1130,180" fill="none" stroke="#FFF" stroke-width="4" stroke-linecap="round" opacity="0.9" />
+
+      <!-- Points -->
+      <circle cx="830" cy="410" r="5" fill="#34D399" stroke="#FFF" stroke-width="2" />
+      <circle cx="950" cy="290" r="5" fill="#34D399" stroke="#FFF" stroke-width="2" />
+      <circle cx="1070" cy="215" r="5" fill="#34D399" stroke="#FFF" stroke-width="2" />
+    `;
+  }
+  if (l === "POLITICS" || l === "CONFLICT") {
+    return `
+      <!-- Temple Facade -->
+      <!-- Steps -->
+      <rect x="760" y="440" width="320" height="20" rx="3" fill="#FFF" fill-opacity="0.2" stroke="#FFF" stroke-width="2" stroke-opacity="0.8" />
+      <rect x="770" y="420" width="300" height="20" rx="2" fill="#FFF" fill-opacity="0.15" stroke="#FFF" stroke-width="2" stroke-opacity="0.8" />
+      <!-- Architrave -->
+      <rect x="770" y="240" width="300" height="30" rx="2" fill="#FFF" fill-opacity="0.15" stroke="#FFF" stroke-width="2" stroke-opacity="0.8" />
+      <!-- Pediment -->
+      <polygon points="760,240 920,170 1080,240" fill="#FFF" fill-opacity="0.2" stroke="#FFF" stroke-width="2" stroke-opacity="0.8" />
+      <!-- Columns -->
+      <rect x="790" y="270" width="20" height="150" fill="#FFF" fill-opacity="0.1" stroke="#FFF" stroke-width="2" stroke-opacity="0.7" />
+      <rect x="870" y="270" width="20" height="150" fill="#FFF" fill-opacity="0.1" stroke="#FFF" stroke-width="2" stroke-opacity="0.7" />
+      <rect x="950" y="270" width="20" height="150" fill="#FFF" fill-opacity="0.1" stroke="#FFF" stroke-width="2" stroke-opacity="0.7" />
+      <rect x="1030" y="270" width="20" height="150" fill="#FFF" fill-opacity="0.1" stroke="#FFF" stroke-width="2" stroke-opacity="0.7" />
+    `;
+  }
+  if (l === "INDIA") {
+    let spokes = "";
+    for (let i = 0; i < 24; i++) {
+      spokes += `<line x1="920" y1="230" x2="920" y2="306" stroke="#FFF" stroke-width="1.5" stroke-opacity="0.5" transform="rotate(${i * 15}, 920, 330)" />\n`;
+    }
+    return `
+      <!-- Chakra/Mandala Wheel -->
+      <circle cx="920" cy="330" r="100" fill="none" stroke="#FFF" stroke-width="3" stroke-opacity="0.8" />
+      <circle cx="920" cy="330" r="24" fill="none" stroke="#FFF" stroke-width="2" stroke-opacity="0.8" />
+      <circle cx="920" cy="330" r="8" fill="#FFF" stroke-opacity="0.9" />
+      ${spokes}
+    `;
+  }
+  if (l === "GLOBAL") {
+    return `
+      <!-- Globe Grid -->
+      <circle cx="920" cy="330" r="110" fill="none" stroke="#FFF" stroke-width="3" stroke-opacity="0.8" />
+      <line x1="810" y1="330" x2="1030" y2="330" stroke="#FFF" stroke-width="2" stroke-opacity="0.7" />
+      <ellipse cx="920" cy="330" rx="40" ry="110" fill="none" stroke="#FFF" stroke-width="2" stroke-opacity="0.7" />
+      <ellipse cx="920" cy="330" rx="80" ry="110" fill="none" stroke="#FFF" stroke-width="2" stroke-opacity="0.7" />
+      <!-- Latitudes -->
+      <path d="M 825,275 Q 920,300 1015,275" fill="none" stroke="#FFF" stroke-width="1.5" stroke-opacity="0.6" />
+      <path d="M 825,385 Q 920,360 1015,385" fill="none" stroke="#FFF" stroke-width="1.5" stroke-opacity="0.6" />
+      <path d="M 855,220 Q 920,235 985,220" fill="none" stroke="#FFF" stroke-width="1.5" stroke-opacity="0.6" />
+      <path d="M 855,440 Q 920,425 985,440" fill="none" stroke="#FFF" stroke-width="1.5" stroke-opacity="0.6" />
+    `;
+  }
+  // Default: Abstract concentric rings
+  return `
+    <circle cx="920" cy="330" r="140" fill="none" stroke="#FFF" stroke-width="1.5" stroke-opacity="0.2" />
+    <circle cx="920" cy="330" r="110" fill="none" stroke="#FFF" stroke-width="2" stroke-opacity="0.3" stroke-dasharray="4 4" />
+    <circle cx="920" cy="330" r="80" fill="none" stroke="#FFF" stroke-width="2.5" stroke-opacity="0.4" />
+    <circle cx="920" cy="330" r="50" fill="none" stroke="#FFF" stroke-width="3" stroke-opacity="0.6" />
+    <circle cx="920" cy="330" r="20" fill="#FFF" fill-opacity="0.8" />
+    <polygon points="820,220 826,230 820,240 814,230" fill="#FFF" opacity="0.6" />
+    <polygon points="1020,440 1025,445 1020,450 1015,445" fill="#FFF" opacity="0.7" />
+    <polygon points="1040,200 1048,208 1040,216 1032,208" fill="#FFF" opacity="0.5" />
+  `;
+}
+
+// Generate the beautiful card layout SVG (1200x630) for Deep Dives
+function generateOgSvg(story, date, idx = 0) {
+  const catLabel = getCategoryLabel(story, false);
+  const catColor = getCategoryColor(catLabel);
+  const catBgColor = catColor + "15"; // Translucent color (alpha 20)
+  const formattedDate = formatDateStr(date);
+
+  const catBadgeWidth = Math.max(90, catLabel.length * 11 + 24);
+  const catStartX = 216; // Starts after DEEP DIVE badge (64 + 140 + 12 = 216)
+
+  // Wrap headline
+  const hlLines = wrapText(story.headline || "", 28);
+  const hlLinesToRender = hlLines.slice(0, 3);
+  if (hlLines.length > 3) {
+    hlLinesToRender[2] = hlLinesToRender[2] + "...";
+  }
+
+  // Calculate positions dynamically
+  const hlFontSize = 44;
+  const hlLineHeight = 54;
+  let headlineSvg = "";
+  hlLinesToRender.forEach((line, i) => {
+    const lineY = 155 + (i * hlLineHeight);
+    headlineSvg += `<text x="64" y="${lineY}" font-family="Fraunces, Georgia, serif" font-size="${hlFontSize}" font-weight="700" fill="#0F172A">${escapeXml(line)}</text>\n`;
+  });
+
+  const numHlLines = hlLinesToRender.length;
+  const underlineY = 155 + (numHlLines - 1) * hlLineHeight + 32;
+  const labelY = underlineY + 36;
+  const bodyStartY = labelY + 34;
+
+  // Wrap body
+  const bodyText = story.tldr || "";
+  const bodyLines = wrapText(bodyText, 52);
+  const maxBodyLines = 4;
+  const bodyLinesToRender = bodyLines.slice(0, maxBodyLines);
+  if (bodyLines.length > maxBodyLines) {
+    bodyLinesToRender[maxBodyLines - 1] = bodyLinesToRender[maxBodyLines - 1] + "...";
+  }
+
+  let bodySvg = "";
+  const bodyLineHeight = 30;
+  bodyLinesToRender.forEach((line, i) => {
+    const lineY = bodyStartY + (i * bodyLineHeight);
+    bodySvg += `<text x="64" y="${lineY}" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="400" fill="#334155" opacity="0.95">${escapeXml(line)}</text>\n`;
+  });
+
+  // Get gradient and vector art URL mapping
+  let gradientId = "grad-default";
+  const l = catLabel.toUpperCase();
+  if (l === "SCIENCE") gradientId = "grad-science";
+  else if (l === "AI & TECH" || l === "TECH") gradientId = "grad-tech";
+  else if (l === "ECONOMY" || l === "ECONOMICS") gradientId = "grad-economy";
+  else if (l === "POLITICS" || l === "CONFLICT") gradientId = "grad-politics";
+  else if (l === "INDIA") gradientId = "grad-india";
+  else if (l === "GLOBAL") gradientId = "grad-global";
+  else if (l === "HEALTH") gradientId = "grad-economy";
+  else if (l === "SPORTS") gradientId = "grad-india";
+  else if (l === "ENTERTAINMENT" || l === "CULTURE") gradientId = "grad-tech";
+
+  const vectorArt = getVectorArtForCategory(catLabel);
+
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
-    <rect width="1200" height="630" fill="${bg}" />
-    <g transform="translate(600, 315) scale(2.5) translate(-100, -100)">
-      ${icon}
+    <defs>
+      <!-- Science Gradient: Deep space to warm glow -->
+      <linearGradient id="grad-science" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#0F172A" />
+        <stop offset="70%" stop-color="#1E293B" />
+        <stop offset="100%" stop-color="#F59E0B" />
+      </linearGradient>
+
+      <!-- Tech/AI Gradient: Cyber deep indigo/violet -->
+      <linearGradient id="grad-tech" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#1E1B4B" />
+        <stop offset="60%" stop-color="#312E81" />
+        <stop offset="100%" stop-color="#818CF8" />
+      </linearGradient>
+
+      <!-- Economy Gradient: Rich forest dark green to light teal -->
+      <linearGradient id="grad-economy" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#064E3B" />
+        <stop offset="70%" stop-color="#065F46" />
+        <stop offset="100%" stop-color="#34D399" />
+      </linearGradient>
+
+      <!-- Politics/Conflict Gradient: Dark grey/blue to crimson/coral -->
+      <linearGradient id="grad-politics" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#111827" />
+        <stop offset="60%" stop-color="#374151" />
+        <stop offset="100%" stop-color="#EF4444" />
+      </linearGradient>
+
+      <!-- India Gradient: Saffron orange blend -->
+      <linearGradient id="grad-india" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#431407" />
+        <stop offset="60%" stop-color="#7C2D12" />
+        <stop offset="100%" stop-color="#F97316" />
+      </linearGradient>
+
+      <!-- Global/World Gradient: Deep blue oceanic teal -->
+      <linearGradient id="grad-global" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#0F172A" />
+        <stop offset="60%" stop-color="#0369A1" />
+        <stop offset="100%" stop-color="#38BDF8" />
+      </linearGradient>
+      
+      <!-- Default Gradient: Muted Slate -->
+      <linearGradient id="grad-default" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#1E293B" />
+        <stop offset="70%" stop-color="#334155" />
+        <stop offset="100%" stop-color="#64748B" />
+      </linearGradient>
+
+      <clipPath id="arch-clip">
+        <path d="M 710,540 L 710,330 A 210,210 0 0 1 1130,330 L 1130,540 Z" />
+      </clipPath>
+    </defs>
+
+    <!-- Base Canvas -->
+    <rect width="1200" height="630" fill="#ECE8DF" />
+
+    <!-- Card Background -->
+    <rect x="24" y="24" width="1152" height="582" rx="32" ry="32" fill="#FAF8F5" />
+
+    <!-- Bottom Brand Bar -->
+    <path d="M 24,526 L 1176,526 L 1176,574 A 32,32 0 0 1 1144,606 L 56,606 A 32,32 0 0 1 24,574 Z" fill="#F4EFE6" />
+
+    <!-- Outer Card Border (Drawn after bottom bar for clean layering) -->
+    <rect x="24" y="24" width="1152" height="582" rx="32" ry="32" fill="none" stroke="#E5E2DA" stroke-width="2" />
+
+    <!-- TOP ROW -->
+    <!-- Type Badge (DEEP DIVE) -->
+    <rect x="64" y="60" width="140" height="36" rx="10" fill="#1E293B" />
+    <text x="134" y="83" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="800" fill="#FFF" text-anchor="middle" letter-spacing="0.08em">DEEP DIVE</text>
+
+    <!-- Category Badge -->
+    <rect x="${catStartX}" y="60" width="${catBadgeWidth}" height="36" rx="10" fill="${catBgColor}" stroke="${catColor}" stroke-width="1.5" />
+    <text x="${catStartX + catBadgeWidth / 2}" y="83" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="${catColor}" text-anchor="middle" letter-spacing="0.06em">${escapeXml(catLabel)}</text>
+
+    <!-- Date -->
+    <text x="1136" y="83" font-family="Inter, system-ui, sans-serif" font-size="18" font-weight="700" fill="#7E7B73" text-anchor="end" letter-spacing="0.04em">${escapeXml(formattedDate)}</text>
+
+    <!-- LEFT COLUMN CONTENT -->
+    <!-- Headline -->
+    ${headlineSvg}
+
+    <!-- Accent Underline -->
+    <line x1="64" y1="${underlineY}" x2="112" y2="${underlineY}" stroke="${catColor}" stroke-width="3.5" stroke-linecap="round" />
+
+    <!-- Label -->
+    <text x="64" y="${labelY}" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="800" fill="${catColor}" letter-spacing="0.02em">Why it matters:</text>
+
+    <!-- Body -->
+    ${bodySvg}
+
+    <!-- RIGHT COLUMN (ARCHED WINDOW) -->
+    <g clip-path="url(#arch-clip)">
+      <rect x="700" y="100" width="450" height="460" fill="url(#${gradientId})" />
+      ${vectorArt}
     </g>
+
+    <!-- BRAND FOOTER -->
+    <!-- Logo Stack (Paper Stack Symbol) -->
+    <g transform="translate(68, 566)">
+      <path d="M 0,-5 L 16,3 L 0,11 L -16,3 Z" fill="#1E293B" />
+      <path d="M 0,-11 L 16,-3 L 0,5 L -16,-3 Z" fill="#1E293B" stroke="#F4EFE6" stroke-width="1.5" />
+      <path d="M 0,-17 L 16,-9 L 0,-1 L -16,-9 Z" fill="#1E293B" stroke="#F4EFE6" stroke-width="1.5" />
+      <path d="M 0,-23 L 16,-15 L 0,-7 L -16,-15 Z" fill="#1E293B" stroke="#F4EFE6" stroke-width="1.5" />
+    </g>
+    <text x="96" y="573" font-family="Fraunces, Georgia, serif" font-size="22" font-weight="800" fill="#1E293B" letter-spacing="0.05em">THE BRIEFING</text>
+    <text x="1136" y="572" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="500" fill="#64748B" text-anchor="end" letter-spacing="0.02em">Know more. Understand deeper.</text>
   </svg>`;
 }
 
@@ -446,23 +678,177 @@ function getFlashIllustrationPaths(cat, storyId) {
   return icons[idx];
 }
 
-function generateFlashOgSvg(story) {
-  let hash = Math.abs(hashStr(story.id || story.headline || "default"));
-  function rand() {
-    let x = Math.sin(hash++) * 10000;
-    return x - Math.floor(x);
+// Generate the beautiful card layout SVG (1200x630) for Flashes
+function generateFlashOgSvg(story, date) {
+  const catLabel = getCategoryLabel(story, true);
+  const catColor = getCategoryColor(catLabel);
+  const catBgColor = catColor + "15"; // Translucent color (alpha 20)
+  const formattedDate = formatDateStr(date);
+
+  const catBadgeWidth = Math.max(90, catLabel.length * 11 + 24);
+  const catStartX = 176; // Starts after FLASH badge (64 + 100 + 12 = 176)
+
+  // Wrap headline
+  const hlLines = wrapText(story.headline || story.hl || "", 28);
+  const hlLinesToRender = hlLines.slice(0, 3);
+  if (hlLines.length > 3) {
+    hlLinesToRender[2] = hlLinesToRender[2] + "...";
   }
-  
-  const bgs = ["#F4F4F5", "#F8FAFC", "#FAF5FF", "#FDF4FF", "#FFFBEB", "#F0FDF4", "#F0F9FF", "#FEF2F2", "#FFF7ED"];
-  const bg = bgs[Math.floor(rand() * bgs.length)];
-  const col = getFlashCategoryColor(story.cat);
-  const iconPaths = getFlashIllustrationPaths(story.cat, story.id);
-  
+
+  // Calculate positions dynamically
+  const hlFontSize = 44;
+  const hlLineHeight = 54;
+  let headlineSvg = "";
+  hlLinesToRender.forEach((line, i) => {
+    const lineY = 155 + (i * hlLineHeight);
+    headlineSvg += `<text x="64" y="${lineY}" font-family="Manrope, Inter, system-ui, sans-serif" font-size="${hlFontSize}" font-weight="800" fill="#0F172A">${escapeXml(line)}</text>\n`;
+  });
+
+  const numHlLines = hlLinesToRender.length;
+  const underlineY = 155 + (numHlLines - 1) * hlLineHeight + 32;
+  const labelY = underlineY + 36;
+  const bodyStartY = labelY + 34;
+
+  // Wrap body
+  const bodyText = story.summary || story.body || "";
+  const bodyLines = wrapText(bodyText, 52);
+  const maxBodyLines = 4;
+  const bodyLinesToRender = bodyLines.slice(0, maxBodyLines);
+  if (bodyLines.length > maxBodyLines) {
+    bodyLinesToRender[maxBodyLines - 1] = bodyLinesToRender[maxBodyLines - 1] + "...";
+  }
+
+  let bodySvg = "";
+  const bodyLineHeight = 30;
+  bodyLinesToRender.forEach((line, i) => {
+    const lineY = bodyStartY + (i * bodyLineHeight);
+    bodySvg += `<text x="64" y="${lineY}" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="400" fill="#334155" opacity="0.95">${escapeXml(line)}</text>\n`;
+  });
+
+  // Get gradient and vector art URL mapping
+  let gradientId = "grad-default";
+  const l = catLabel.toUpperCase();
+  if (l === "SCIENCE") gradientId = "grad-science";
+  else if (l === "AI & TECH" || l === "TECH") gradientId = "grad-tech";
+  else if (l === "ECONOMY" || l === "ECONOMICS") gradientId = "grad-economy";
+  else if (l === "POLITICS" || l === "CONFLICT") gradientId = "grad-politics";
+  else if (l === "INDIA") gradientId = "grad-india";
+  else if (l === "GLOBAL") gradientId = "grad-global";
+  else if (l === "HEALTH") gradientId = "grad-economy";
+  else if (l === "SPORTS") gradientId = "grad-india";
+  else if (l === "ENTERTAINMENT" || l === "CULTURE") gradientId = "grad-tech";
+
+  const vectorArt = getVectorArtForCategory(catLabel);
+
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
-    <rect width="1200" height="630" fill="${bg}" />
-    <g transform="translate(600, 315) scale(2.5) translate(-100, -100)" color="${col}">
-      ${iconPaths}
+    <defs>
+      <!-- Science Gradient: Deep space to warm glow -->
+      <linearGradient id="grad-science" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#0F172A" />
+        <stop offset="70%" stop-color="#1E293B" />
+        <stop offset="100%" stop-color="#F59E0B" />
+      </linearGradient>
+
+      <!-- Tech/AI Gradient: Cyber deep indigo/violet -->
+      <linearGradient id="grad-tech" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#1E1B4B" />
+        <stop offset="60%" stop-color="#312E81" />
+        <stop offset="100%" stop-color="#818CF8" />
+      </linearGradient>
+
+      <!-- Economy Gradient: Rich forest dark green to light teal -->
+      <linearGradient id="grad-economy" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#064E3B" />
+        <stop offset="70%" stop-color="#065F46" />
+        <stop offset="100%" stop-color="#34D399" />
+      </linearGradient>
+
+      <!-- Politics/Conflict Gradient: Dark grey/blue to crimson/coral -->
+      <linearGradient id="grad-politics" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#111827" />
+        <stop offset="60%" stop-color="#374151" />
+        <stop offset="100%" stop-color="#EF4444" />
+      </linearGradient>
+
+      <!-- India Gradient: Saffron orange blend -->
+      <linearGradient id="grad-india" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#431407" />
+        <stop offset="60%" stop-color="#7C2D12" />
+        <stop offset="100%" stop-color="#F97316" />
+      </linearGradient>
+
+      <!-- Global/World Gradient: Deep blue oceanic teal -->
+      <linearGradient id="grad-global" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#0F172A" />
+        <stop offset="60%" stop-color="#0369A1" />
+        <stop offset="100%" stop-color="#38BDF8" />
+      </linearGradient>
+      
+      <!-- Default Gradient: Muted Slate -->
+      <linearGradient id="grad-default" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#1E293B" />
+        <stop offset="70%" stop-color="#334155" />
+        <stop offset="100%" stop-color="#64748B" />
+      </linearGradient>
+
+      <clipPath id="arch-clip">
+        <path d="M 710,540 L 710,330 A 210,210 0 0 1 1130,330 L 1130,540 Z" />
+      </clipPath>
+    </defs>
+
+    <!-- Base Canvas -->
+    <rect width="1200" height="630" fill="#ECE8DF" />
+
+    <!-- Card Background -->
+    <rect x="24" y="24" width="1152" height="582" rx="32" ry="32" fill="#FAF8F5" />
+
+    <!-- Bottom Brand Bar -->
+    <path d="M 24,526 L 1176,526 L 1176,574 A 32,32 0 0 1 1144,606 L 56,606 A 32,32 0 0 1 24,574 Z" fill="#F4EFE6" />
+
+    <!-- Outer Card Border -->
+    <rect x="24" y="24" width="1152" height="582" rx="32" ry="32" fill="none" stroke="#E5E2DA" stroke-width="2" />
+
+    <!-- TOP ROW -->
+    <!-- Type Badge (FLASH) -->
+    <rect x="64" y="60" width="100" height="36" rx="10" fill="#E13C16" />
+    <text x="114" y="83" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="800" fill="#FFF" text-anchor="middle" letter-spacing="0.08em">FLASH</text>
+
+    <!-- Category Badge -->
+    <rect x="${catStartX}" y="60" width="${catBadgeWidth}" height="36" rx="10" fill="${catBgColor}" stroke="${catColor}" stroke-width="1.5" />
+    <text x="${catStartX + catBadgeWidth / 2}" y="83" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="${catColor}" text-anchor="middle" letter-spacing="0.06em">${escapeXml(catLabel)}</text>
+
+    <!-- Date -->
+    <text x="1136" y="83" font-family="Inter, system-ui, sans-serif" font-size="18" font-weight="700" fill="#7E7B73" text-anchor="end" letter-spacing="0.04em">${escapeXml(formattedDate)}</text>
+
+    <!-- LEFT COLUMN CONTENT -->
+    <!-- Headline -->
+    ${headlineSvg}
+
+    <!-- Accent Underline -->
+    <line x1="64" y1="${underlineY}" x2="112" y2="${underlineY}" stroke="#E13C16" stroke-width="3.5" stroke-linecap="round" />
+
+    <!-- Label -->
+    <text x="64" y="${labelY}" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="800" fill="#E13C16" letter-spacing="0.02em">Why it matters:</text>
+
+    <!-- Body -->
+    ${bodySvg}
+
+    <!-- RIGHT COLUMN (ARCHED WINDOW) -->
+    <g clip-path="url(#arch-clip)">
+      <rect x="700" y="100" width="450" height="460" fill="url(#${gradientId})" />
+      ${vectorArt}
     </g>
+
+    <!-- BRAND FOOTER -->
+    <!-- Logo Stack (Paper Stack Symbol) -->
+    <g transform="translate(68, 566)">
+      <path d="M 0,-5 L 16,3 L 0,11 L -16,3 Z" fill="#1E293B" />
+      <path d="M 0,-11 L 16,-3 L 0,5 L -16,-3 Z" fill="#1E293B" stroke="#F4EFE6" stroke-width="1.5" />
+      <path d="M 0,-17 L 16,-9 L 0,-1 L -16,-9 Z" fill="#1E293B" stroke="#F4EFE6" stroke-width="1.5" />
+      <path d="M 0,-23 L 16,-15 L 0,-7 L -16,-15 Z" fill="#1E293B" stroke="#F4EFE6" stroke-width="1.5" />
+    </g>
+    <text x="96" y="573" font-family="Fraunces, Georgia, serif" font-size="22" font-weight="800" fill="#1E293B" letter-spacing="0.05em">THE BRIEFING</text>
+    <text x="1136" y="572" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="500" fill="#64748B" text-anchor="end" letter-spacing="0.02em">Know more. Understand deeper.</text>
   </svg>`;
 }
 
@@ -531,7 +917,7 @@ async function runSSG() {
       let idx = 0;
       for (const story of briefing.stories) {
         // 1. Generate PNG
-        const svgString = generateOgSvg(story, idx);
+        const svgString = generateOgSvg(story, date, idx);
         const resvg = new Resvg(svgString, {
           background: 'rgba(255, 255, 255, 1)',
           fitTo: { mode: 'width', value: 1200 },
@@ -570,14 +956,14 @@ async function runSSG() {
   console.log('Generating Flash SSG and OG Images...');
   const processedFlashIds = new Set();
   
-  const processFlashStory = (story) => {
+  const processFlashStory = (story, date) => {
     if (!story || !story.id) return;
     if (processedFlashIds.has(story.id)) return;
     processedFlashIds.add(story.id);
     
     // 1. Generate PNG
     console.log(`Processing Flash Story ID: ${story.id}, Category: ${story.cat}`);
-    const svgString = generateFlashOgSvg(story);
+    const svgString = generateFlashOgSvg(story, date);
     const resvg = new Resvg(svgString, {
       background: 'rgba(255, 255, 255, 1)',
       fitTo: { mode: 'width', value: 1200 },
@@ -618,7 +1004,7 @@ async function runSSG() {
       const rootStories = JSON.parse(fs.readFileSync(rootFlashPath, 'utf8'));
       if (Array.isArray(rootStories)) {
         for (const story of rootStories) {
-          processFlashStory(story);
+          processFlashStory(story, dateList[0]);
         }
       }
     } catch (e) {
@@ -634,7 +1020,7 @@ async function runSSG() {
         const dateStories = JSON.parse(fs.readFileSync(flashDataPath, 'utf8'));
         if (Array.isArray(dateStories)) {
           for (const story of dateStories) {
-            processFlashStory(story);
+            processFlashStory(story, date);
           }
         }
       } catch (e) {

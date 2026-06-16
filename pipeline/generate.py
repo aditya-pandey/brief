@@ -85,8 +85,9 @@ def run() -> None:
     print(f"   wrote {out_path}")
 
     # Refresh the index of available dates (newest first).
+    import re
     dates = sorted(
-        (p.stem for p in DATA_DIR.glob("*.json") if p.stem != "index"),
+        (p.stem for p in DATA_DIR.glob("*.json") if re.match(r"^\d{4}-\d{2}-\d{2}$", p.stem)),
         reverse=True,
     )
     (DATA_DIR / "index.json").write_text(json.dumps(dates, indent=2))

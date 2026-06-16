@@ -237,7 +237,7 @@ function parseStory(frontBlock, index) {
 
 function refreshIndex() {
   const entries = readdirSync(DATA_DIR)
-    .filter(f => f.endsWith(".json") && f !== "index.json" && !f.startsWith("flash-"))
+    .filter(f => /^\d{4}-\d{2}-\d{2}\.json$/.test(f))
     .map(f => {
       const date = f.replace(".json","");
       try {

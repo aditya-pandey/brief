@@ -241,7 +241,7 @@ async function loadIndex() {
   const unique = [];
   const seen = new Set();
   for (const entry of mapped) {
-    if (!seen.has(entry.date)) {
+    if (!seen.has(entry.date) && /^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
       seen.add(entry.date);
       unique.push(entry);
     }
