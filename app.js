@@ -4086,7 +4086,12 @@ window.addEventListener("DOMContentLoaded", () => {
 
 /* ── Custom scroll drum date picker implementation ── */
 function openCustomDatePicker(currentDateStr) {
-  const dateObj = new Date(currentDateStr + "T00:00:00");
+  let dateObj;
+  if (currentDateStr) {
+    dateObj = new Date(currentDateStr + "T00:00:00");
+  } else {
+    dateObj = new Date();
+  }
   const curMonth = isNaN(dateObj.getTime()) ? new Date().getMonth() : dateObj.getMonth();
   const curDay = isNaN(dateObj.getTime()) ? new Date().getDate() : dateObj.getDate();
   const curYear = isNaN(dateObj.getTime()) ? new Date().getFullYear() : dateObj.getFullYear();
@@ -4095,11 +4100,11 @@ function openCustomDatePicker(currentDateStr) {
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const scrollMonth = $("scroll-month");
   if (scrollMonth) {
-    let monthHtml = '<div class="drum-item dummy"></div><div class="drum-item dummy"></div>';
+    let monthHtml = '<div class="drum-item dummy"></div>';
     months.forEach((m, idx) => {
       monthHtml += `<div class="drum-item" data-value="${idx}">${m}</div>`;
     });
-    monthHtml += '<div class="drum-item dummy"></div><div class="drum-item dummy"></div>';
+    monthHtml += '<div class="drum-item dummy"></div>';
     scrollMonth.innerHTML = monthHtml;
   }
 
@@ -4110,11 +4115,11 @@ function openCustomDatePicker(currentDateStr) {
   for (let y = startY; y <= endY; y++) years.push(y);
   const scrollYear = $("scroll-year");
   if (scrollYear) {
-    let yearHtml = '<div class="drum-item dummy"></div><div class="drum-item dummy"></div>';
+    let yearHtml = '<div class="drum-item dummy"></div>';
     years.forEach(y => {
       yearHtml += `<div class="drum-item" data-value="${y}">${y}</div>`;
     });
-    yearHtml += '<div class="drum-item dummy"></div><div class="drum-item dummy"></div>';
+    yearHtml += '<div class="drum-item dummy"></div>';
     scrollYear.innerHTML = yearHtml;
   }
 
@@ -4123,11 +4128,11 @@ function openCustomDatePicker(currentDateStr) {
     const daysInMonth = new Date(yearVal, monthIdx + 1, 0).getDate();
     const scrollDay = $("scroll-day");
     if (!scrollDay) return;
-    let dayHtml = '<div class="drum-item dummy"></div><div class="drum-item dummy"></div>';
+    let dayHtml = '<div class="drum-item dummy"></div>';
     for (let d = 1; d <= daysInMonth; d++) {
       dayHtml += `<div class="drum-item" data-value="${d}">${d}</div>`;
     }
-    dayHtml += '<div class="drum-item dummy"></div><div class="drum-item dummy"></div>';
+    dayHtml += '<div class="drum-item dummy"></div>';
     scrollDay.innerHTML = dayHtml;
     
     // Attach click listeners to day items
