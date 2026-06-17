@@ -125,20 +125,27 @@ function fmtShort(iso) {
   } catch { return {day:iso,month:"",year:"",dow:""}; }
 }
 function fmtHeaderDate(iso) {
-  try { return new Date(iso+"T00:00:00").toLocaleDateString("en-IN",
-    {day:"numeric",month:"short",year:"numeric"}); }
+  try {
+    if (!iso || iso === "Unknown Date" || !iso.includes("-")) return iso || "Unknown Date";
+    const d = new Date(iso+"T00:00:00");
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString("en-IN", {day:"numeric",month:"short",year:"numeric"});
+  }
   catch { return iso; }
 }
 
 /* ── Theme ─────────────────────────────────────────────────── */
 const saved = localStorage.getItem("theme");
 if (saved) document.documentElement.setAttribute("data-theme", saved);
-$("theme-toggle").onclick = () => {
-  const next = document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark";
-  document.documentElement.setAttribute("data-theme", next);
-  localStorage.setItem("theme", next);
-  trackEvent("theme_toggle", "Preferences", next);
-};
+const themeToggleBtn = $("theme-toggle");
+if (themeToggleBtn) {
+  themeToggleBtn.onclick = () => {
+    const next = document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("theme", next);
+    trackEvent("theme_toggle", "Preferences", next);
+  };
+}
 
 /* ── Push Notifications ───────────────────────────────────── */
 async function initPushNotifications() {
@@ -262,21 +269,29 @@ function initDatePicker() {
   
   if (btn && sel) {
     btn.addEventListener("click", () => {
-      try {
-        sel.showPicker();
-      } catch (e) {
-        sel.click();
+      if (window.openSlideMenu) window.openSlideMenu();
+      const inlineDatePicker = $("menu-date-picker-inline");
+      const dateChevron = $("menu-date-chevron");
+      if (inlineDatePicker) {
+        inlineDatePicker.classList.add("open");
+        if (dateChevron) dateChevron.style.transform = "rotate(90deg)";
       }
+      let curDate = sel.value || (typeof indexEntries !== "undefined" && indexEntries[0]?.date) || new Date().toISOString().split('T')[0];
+      openCustomDatePicker(curDate);
     });
     
     btn.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        try {
-          sel.showPicker();
-        } catch (err) {
-          sel.click();
+        if (window.openSlideMenu) window.openSlideMenu();
+        const inlineDatePicker = $("menu-date-picker-inline");
+        const dateChevron = $("menu-date-chevron");
+        if (inlineDatePicker) {
+          inlineDatePicker.classList.add("open");
+          if (dateChevron) dateChevron.style.transform = "rotate(90deg)";
         }
+        let curDate = sel.value || (typeof indexEntries !== "undefined" && indexEntries[0]?.date) || new Date().toISOString().split('T')[0];
+        openCustomDatePicker(curDate);
       }
     });
   }
@@ -285,6 +300,7 @@ function initDatePicker() {
     sel.addEventListener("change", async e => {
       const selected = e.target.value;
       if (selected) {
+        if (window.closeSlideMenu) window.closeSlideMenu();
         trackEvent("change_date", "DatePicker", selected);
         const resetDatePickerValue = () => {
           let p = location.pathname;
@@ -1463,7 +1479,8 @@ async function renderHome(date) {
   const pagePath = isLatest ? "/" : `/briefings/day/${date}`;
   trackPageView(pagePath, pageTitle);
 
-  $("header-date").textContent = fmtHeaderDate(date).toUpperCase();
+  const hdrDateEl = $("header-date");
+  if (hdrDateEl) hdrDateEl.textContent = fmtHeaderDate(date).toUpperCase();
   const sel = $("archive-select");
   if (sel) sel.value = date;
 
@@ -1553,7 +1570,8 @@ async function renderStory(date, id) {
   const pagePath = `/story/${date}/${id}`;
   trackPageView(pagePath, pageTitle);
 
-  $("header-date").textContent = fmtHeaderDate(date).toUpperCase();
+  const hdrDateEl = $("header-date");
+  if (hdrDateEl) hdrDateEl.textContent = fmtHeaderDate(date).toUpperCase();
   const sel = $("archive-select");
   if (sel) sel.value = date;
   $("hero").classList.add("hidden");
@@ -1744,6 +1762,13 @@ async function route() {
       currentMode = "flash";
       updateModeToggleUI();
       return await renderFlashView(decodeURIComponent(flashDayMatch[1]));
+    }
+    
+    if (p === "/install") {
+      stopProgress();
+      $("hero").classList.add("hidden");
+      renderInstallPage();
+      return;
     }
     
     if (p === "/flash") {
@@ -2294,11 +2319,6 @@ function updateFlashCounter(index, total) {
     ctr.textContent = `${index + 1} / ${total}`;
   }
 
-  // Update floating reset button visibility dynamically
-  const resetBtn = document.getElementById("flash-reset-to-first");
-  if (resetBtn) {
-    resetBtn.style.display = (index > 0 && index < total) ? "flex" : "none";
-  }
 }
 
 function navigateFlash(direction, filtered) {
@@ -2683,6 +2703,9 @@ function toggleBookmark(story) {
     trackEvent("bookmark_remove", "Engagement", story.headline || story.hl || story.id);
     return false; // not saved
   } else {
+    if (!story.date) {
+      story.date = (typeof flashStories !== 'undefined' && flashStories?.loadedDate) || (typeof indexEntries !== 'undefined' && indexEntries[0]?.date) || new Date().toISOString().split('T')[0];
+    }
     saved.push(story);
     localStorage.setItem("flash_saved", JSON.stringify(saved));
     showToast("Saved to bookmarks");
@@ -2913,14 +2936,32 @@ function buildFlashCardInnerHTML(s, col, isSaved) {
   const benefitsSection = benefitsHtml
     ? `<div class="flash-benefits-container"><span class="flash-benefits-label">Benefits:</span>${benefitsHtml}</div>` : '';
 
-  const whyItMattersHtml = s.why_it_matters ? `<div class="flash-why-it-matters" style="--cat-color:${col};">
-    <div class="flash-section-header">
-      <div class="flash-section-icon flash-why-icon">
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
+  const actionsHtml = `
+    <div class="flash-floating-actions">
+      <button class="flash-float-btn flash-bookmark-btn ${isSaved ? 'saved' : ''}" data-id="${esc(s.id)}" aria-label="Save story"${isSaved ? ` style="color:${col};"` : ''}>
+        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="${isSaved ? 'currentColor' : 'none'}" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
         </svg>
+      </button>
+      <button class="flash-float-btn flash-share-btn" data-id="${esc(s.id)}" aria-label="Share story">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+      </button>
+    </div>`;
+
+  const whyItMattersHtml = s.why_it_matters ? `<div class="flash-why-it-matters" style="--cat-color:${col};">
+    <div class="flash-section-header" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <div class="flash-section-icon flash-why-icon">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <span class="flash-why-label">Why It Matters</span>
       </div>
-      <span class="flash-why-label">Why It Matters</span>
+      ${actionsHtml}
     </div>
     <span class="flash-why-value">${esc(s.why_it_matters)}</span>
   </div>` : '';
@@ -2937,34 +2978,23 @@ function buildFlashCardInnerHTML(s, col, isSaved) {
     <span class="flash-remember-value">${esc(s.remember)}</span>
   </div>` : '';
 
+  const headerActionsHtml = s.why_it_matters ? '' : actionsHtml;
+
   return `
     <div class="flash-card-header">
       <div class="flash-card-visual">${getFlashIllustration(s.cat, s.id)}</div>
       <span class="flash-cat-badge">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
       <span class="flash-header-spacer"></span>
-      ${getFlashSourceHtml(s, 'flash-time')}
+      ${headerActionsHtml}
     </div>
     <div class="flash-card-body">
       <h2 class="flash-headline">${esc(s.headline || s.hl)}</h2>
       <hr class="flash-divider" />
       <div class="flash-summary"><p>${esc(s.summary || s.body)}</p></div>
       ${whyItMattersHtml}${rememberHtml}${benefitsSection}
-    </div>
-    <div class="flash-card-footer">
-      <button class="flash-footer-action flash-bookmark-btn ${isSaved ? 'saved' : ''}" data-id="${esc(s.id)}" aria-label="Save story"${isSaved ? ` style="color:${col};"` : ''}>
-        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="${isSaved ? 'currentColor' : 'none'}" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-        </svg>
-        <span>${isSaved ? 'Saved' : 'Save'}</span>
-      </button>
-      <div class="flash-footer-sep"></div>
-      <button class="flash-footer-action flash-share-btn" data-id="${esc(s.id)}" aria-label="Share story">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-        </svg>
-        <span>Share</span>
-      </button>
+      <div class="flash-card-source-bottom" style="margin-top: 4px;">
+        ${getFlashSourceHtml(s, 'flash-time')}
+      </div>
     </div>`;
 }
 
@@ -2999,25 +3029,17 @@ function renderFlashMobileLayout(filtered, targetDate) {
 
   app.innerHTML = `
     <div class="flash-container" style="--cat-color:${firstCol};--cat-color-rgb:${firstRgb}; position: relative;">
+      <div class="flash-date-display" style="text-align: center; font-family: var(--mono); font-size: 8px; font-weight: 600; color: var(--ink-3); margin-top: 4px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.12em;">
+        ${fmtLong(targetDate)}
+      </div>
       <div class="flash-categories-bar" id="flash-cats">
         ${renderFlashCategoryPills()}
       </div>
       <div class="flash-card-stage" id="flash-card-stage"></div>
-      <button id="flash-reset-to-first" class="flash-reset-btn" style="display: ${(currentFlashIndex > 0 && currentFlashIndex < total) ? 'flex' : 'none'};" aria-label="Back to first card">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
-      </button>
       <div class="flash-progress-track">
         <div class="flash-progress-fill" style="width:${progressPct}%;transition:width 0.3s ease;"></div>
       </div>
     </div>`;
-
-  const resetBtn = document.getElementById("flash-reset-to-first");
-  if (resetBtn) {
-    resetBtn.onclick = () => {
-      currentFlashIndex = 0;
-      renderFlashView();
-    };
-  }
 
   updateFlashCounter(currentFlashIndex, total);
   wireFlashCategories();
@@ -3522,6 +3544,244 @@ function initSavedStories() {
   });
 }
 
+function renderInstallPage() {
+  // Lock body scroll removal to ensure natural scrolling
+  document.body.classList.remove("mode-flash-active");
+  document.documentElement.classList.remove("mode-flash-active");
+
+  app.innerHTML = `
+    <div class="install-page-container">
+      <div class="install-page-header">
+        <h1 class="install-title">Install The Briefing</h1>
+        <p class="install-subtitle">Add The Briefing to your home screen for a fast, native, app-like experience with offline capabilities.</p>
+      </div>
+
+      <div class="install-cta-section-top">
+        <button id="pwa-main-install-btn" class="install-cta-btn-large">Install Now</button>
+        <p class="install-cta-subtext">Quick setup for Chrome, Safari, Edge, and Samsung Internet.</p>
+      </div>
+
+      <h2 class="install-section-title">Manual Setup Instructions</h2>
+      <div class="install-cards-grid">
+        <div class="install-card">
+          <div class="install-card-logo-row">
+            <div class="install-logo-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" style="color: #3DDC84;">
+                <path d="M17.6 9.48l1.84-3.18c.16-.28.07-.64-.21-.8-.28-.16-.64-.07-.8.21l-1.88 3.24C15.24 8.36 13.68 8 12 8s-3.24.36-4.55.95L5.57 5.71c-.16-.28-.52-.37-.8-.21-.28.16-.37.52-.21.8l1.84 3.18C3.84 11.23 2 13.91 2 17h20c0-3.09-1.84-5.77-4.4-7.52zM7 14.75c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm10 0c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25z"/>
+              </svg>
+            </div>
+            <h3 class="install-card-title">Android</h3>
+          </div>
+          <ol class="install-steps">
+            <li>Open the browser settings menu (three dots <strong>⋮</strong>).</li>
+            <li>Tap <strong>Add to Home screen</strong> or <strong>Install app</strong>.</li>
+            <li>Confirm the prompt to pin it to your apps drawer.</li>
+          </ol>
+        </div>
+
+        <div class="install-card">
+          <div class="install-card-logo-row">
+            <div class="install-logo-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" style="color: var(--ink);">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.82M15.97 4.17c.66-.81 1.11-1.93.99-3.06-.96.04-2.13.64-2.82 1.45-.6.69-1.12 1.84-.98 2.94.1.08 1.15.08 2.81-1.33z"/>
+              </svg>
+            </div>
+            <h3 class="install-card-title">iPhone / iOS</h3>
+          </div>
+          <ol class="install-steps">
+            <li>Tap Safari's bottom **Share** icon (square with arrow up <strong>⎋</strong>).</li>
+            <li>Scroll down and tap **Add to Home Screen**.</li>
+            <li>Confirm by tapping **Add** in the top-right corner.</li>
+          </ol>
+        </div>
+
+        <div class="install-card">
+          <div class="install-card-logo-row">
+            <div class="install-logo-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" style="color: #4285F4;">
+                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/>
+              </svg>
+            </div>
+            <h3 class="install-card-title">Desktop</h3>
+          </div>
+          <ol class="install-steps">
+            <li>Click the install icon on the right side of the URL address bar.</li>
+            <li>Click **Install** on the popup confirmation message.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const installBtn = document.getElementById("pwa-main-install-btn");
+  if (installBtn) {
+    installBtn.onclick = async () => {
+      trackEvent("pwa_install_page_click", "PWA", "Page CTA Clicked");
+      if (window.showInstallPrompt) {
+        const accepted = await window.showInstallPrompt();
+        if (accepted) {
+          showToast("Installation started!");
+        } else {
+          showToast("Could not launch install prompt. Please use the instructions above.");
+        }
+      } else {
+        showToast("Install prompt is not supported by your browser. Please follow the manual steps above.");
+      }
+    };
+  }
+}
+
+function initSlideMenu() {
+  const trigger = $("menu-trigger");
+  const close = $("menu-close");
+  const overlay = $("menu-overlay");
+  const menu = $("slide-menu");
+  
+  if (!menu) return;
+
+  function openMenu() {
+    menu.classList.add("open");
+    if (overlay) overlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+    renderMenuSavedItems();
+    updateMenuThemeUI();
+
+    const desc = $("menu-current-date-desc");
+    if (desc) {
+      const activeDate = $("archive-select") ? $("archive-select").value : "";
+      if (activeDate) {
+        desc.textContent = `Selected: ${fmtLong(activeDate)}`;
+      } else {
+        desc.textContent = "Browse previous editions";
+      }
+    }
+  }
+
+  function closeMenu() {
+    menu.classList.remove("open");
+    if (overlay) overlay.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+  window.closeSlideMenu = closeMenu;
+
+  if (trigger) trigger.onclick = openMenu;
+  if (close) close.onclick = closeMenu;
+  if (overlay) overlay.onclick = closeMenu;
+
+  // ESC to close
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && menu.classList.contains("open")) closeMenu();
+  });
+
+  // Search trigger inside menu
+  const menuSearchTrigger = $("menu-search-trigger");
+  if (menuSearchTrigger) {
+    menuSearchTrigger.onclick = () => {
+      closeMenu();
+      if (window.openGlobalSearch) window.openGlobalSearch();
+    };
+  }
+
+  // Date archive trigger inside menu (accordion toggle)
+  const dateArchiveTrigger = $("menu-date-archive");
+  const inlineDatePicker = $("menu-date-picker-inline");
+  const dateChevron = $("menu-date-chevron");
+  if (dateArchiveTrigger && inlineDatePicker) {
+    dateArchiveTrigger.onclick = () => {
+      const isOpen = inlineDatePicker.classList.toggle("open");
+      if (dateChevron) {
+        dateChevron.style.transform = isOpen ? "rotate(90deg)" : "";
+      }
+      if (isOpen) {
+        const sel = $("archive-select");
+        let curDate = sel ? sel.value : ((typeof indexEntries !== "undefined" && indexEntries[0]?.date) || new Date().toISOString().split('T')[0]);
+        openCustomDatePicker(curDate);
+      }
+    };
+  }
+
+  // Install trigger
+  const installTrigger = $("menu-install-trigger");
+  if (installTrigger) {
+    installTrigger.onclick = () => {
+      closeMenu();
+      navigate(`${BASE_PATH}/install`);
+    };
+  }
+
+  // Theme control inside menu
+  const lightBtn = $("menu-theme-light");
+  const darkBtn = $("menu-theme-dark");
+
+  function updateMenuThemeUI() {
+    const activeTheme = document.documentElement.getAttribute("data-theme") || "light";
+    if (lightBtn) lightBtn.classList.toggle("active", activeTheme === "light");
+    if (darkBtn) darkBtn.classList.toggle("active", activeTheme === "dark");
+  }
+
+  if (lightBtn) {
+    lightBtn.onclick = () => {
+      document.documentElement.setAttribute("data-theme", "light");
+      localStorage.setItem("theme", "light");
+      trackEvent("theme_toggle_menu", "Preferences", "light");
+      updateMenuThemeUI();
+    };
+  }
+  if (darkBtn) {
+    darkBtn.onclick = () => {
+      document.documentElement.setAttribute("data-theme", "dark");
+      localStorage.setItem("theme", "dark");
+      trackEvent("theme_toggle_menu", "Preferences", "dark");
+      updateMenuThemeUI();
+    };
+  }
+
+  function renderMenuSavedItems() {
+    const savedList = $("menu-saved-list");
+    if (!savedList) return;
+    const saved = getSavedStories();
+    if (saved.length === 0) {
+      savedList.innerHTML = `<div style="font-family:var(--sans); font-size:11px; color:var(--ink-3); padding: 4px 0;">No saved items yet.</div>`;
+      return;
+    }
+    const grouped = {};
+    saved.forEach(s => {
+      const date = s.date || "Unknown Date";
+      if (!grouped[date]) grouped[date] = [];
+      grouped[date].push(s);
+    });
+    const dates = Object.keys(grouped).sort().reverse();
+    
+    let html = "";
+    dates.forEach(d => {
+      html += `<div class="menu-saved-group">
+        <div class="menu-saved-date">${fmtHeaderDate(d)}</div>`;
+      grouped[d].forEach(s => {
+        const isFlash = s.cat && s.cat !== "briefing";
+        const typeLabel = isFlash ? "Flash" : "Deep Dive";
+        const link = isFlash ? `${BASE_PATH}/flash/story/${s.id}` : `${BASE_PATH}/story/${d}/${s.id}`;
+        html += `
+          <a href="${link}" class="menu-saved-item" data-id="${esc(s.id)}" data-date="${esc(d)}" data-type="${isFlash ? 'flash' : 'briefing'}">
+            <span class="menu-saved-type-badge">${typeLabel}</span>
+            <span class="menu-saved-title-text">${esc(s.headline || s.hl)}</span>
+          </a>
+        `;
+      });
+      html += `</div>`;
+    });
+    savedList.innerHTML = html;
+    
+    savedList.querySelectorAll('.menu-saved-item').forEach(item => {
+      item.addEventListener('click', e => {
+        e.preventDefault();
+        closeMenu();
+        const href = item.getAttribute('href');
+        navigate(href);
+      });
+    });
+  }
+}
+
 // Global keydown listner for desktop arrow keys
 window.addEventListener("keydown", e => {
   if (currentMode !== "flash") return;
@@ -3582,6 +3842,7 @@ function initSearch() {
     setTimeout(() => { if (input) input.focus(); }, 50);
     document.body.style.overflow = "hidden";
   }
+  window.openGlobalSearch = openSearch;
 
   function closeSearch() {
     overlay.classList.remove("open");
@@ -3761,6 +4022,7 @@ initSearch();
 
 initModeToggle();
 initSavedStories();
+initSlideMenu();
 initDatePicker();
 route();
 
@@ -3821,3 +4083,174 @@ window.addEventListener("DOMContentLoaded", () => {
     window.showPwaBanner();
   }
 });
+
+/* ── Custom scroll drum date picker implementation ── */
+function openCustomDatePicker(currentDateStr) {
+  const dateObj = new Date(currentDateStr + "T00:00:00");
+  const curMonth = isNaN(dateObj.getTime()) ? new Date().getMonth() : dateObj.getMonth();
+  const curDay = isNaN(dateObj.getTime()) ? new Date().getDate() : dateObj.getDate();
+  const curYear = isNaN(dateObj.getTime()) ? new Date().getFullYear() : dateObj.getFullYear();
+
+  // Populate Month Scroll
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const scrollMonth = $("scroll-month");
+  if (scrollMonth) {
+    let monthHtml = '<div class="drum-item dummy"></div><div class="drum-item dummy"></div>';
+    months.forEach((m, idx) => {
+      monthHtml += `<div class="drum-item" data-value="${idx}">${m}</div>`;
+    });
+    monthHtml += '<div class="drum-item dummy"></div><div class="drum-item dummy"></div>';
+    scrollMonth.innerHTML = monthHtml;
+  }
+
+  // Populate Year Scroll
+  const years = [];
+  const startY = 2024;
+  const endY = 2027;
+  for (let y = startY; y <= endY; y++) years.push(y);
+  const scrollYear = $("scroll-year");
+  if (scrollYear) {
+    let yearHtml = '<div class="drum-item dummy"></div><div class="drum-item dummy"></div>';
+    years.forEach(y => {
+      yearHtml += `<div class="drum-item" data-value="${y}">${y}</div>`;
+    });
+    yearHtml += '<div class="drum-item dummy"></div><div class="drum-item dummy"></div>';
+    scrollYear.innerHTML = yearHtml;
+  }
+
+  // Populate Day Scroll
+  function updateDays(monthIdx, yearVal) {
+    const daysInMonth = new Date(yearVal, monthIdx + 1, 0).getDate();
+    const scrollDay = $("scroll-day");
+    if (!scrollDay) return;
+    let dayHtml = '<div class="drum-item dummy"></div><div class="drum-item dummy"></div>';
+    for (let d = 1; d <= daysInMonth; d++) {
+      dayHtml += `<div class="drum-item" data-value="${d}">${d}</div>`;
+    }
+    dayHtml += '<div class="drum-item dummy"></div><div class="drum-item dummy"></div>';
+    scrollDay.innerHTML = dayHtml;
+    
+    // Attach click listeners to day items
+    scrollDay.querySelectorAll(".drum-item:not(.dummy)").forEach(item => {
+      item.onclick = () => {
+        const val = parseInt(item.dataset.value);
+        scrollColumnToValue($("drum-day"), val);
+      };
+    });
+  }
+
+  updateDays(curMonth, curYear);
+
+  // Helper function to scroll a column to a specific value
+  function scrollColumnToValue(columnEl, value) {
+    if (!columnEl) return;
+    const scrollEl = columnEl.querySelector(".drum-scroll");
+    const items = Array.from(scrollEl.querySelectorAll(".drum-item:not(.dummy)"));
+    const targetItem = items.find(it => parseInt(it.dataset.value) === value);
+    if (targetItem) {
+      const index = items.indexOf(targetItem);
+      columnEl.scrollTo({ top: index * 30, behavior: "smooth" });
+    }
+  }
+
+  // Scroll columns to current values
+  setTimeout(() => {
+    scrollColumnToValue($("drum-month"), curMonth);
+    scrollColumnToValue($("drum-day"), curDay);
+    scrollColumnToValue($("drum-year"), curYear);
+    updateActiveStates();
+  }, 100);
+
+  const columns = [$("drum-month"), $("drum-day"), $("drum-year")];
+  
+  function updateActiveStates() {
+    columns.forEach(col => {
+      if (!col) return;
+      const scrollEl = col.querySelector(".drum-scroll");
+      const items = Array.from(scrollEl.querySelectorAll(".drum-item:not(.dummy)"));
+      const selectedIdx = Math.round(col.scrollTop / 30);
+      
+      items.forEach((it, idx) => {
+        it.classList.toggle("active", idx === selectedIdx);
+      });
+    });
+  }
+
+  columns.forEach(col => {
+    if (!col) return;
+    let scrollTimeout;
+    col.addEventListener("scroll", () => {
+      updateActiveStates();
+      
+      // Debounce the date verification to prevent layout jitter during active scrolling
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        if (col.id === "drum-month" || col.id === "drum-year") {
+          const selectedMonth = getSelectedValue($("drum-month"));
+          const selectedYear = getSelectedValue($("drum-year"));
+          const selectedDay = getSelectedValue($("drum-day"));
+          
+          updateDays(selectedMonth, selectedYear);
+          
+          const maxDay = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+          const finalDay = Math.min(selectedDay, maxDay);
+          scrollColumnToValue($("drum-day"), finalDay);
+        }
+      }, 150);
+    });
+  });
+
+  // Attach click listeners to month and year items
+  if (scrollMonth) {
+    scrollMonth.querySelectorAll(".drum-item:not(.dummy)").forEach(item => {
+      item.onclick = () => {
+        const val = parseInt(item.dataset.value);
+        scrollColumnToValue($("drum-month"), val);
+      };
+    });
+  }
+  if (scrollYear) {
+    scrollYear.querySelectorAll(".drum-item:not(.dummy)").forEach(item => {
+      item.onclick = () => {
+        const val = parseInt(item.dataset.value);
+        scrollColumnToValue($("drum-year"), val);
+      };
+    });
+  }
+
+  function getSelectedValue(col) {
+    if (!col) return null;
+    const scrollEl = col.querySelector(".drum-scroll");
+    const items = Array.from(scrollEl.querySelectorAll(".drum-item:not(.dummy)"));
+    const selectedIdx = Math.round(col.scrollTop / 30);
+    const selectedItem = items[Math.max(0, Math.min(items.length - 1, selectedIdx))];
+    return selectedItem ? parseInt(selectedItem.dataset.value) : null;
+  }
+
+  // Continue button wiring
+  const continueBtn = $("date-picker-continue");
+  if (continueBtn) {
+    continueBtn.onclick = () => {
+      const month = getSelectedValue($("drum-month"));
+      const day = getSelectedValue($("drum-day"));
+      const year = getSelectedValue($("drum-year"));
+
+      const pad = (n) => String(n).padStart(2, '0');
+      const selectedDateStr = `${year}-${pad(month + 1)}-${pad(day)}`;
+
+      if (window.closeSlideMenu) window.closeSlideMenu();
+      const inlineDatePicker = $("menu-date-picker-inline");
+      const dateChevron = $("menu-date-chevron");
+      if (inlineDatePicker) {
+        inlineDatePicker.classList.remove("open");
+        if (dateChevron) dateChevron.style.transform = "";
+      }
+
+      const archiveSelect = $("archive-select");
+      if (archiveSelect) {
+        archiveSelect.value = selectedDateStr;
+        archiveSelect.dispatchEvent(new Event("change"));
+      }
+    };
+  }
+}
