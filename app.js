@@ -3,7 +3,7 @@
 const DATA = "data/";
 const BASE_PATH = (() => {
   const path = window.location.pathname;
-  const match = path.match(/^(.*?)\/(?:story|day|editor|briefings|flash)(?:\/|$)/);
+  const match = path.match(/^(.*?)\/(?:story|day|editor|briefings|flash|install)(?:\/|$)/);
   if (match) return match[1];
   return path.replace(/\/+$/, "");
 })();
@@ -2171,7 +2171,7 @@ async function loadFlash(date = null) {
     if (flashStories.length > 0 && flashStories.loadedDate === targetDate) {
       return flashStories;
     }
-    const r = await fetch(`${BASE_PATH ? BASE_PATH : "."}/flash.json`, { cache: "no-store" });
+    const r = await fetch(`${BASE_PATH ? BASE_PATH : ""}/flash.json`, { cache: "no-store" });
     if (!r.ok) throw new Error("Failed to load Flash stories.");
     flashStories = await r.json();
     flashStories.loadedDate = targetDate;
