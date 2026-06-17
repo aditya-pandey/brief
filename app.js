@@ -3622,10 +3622,10 @@ function renderInstallPage() {
         if (accepted) {
           showToast("Installation started!");
         } else {
-          showToast("Could not launch install prompt. Please use the instructions above.");
+          showToast("Prompt closed. Follow the manual steps below to install.");
         }
       } else {
-        showToast("Install prompt is not supported by your browser. Please follow the manual steps above.");
+        showToast("Install prompt is not supported by your browser. Please follow the manual steps below.");
       }
     };
   }

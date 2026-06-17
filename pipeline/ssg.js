@@ -863,7 +863,7 @@ async function runSSG() {
     return html.replace(baseScriptRegex, `<base href="${relPath}" />`);
   };
   
-  // Pre-render briefings and flash base directories
+  // Pre-render briefings, flash and install base directories
   const briefingsDir = path.join(process.cwd(), 'briefings');
   if (!fs.existsSync(briefingsDir)) fs.mkdirSync(briefingsDir, { recursive: true });
   fs.writeFileSync(path.join(briefingsDir, 'index.html'), injectBaseHref(rootHtml, '../'));
@@ -873,6 +873,10 @@ async function runSSG() {
   let flashHtml = injectBaseHref(rootHtml, '../');
   flashHtml = flashHtml.replace(/https:\/\/thebriefings\.netlify\.app\/icon-briefing\.png/g, 'https://thebriefings.netlify.app/flash-logo.png');
   fs.writeFileSync(path.join(flashDir, 'index.html'), flashHtml);
+
+  const installDir = path.join(process.cwd(), 'install');
+  if (!fs.existsSync(installDir)) fs.mkdirSync(installDir, { recursive: true });
+  fs.writeFileSync(path.join(installDir, 'index.html'), injectBaseHref(rootHtml, '../'));
 
   const dataDir = path.join(process.cwd(), 'data');
   const allFiles = fs.readdirSync(dataDir);
