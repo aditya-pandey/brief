@@ -11,9 +11,14 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
+class Table(BaseModel):
+    headers: List[str] = Field(description="Table header columns")
+    rows: List[List[str]] = Field(description="Table rows data")
+
 class Section(BaseModel):
     question: str = Field(description="The analytical question ending in ?")
     answer: str = Field(description="Verbatim answer to that question")
+    table: Optional[Table] = Field(None, description="Optional table data")
 
 class FactsVsClaims(BaseModel):
     facts: List[str] = Field(default_factory=list)
@@ -36,6 +41,7 @@ class DeepDive(BaseModel):
     simple_explanation: str = Field(description="In plain English explanation using simple analogies")
     sections: List[Section] = Field(description="Analytical question-answer sections")
     strategic_assessment: str = Field(description="Verbatim answer to the final strategic/horizon question")
+    conclusion: Optional[str] = Field(None, description="Optional conclusion summarizing the final thoughts")
     facts_vs_claims: FactsVsClaims = Field(description="Facts vs claims extraction")
     confidence_note: str = Field(description="Confidence notes details")
     sources: List[Source] = Field(description="Sources used in the analysis")

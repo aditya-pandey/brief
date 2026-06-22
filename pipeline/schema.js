@@ -16,12 +16,21 @@ export const DEEP_DIVE_SCHEMA = {
         type: "object",
         properties: {
           question: { type: "string", description: "The analytical question ending in ?" },
-          answer: { type: "string", description: "Verbatim answer to that question" }
+          answer: { type: "string", description: "Verbatim answer to that question" },
+          table: {
+            type: "object",
+            properties: {
+              headers: { type: "array", items: { type: "string" } },
+              rows: { type: "array", items: { type: "array", items: { type: "string" } } }
+            },
+            required: ["headers", "rows"]
+          }
         },
         required: ["question", "answer"]
       }
     },
     strategic_assessment: { type: "string", description: "Verbatim answer to the final strategic/horizon question" },
+    conclusion: { type: "string", description: "Optional conclusion summarizing the final thoughts" },
     facts_vs_claims: {
       type: "object",
       properties: {
