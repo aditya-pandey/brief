@@ -3486,54 +3486,35 @@ function buildFlashCardInnerHTML(s, col, isSaved) {
     </div>`;
 
   const whyItMattersHtml = s.why_it_matters ? `
-    <div class="flash-why-it-matters" style="--cat-color:${col};">
+    <div class="flash-why-it-matters" style="--cat-color:${col}; --cat-color-rgb:${rgb};">
       <div class="flash-why-header-row">
-        <span class="flash-why-label">Why It Matters</span>
+        <div class="flash-why-label-group">
+          <svg class="flash-why-icon-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="${col}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span class="flash-why-label">Why It Matters</span>
+        </div>
         ${actionsHtml}
       </div>
       <span class="flash-why-value">${esc(s.why_it_matters)}</span>
     </div>` : '';
 
-  const imgId = `flash-img-${s.id}`;
-  // Defer heroImage resolution to client-side page load/render if missing
-  const cleanUrl = cleanSourceUrl(s.source_url);
-  if (!s.heroImage && cleanUrl && cleanUrl.startsWith("http")) {
-    getHeroImage(cleanUrl).then(imgUrl => {
-      if (imgUrl) {
-        s.heroImage = imgUrl;
-        const imgEl = document.getElementById(imgId);
-        if (imgEl) {
-          imgEl.src = imgUrl;
-          imgEl.style.display = 'block';
-          const fallbackEl = imgEl.nextElementSibling;
-          if (fallbackEl) fallbackEl.style.display = 'none';
-        }
-      }
-    });
-  }
-
-    const hasImage = !!s.heroImage;
   return `
-    <div class="flash-card-image-wrapper" style="--cat-color: ${col}; --cat-color-rgb: ${rgb};">
-      <img id="${imgId}" class="flash-card-image" src="${s.heroImage || ''}" 
-           alt="${esc(s.headline || s.hl)}" 
-           style="display: ${hasImage ? 'block' : 'none'};"
-           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-      <div class="flash-card-fallback-visual" style="display: ${hasImage ? 'none' : 'flex'}; width: 100%; height: 100%; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(${rgb}, 0.12), rgba(${rgb}, 0.03));">
-        <div class="flash-card-visual" style="width: 44px; height: 44px; color: ${col}; opacity: 0.85;">
-          ${getFlashIllustration(s.cat, s.id)}
+    <div class="flash-card-content-area" style="--cat-color: ${col}; --cat-color-rgb: ${rgb};">
+      <div class="flash-card-top-row">
+        <div class="flash-card-icon-badge" style="background: rgba(${rgb}, 0.08); border: 1px solid rgba(${rgb}, 0.15);">
+          <div class="flash-card-visual" style="width: 28px; height: 28px; color: ${col}; background: none; border: none; padding: 0;">
+            ${getFlashIllustration(s.cat, s.id)}
+          </div>
         </div>
+        <span class="flash-cat-badge" style="background:rgba(${rgb},0.12); color:${col}; border: 1px solid rgba(${rgb},0.25);">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
       </div>
-      <div class="flash-card-image-overlay">
-        <span class="flash-cat-badge" style="background:rgba(${rgb},0.25); color:${col}; border: 1px solid rgba(${rgb},0.4);">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
-        <span class="flash-time">${esc(s.ts)}</span>
-      </div>
-    </div>
-    <div class="flash-card-content-area">
       <h2 class="flash-headline">${esc(s.headline || s.hl)}</h2>
       <div class="flash-summary"><p>${esc(s.summary || s.body)}</p></div>
       ${whyItMattersHtml}
-      <div class="flash-card-source-bottom" style="margin-top: auto; padding-top: 8px; border-top: 1px solid var(--rule); display: flex; align-items: center; justify-content: space-between;">
+      <div class="flash-card-source-bottom">
         ${getFlashSourceHtml(s, 'flash-time')}
         ${!s.why_it_matters ? actionsHtml : ''}
       </div>
@@ -3654,39 +3635,18 @@ function renderDesktopGrid(filtered, targetDate) {
        </div>`
     : "";
 
-  const heroImgId = `flash-img-${heroStory.id}`;
-  const cleanHeroUrl = cleanSourceUrl(heroStory.source_url);
-  if (!heroStory.heroImage && cleanHeroUrl && cleanHeroUrl.startsWith("http")) {
-    getHeroImage(cleanHeroUrl).then(imgUrl => {
-      if (imgUrl) {
-        heroStory.heroImage = imgUrl;
-        const imgEl = document.getElementById(heroImgId);
-        if (imgEl) {
-          imgEl.src = imgUrl;
-          imgEl.style.display = 'block';
-          const fallbackEl = imgEl.nextElementSibling;
-          if (fallbackEl) fallbackEl.style.display = 'none';
-        }
-      }
-    });
-  }
 
   const heroHtml = `
     <div class="desktop-hero-card" data-id="${esc(heroStory.id)}" style="--cat-color: ${heroCol}; --cat-color-rgb: ${heroRgb};">
       <div class="hero-card-header">
-        <span class="hero-cat-badge" style="background: rgba(${heroRgb}, 0.1); color: ${heroCol};">${esc(FLASH_LABELS[heroStory.cat] || heroStory.cat)}</span>
-        ${getFlashSourceHtml(heroStory, 'hero-time')}
-      </div>
-      <div class="desktop-card-visual" style="height: 140px; overflow: hidden; border-radius: 8px; background: var(--bg-2); border: 1px solid var(--rule); display: flex;">
-        <img id="${heroImgId}" src="${heroStory.heroImage || ''}" 
-             alt="${esc(heroHl)}" 
-             style="width: 100%; height: 100%; object-fit: cover; display: ${heroStory.heroImage ? 'block' : 'none'};" 
-             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-        <div style="display: ${heroStory.heroImage ? 'none' : 'flex'}; width: 100%; height: 100%; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(${heroRgb}, 0.12), rgba(${heroRgb}, 0.03));">
-          <div class="flash-card-visual" style="width: 48px; height: 48px; color: ${heroCol}; opacity: 0.85;">
+        <div class="flash-card-icon-badge" style="background: rgba(${heroRgb}, 0.08); border: 1px solid rgba(${heroRgb}, 0.15);">
+          <div class="flash-card-visual" style="width: 28px; height: 28px; color: ${heroCol}; background: none; border: none; padding: 0;">
             ${getFlashIllustration(heroStory.cat, heroStory.id)}
           </div>
         </div>
+        <span class="hero-cat-badge" style="background: rgba(${heroRgb}, 0.1); color: ${heroCol};">${esc(FLASH_LABELS[heroStory.cat] || heroStory.cat)}</span>
+        <span style="flex:1;"></span>
+        ${getFlashSourceHtml(heroStory, 'hero-time')}
       </div>
       <h2 class="hero-headline">${esc(heroHl)}</h2>
       <p class="hero-summary">${esc(heroBody)}</p>
@@ -3755,39 +3715,17 @@ function renderDesktopGrid(filtered, targetDate) {
          </div>`
       : "";
     
-    const gridImgId = `flash-img-${s.id}`;
-    const cleanGridUrl = cleanSourceUrl(s.source_url);
-    if (!s.heroImage && cleanGridUrl && cleanGridUrl.startsWith("http")) {
-      getHeroImage(cleanGridUrl).then(imgUrl => {
-        if (imgUrl) {
-          s.heroImage = imgUrl;
-          const imgEl = document.getElementById(gridImgId);
-          if (imgEl) {
-            imgEl.src = imgUrl;
-            imgEl.style.display = 'block';
-            const fallbackEl = imgEl.nextElementSibling;
-            if (fallbackEl) fallbackEl.style.display = 'none';
-          }
-        }
-      });
-    }
-
     return `
       <div class="desktop-grid-card" data-id="${esc(s.id)}" style="--cat-color: ${col}; --cat-color-rgb: ${rgb};">
         <div class="grid-card-header">
-          <span class="grid-cat-badge" style="background: rgba(${rgb}, 0.1); color: ${col};">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
-          ${getFlashSourceHtml(s, 'grid-time')}
-        </div>
-        <div class="desktop-card-visual" style="height: 110px; overflow: hidden; border-radius: 8px; background: var(--bg-2); border: 1px solid var(--rule); display: flex;">
-          <img id="${gridImgId}" src="${s.heroImage || ''}" 
-               alt="${esc(sHl)}" 
-               style="width: 100%; height: 100%; object-fit: cover; display: ${s.heroImage ? 'block' : 'none'};" 
-               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-          <div style="display: ${s.heroImage ? 'none' : 'flex'}; width: 100%; height: 100%; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(${rgb}, 0.12), rgba(${rgb}, 0.03));">
-            <div class="flash-card-visual" style="width: 40px; height: 40px; color: ${col}; opacity: 0.85;">
+          <div class="flash-card-icon-badge" style="background: rgba(${rgb}, 0.08); border: 1px solid rgba(${rgb}, 0.15);">
+            <div class="flash-card-visual" style="width: 24px; height: 24px; color: ${col}; background: none; border: none; padding: 0;">
               ${getFlashIllustration(s.cat, s.id)}
             </div>
           </div>
+          <span class="grid-cat-badge" style="background: rgba(${rgb}, 0.1); color: ${col};">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
+          <span style="flex:1;"></span>
+          ${getFlashSourceHtml(s, 'grid-time')}
         </div>
         <h3 class="grid-headline">${esc(sHl)}</h3>
         <p class="grid-summary">${esc(sBody)}</p>
@@ -4728,6 +4666,273 @@ window.addEventListener("DOMContentLoaded", () => {
     window.showPwaBanner();
   }
 });
+
+/* ── Calendar Date Picker ── */
+(function initCalendarDatePicker() {
+  let wrapper = $("header-date-wrapper");
+  let trigger = $("header-date-trigger");
+  let dropdown = $("calendar-dropdown");
+
+  if (!wrapper) {
+    const hdrDate = $("header-date");
+    if (!hdrDate) return;
+
+    wrapper = document.createElement("div");
+    wrapper.className = "header-date-wrapper";
+    wrapper.id = "header-date-wrapper";
+
+    hdrDate.parentNode.insertBefore(wrapper, hdrDate);
+
+    wrapper.innerHTML = `
+      <button class="header-date-trigger" id="header-date-trigger" aria-label="Open date picker">
+        <svg class="header-date-cal-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <span id="header-date" class="header-top-date">${hdrDate.innerHTML}</span>
+        <svg class="header-date-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+      <div class="calendar-dropdown" id="calendar-dropdown">
+        <div class="calendar-header">
+          <button class="cal-nav-btn" id="cal-prev-month" aria-label="Previous month">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <span class="cal-month-year" id="cal-month-year"></span>
+          <button class="cal-nav-btn" id="cal-next-month" aria-label="Next month">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+        <div class="cal-weekdays" id="cal-weekdays"></div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="cal-footer">
+          <button class="cal-today-btn" id="cal-today-btn">Today</button>
+        </div>
+      </div>
+    `;
+
+    hdrDate.parentNode.removeChild(hdrDate);
+
+    trigger = wrapper.querySelector("#header-date-trigger");
+    dropdown = wrapper.querySelector("#calendar-dropdown");
+  }
+
+  const monthYearLabel = wrapper.querySelector("#cal-month-year");
+  const weekdaysEl = wrapper.querySelector("#cal-weekdays");
+  const gridEl = wrapper.querySelector("#cal-grid");
+  const prevBtn = wrapper.querySelector("#cal-prev-month");
+  const nextBtn = wrapper.querySelector("#cal-next-month");
+  const todayBtn = wrapper.querySelector("#cal-today-btn");
+
+  if (!wrapper || !trigger || !dropdown) return;
+
+  const MONTHS = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"];
+  const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+  let calViewMonth, calViewYear;
+  let selectedDateStr = "";
+  let backdropEl = null;
+
+  // Get the set of available dates from indexEntries
+  function getAvailableDates() {
+    const dates = new Set();
+    if (typeof indexEntries !== "undefined" && Array.isArray(indexEntries)) {
+      indexEntries.forEach(e => dates.add(e.date));
+    }
+    return dates;
+  }
+
+  // Get current date from the archive-select or URL
+  function getCurrentDateStr() {
+    const sel = $("archive-select");
+    if (sel && sel.value) return sel.value;
+    if (typeof indexEntries !== "undefined" && indexEntries.length > 0) return indexEntries[0].date;
+    return new Date().toISOString().split("T")[0];
+  }
+
+  // Render weekday headers (once)
+  function renderWeekdays() {
+    if (!weekdaysEl) return;
+    weekdaysEl.innerHTML = WEEKDAYS.map(d => `<span class="cal-weekday">${d}</span>`).join("");
+  }
+
+  // Render the month grid
+  function renderMonth() {
+    if (!gridEl || !monthYearLabel) return;
+
+    monthYearLabel.textContent = `${MONTHS[calViewMonth]} ${calViewYear}`;
+
+    const availableDates = getAvailableDates();
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+    const firstDay = new Date(calViewYear, calViewMonth, 1).getDay();
+    const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+
+    let html = "";
+
+    // Empty cells before the first day
+    for (let i = 0; i < firstDay; i++) {
+      html += `<button class="cal-day empty" disabled></button>`;
+    }
+
+    // Day cells
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${calViewYear}-${String(calViewMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const isToday = dateStr === todayStr;
+      const isSelected = dateStr === selectedDateStr;
+      const hasData = availableDates.has(dateStr);
+
+      // Dates in the future without data are disabled
+      const dateObj = new Date(calViewYear, calViewMonth, d);
+      const isFuture = dateObj > today && !hasData;
+
+      let classes = "cal-day";
+      if (isToday) classes += " today";
+      if (isSelected) classes += " selected";
+      if (hasData) classes += " has-data";
+      if (isFuture) classes += " disabled";
+
+      html += `<button class="${classes}" data-date="${dateStr}"${isFuture ? " disabled" : ""}>${d}</button>`;
+    }
+
+    gridEl.innerHTML = html;
+
+    // Attach click listeners
+    gridEl.querySelectorAll(".cal-day:not(.disabled):not(.empty)").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const dateStr = btn.dataset.date;
+        selectDate(dateStr);
+      });
+    });
+  }
+
+  function selectDate(dateStr) {
+    selectedDateStr = dateStr;
+    closeCalendar();
+
+    // Trigger navigation via archive-select
+    const archiveSelect = $("archive-select");
+    if (archiveSelect) {
+      archiveSelect.value = dateStr;
+      archiveSelect.dispatchEvent(new Event("change"));
+    }
+  }
+
+  function openCalendar() {
+    const curDate = getCurrentDateStr();
+    selectedDateStr = curDate;
+
+    const d = new Date(curDate + "T00:00:00");
+    calViewMonth = isNaN(d.getTime()) ? new Date().getMonth() : d.getMonth();
+    calViewYear = isNaN(d.getTime()) ? new Date().getFullYear() : d.getFullYear();
+
+    renderWeekdays();
+    renderMonth();
+
+    wrapper.classList.add("open");
+    dropdown.classList.add("open");
+
+    // If mobile, move dropdown to body so it isn't trapped by header stacking context/overflow
+    if (window.innerWidth <= 600) {
+      document.body.appendChild(dropdown);
+    }
+
+    // Create backdrop
+    if (!backdropEl) {
+      backdropEl = document.createElement("div");
+      backdropEl.className = "calendar-backdrop";
+      backdropEl.addEventListener("click", closeCalendar);
+    }
+    document.body.appendChild(backdropEl);
+  }
+
+  function closeCalendar() {
+    wrapper.classList.remove("open");
+    dropdown.classList.remove("open");
+    if (backdropEl && backdropEl.parentNode) {
+      backdropEl.parentNode.removeChild(backdropEl);
+    }
+    // Move dropdown back to wrapper if it was moved to body
+    if (dropdown && dropdown.parentNode === document.body) {
+      wrapper.appendChild(dropdown);
+    }
+  }
+
+  function toggleCalendar() {
+    if (wrapper.classList.contains("open")) {
+      closeCalendar();
+    } else {
+      openCalendar();
+    }
+  }
+
+  // Event listeners
+  trigger.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleCalendar();
+  });
+
+  if (prevBtn) {
+    prevBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      calViewMonth--;
+      if (calViewMonth < 0) {
+        calViewMonth = 11;
+        calViewYear--;
+      }
+      renderMonth();
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      calViewMonth++;
+      if (calViewMonth > 11) {
+        calViewMonth = 0;
+        calViewYear++;
+      }
+      renderMonth();
+    });
+  }
+
+  if (todayBtn) {
+    todayBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+      
+      // Check if today has data
+      const availableDates = getAvailableDates();
+      if (availableDates.has(todayStr)) {
+        selectDate(todayStr);
+      } else {
+        // Navigate to the latest available date
+        if (typeof indexEntries !== "undefined" && indexEntries.length > 0) {
+          selectDate(indexEntries[0].date);
+        } else {
+          closeCalendar();
+        }
+      }
+    });
+  }
+
+  // Close on Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && wrapper.classList.contains("open")) {
+      closeCalendar();
+    }
+  });
+
+  // Expose for external use
+  window.openCalendarPicker = openCalendar;
+  window.closeCalendarPicker = closeCalendar;
+})();
 
 /* ── Custom scroll drum date picker implementation ── */
 function openCustomDatePicker(currentDateStr) {
