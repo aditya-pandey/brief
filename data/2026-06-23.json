@@ -1,0 +1,233 @@
+{
+  "date": "2026-06-23",
+  "generated_at": "2026-06-22T19:43:08.835Z",
+  "source": "gemini-app",
+  "recap": [
+    {
+      "front": "Front 1",
+      "primary_catalyst": "West Asia war exposed gaps in UAE air defense; India's systems gained live combat validation in 2025.",
+      "core_threat": "US leverage tools via arms sales delays and CAATSA sanctions risk due to joint Russian-Indian BrahMos hardware ownership.",
+      "horizon": "Early stage, fast tracking bilateral negotiations."
+    },
+    {
+      "front": "Front 2",
+      "primary_catalyst": "Biometric company insiders were bribed to manually override identity mismatches for proxy solvers.",
+      "core_threat": "Subversion of central testing integrity via insider collusion with third-party private security vendors.",
+      "horizon": "30 arrests processed; 3 separate FIRs registered; wider interstate network under active investigation."
+    },
+    {
+      "front": "Front 3",
+      "primary_catalyst": "A series of aggressive military and kidnapping threats posted on X by Donald Trump forced an Iranian walkout.",
+      "core_threat": "Severe disruption of high-stakes multilateral diplomacy and long-term treaty brittleness due to public escalation tactics.",
+      "horizon": "Formal talks recessed; negotiations continuing indirectly through Qatari and Pakistani backchannels."
+    },
+    {
+      "front": "Front 4",
+      "primary_catalyst": "A violent market parking dispute led to judicial arrests, prompting an armed retaliatory takeover of a nearby shrine.",
+      "core_threat": "Armed itinerant pilgrim groups utilizing religious sanctuaries as operational bases to challenge the rule of law and blackmail local administration.",
+      "horizon": "Hostages successfully freed; 6 armed individuals remain barricaded on the rooftop surrounded by military forces."
+    }
+  ],
+  "stories": [
+    {
+      "id": "india-uae-defence-deal-why-a-new-axis-is-forming-in-the-gulf",
+      "headline": "India UAE Defence Deal: Why a New Axis Is Forming in the Gulf",
+      "tldr": "India is in advanced, early-stage talks to sell its flagship supersonic cruise missile, the BrahMos, and its indigenous Akashteer air defence command system to the United Arab Emirates. The negotiations represent a significant acceleration in New Delhi's defence export ambitions, fueled by the real world validation of its systems during recent borders friction. For Abu Dhabi, the move marks a deliberate pivot away from traditional Western arms suppliers after suffering direct aerial targeting during the West Asia conflict. By the end of this deep dive, you will understand how India is transforming from a weapons importer into a strategic hardware provider for the Gulf.",
+      "region": "india",
+      "simple_explanation": "Imagine a neighborhood where a store owner has long relied on a premium, expensive security company from across town to protect his shop. Suddenly, a major riot breaks out, the security company hesitates, and the shop gets damaged anyway. Looking for immediate protection, the store owner turns to a nearby manufacturer who just successfully tested a smart, lightning fast alarm and interception system in a real world break-in. That is what is happening between the UAE and India. The UAE, heavily shaken by drone and missile attacks during the recent West Asia war, realizes that relying solely on US defense hardware is no longer a guaranteed shield. India is stepping into the vacuum, offering the BrahMos, an incredibly fast missile that flies close to the ground to evade radar, and Akashteer, a digital brain that links different radars and weapons together to shoot down incoming threats instantly.",
+      "sections": [
+        {
+          "question": "Why is the UAE looking past Washington?",
+          "answer": "The primary driver for Abu Dhabi is an acute sense of physical vulnerability that traditional Western security guarantees failed to prevent. During the recent conflict in West Asia, the Gulf nation was heavily attacked by Iranian drones and missiles, exposing gaps in its existing air defence umbrella. The failure to intercept every threat, coupled with the critical need to secure the Strait of Hormuz, a narrow bottleneck essential for the UAE's energy exports, forced a radical reassessment of its defense procurement.\n\nHistorically, the US has used arms sales to the Gulf as a leverage tool, occasionally blocking or delaying advanced hardware over humanitarian or geopolitical concerns. By diversifying toward India, the UAE is building a more transactional, condition free defense structure. This shift is backed by deep capital, exemplified by a separate 35 billion dollar defense cooperation MoU signed with South Korea earlier this year, signaling that Abu Dhabi is actively shopping for partners who will sell advanced kinetic capabilities without political lectures.",
+          "table": null
+        },
+        {
+          "question": "What makes the Akashteer system so valuable?",
+          "answer": "While the supersonic BrahMos gets the headlines for its raw speed and precision, the Akashteer Air Defence Control and Reporting System is the more strategically significant offering. Developed by state run Bharat Electronics Limited and the Indian Army, Akashteer is not a weapon, but the digital nerve center of modern airspace management. It compiles data from a chaotic mix of ground radars, airborne early warning aircraft, and spatial sensors into a single, automated operational picture.\n\nIn a conflict zone, the system calculates threat trajectories and automates engagement decisions in real time. The UAE operates a highly fragmented collection of defensive systems bought from various global vendors. Akashteer offers the architectural framework to tie these disparate pieces together, allowing ground units to monitor low level airspace and command local air defenses simultaneously, preventing the kind of sensory overload that led to interception failures during the recent Gulf escalation.",
+          "table": null
+        },
+        {
+          "question": "How did a border war transform India into an exporter?",
+          "answer": "India has spent decades as the world's largest arms importer, but its state defense apparatus underwent a sharp paradigm shift following Operation Sindoor in May 2025. During that brief, intense conflict with Pakistan, New Delhi deployed its indigenous air defense networks and jointly developed hardware under live combat conditions. The Akashteer system successfully intercepted a wave of Pakistani missiles and drones targeting forward combat zones, earning the moniker of India's Iron Dome among regional strategists.\n\nThis successful combat validation changed the calculus for global buyers. Prior to 2025, Indian defense exports were largely restricted to smaller components, patrol boats, or soft hardware. With a major BrahMos deal already signed with Vietnam and a pact with Indonesia in its final stages, India is leveraging its recent battlefield record to prove its systems are reliable, cheaper to maintain, and highly effective against modern, asymmetric aerial warfare.",
+          "table": null
+        },
+        {
+          "question": "What are the geopolitical friction points of this sale?",
+          "answer": "The most volatile aspect of the deal lies in the DNA of the hardware itself. The BrahMos is a joint venture between India and Russia. Selling a weapon platform tied directly to Russian state enterprises to a major US ally like the UAE will inevitably trigger friction with Washington, which monitors global transactions under its CAATSA sanctions regime. Furthermore, India must balance its expanding ties with the UAE without alienating Iran, a country with which New Delhi maintains crucial economic and maritime transit agreements via the Chabahar port.\n\nThe more convincing reading of this negotiation is that India is transitioning into a mature, unaligned security provider. By supplying defensive systems like Akashteer alongside precision strike weapons like BrahMos, New Delhi is establishing itself as an alternative pole in the global arms trade. If finalized, this deal cements India's position as a major regional stabilizer, capable of reinforcing the defense architecture of the Gulf without aligning with Western geopolitical mandates.",
+          "table": null
+        }
+      ],
+      "conclusion": "The defense negotiations between New Delhi and Abu Dhabi mark a pivotal transformation in Gulf security architectures as traditional alignments face unprecedented strain. By supplying combat-validated hardware without political conditionalities, India is rapidly solidifying its footprint as a major independent stabilizer in regional arms dynamics.",
+      "sources": [
+        {
+          "outlet": "The Hindu",
+          "desk": "Reuters",
+          "lean": "center",
+          "region": "india",
+          "title": "Indian defense sources detailing UAE procurement talks for BrahMos and Akashteer",
+          "url": ""
+        },
+        {
+          "outlet": "OpIndia",
+          "desk": "",
+          "lean": "right",
+          "region": "india",
+          "title": "Operational background on Akashteer deployment during Operation Sindoor",
+          "url": ""
+        }
+      ]
+    },
+    {
+      "id": "the-lakhisarai-racket-how-insiders-and-medical-students-brok",
+      "headline": "The Lakhisarai Racket: How Insiders and Medical Students Broke the NEET Retest",
+      "tldr": "The integrity of India's medical entrance system has suffered another severe blow after Bihar Police busted a highly organized impersonation ring during the nationwide NEET UG re examination. Operating inside Lakhisarai district, the network circumvented advanced biometric security by directly subverting the technical staff hired to run it. The arrest of thirty individuals, including active MBBS students from premier national institutes and eighteen biometric company employees, reveals that the vulnerability of public exams is no longer just a question of leaked papers, but of deep systemic insider collusion.",
+      "region": "india",
+      "simple_explanation": "Think of a bank that installs an expensive, unhackable fingerprint scanner on its vault door to keep thieves out. The scanner works perfectly, but the security guards hired by the bank to monitor the scanner accept a bribe, look the other way, and let a thief walk right into the vault using a fake ID badge. This is exactly how the cheating ring operated during the NEET re test on Sunday. To prevent cheating after the massive paper leak scandal in May, the testing agency used biometric verification to ensure the person sitting for the exam matched the registration photo. Instead of trying to bypass this technology, the racketeers simply bought off the people running the technology. Employees of the biometric company manually cleared fake candidates, allowing highly qualified medical students to walk into the exam centers and take the test on behalf of rich clients.",
+      "sections": [
+        {
+          "question": "How was the biometric trap bypassed?",
+          "answer": "The re examination was designed as a flawless showcase of state security, relying on real time biometric scans to eliminate proxy testers. However, investigators discovered that the network did not try to defeat the technology; they purchased the operators. Eighteen employees of the contracted biometric firm, including three regional supervisors and fifteen operators, were actively colluding with the cheating syndicate.\n\nWhen a proxy solver arrived at the center, the biometric staff manually overrode mismatches, validated forged cards that had been physically altered, and logged the proxy candidates into the official testing registry. In one specific breach at the Hasanpur examination center, an impersonator named Mayank Kashyap, a fourth year medical student at Patna Medical College Hospital, simply walked past security by posing as an active employee of the biometric firm, assisted by an insider inside the building.",
+          "table": null
+        },
+        {
+          "question": "Who provided the intellectual muscle for the scam?",
+          "answer": "The scale of the network's logistics is underscored by the academic profile of the proxy solvers arrested inside the examination halls. This was not a localized gang of amateur cheats, but an interstate syndicate that recruited elite medical, nursing, and dental students from across the country to act as test solvers.\n\nAmong those detained in the act were fourth year MBBS students from top institutions, including Saurabh Jha from AIIMS Rae Bareli, Mantosh Kumar from NJP Medical College, and Aman Agarwal, an intern at Shahdara Medical College in Delhi. These academic mercenaries were paired with original aspirants through a network masterminded by two individuals, Ravi Shankar, a medical student at BMIMS Pawapuri, and Ranjit Kumar. The solvers were highly compensated, with families of wealthy aspirants reportedly agreeing to packages ranging between 10 lakh to 12 lakh rupees per candidate, with a non refundable 2 lakh rupee advance paid up front.",
+          "table": null
+        },
+        {
+          "question": "Why did administrative countermeasures fail?",
+          "answer": "Following the cancellation of the original May 3 exam due to widespread paper leaks, medical colleges across India had placed strict campus lockdowns on their students during the re test weekend to prevent them from acting as solvers. Institutions organized mandatory weekend seminars, quizzes, and roll calls to ensure full attendance.\n\nThe Lakhisarai arrests show these measures were superficially managed and easily evaded. For example, Mayank Kashyap successfully bypassed the Patna Medical College monitoring system by formally reporting a sudden illness, allowing him to leave campus undetected before traveling to Lakhisarai to sit for the exam. The institutional failure lies in the lack of real time, cross verification between campus registries and exam center logs, allowing medical students under administrative supervision to moon light as professional examination proxies.",
+          "table": null
+        },
+        {
+          "question": "What does this mean for the future of central exams?",
+          "answer": "The Lakhisarai bust changes the diagnosis of India's public examination crisis. The public debate has centered almost exclusively on preventing paper leaks via encrypted digital delivery and steel transport boxes. The Bihar Police operation demonstrates that even a perfectly secure, un-leaked paper can be compromised if the physical perimeter and identity verification systems are subverted from within.\n\nThe involvement of the very biometric operators hired to enforce integrity means that outsourcing security to third party private vendors has created a dangerous point of failure. Unless testing authorities implement independent, state supervised double verification structures, the Public Examinations Act of 2024 will remain an ineffective deterrent against syndicates willing to spend tens of crores to corrupt the frontline testing staff.",
+          "table": null
+        }
+      ],
+      "conclusion": "The inner compromise of the NEET retest indicates that institutional security measures remain acutely fragile when frontline personnel are subverted. Moving forward, structural reliance on outsourced private vendors will require rigorous state-led double verification to deter well-funded cheating networks.",
+      "sources": [
+        {
+          "outlet": "Times of India",
+          "desk": "",
+          "lean": "center",
+          "region": "india",
+          "title": "Police statement on the arrest of 30 individuals, including MBBS students and biometric staff in Lakhisarai",
+          "url": ""
+        },
+        {
+          "outlet": "Hindustantimes",
+          "desk": "",
+          "lean": "center",
+          "region": "india",
+          "title": "Details of individual medical students arrested and the financial mechanics of the solver gang",
+          "url": ""
+        },
+        {
+          "outlet": "Business Today",
+          "desk": "",
+          "lean": "center",
+          "region": "india",
+          "title": "Breakdown of exam center raids at Hasanpur and institutional failures regarding student monitoring",
+          "url": ""
+        }
+      ]
+    },
+    {
+      "id": "the-lucerne-recess-trump-s-social-feed-disrupts-the-west-asia",
+      "headline": "The Lucerne Recess: Trump's Social Feed Disrupts the West Asia Peace Talks",
+      "tldr": "High stakes diplomatic negotiations in Switzerland aimed at permanently ending the West Asia war suffered a severe disruption after the Iranian delegation walked out of the venue. The walkout was triggered by a series of aggressive social media posts by US President Donald Trump, who threatened direct military strikes and the kidnapping of Iranian negotiators unless maritime access to the Strait of Hormuz was instantly restored. While Vice President JD Vance and international mediators managed to prevent a total collapse of the summit, the incident exposes the extreme volatility of conducting sensitive, multi lateral peace talks under a White House that treats public escalation as a standard negotiating tool.",
+      "region": "global",
+      "simple_explanation": "Think of a complex corporate merger where lawyers from two rival companies are sitting in a quiet conference room, making real progress on a delicate contract. Suddenly, the CEO of one company blasts out a public video online, screaming that he will fire the rival team, block their bank accounts, and physically lock them out of their offices unless they surrender immediately. Naturally, the rival lawyers stand up, pack their bags, and walk out of the room in protest. This is what occurred at Lake Lucerne. While Vice President JD Vance was quietly trying to hammer out a long term peace deal with Iranian diplomats, President Trump launched an aggressive tirade on social media. The Iranian diplomats could not stay at the table without looking weak to their citizens at home, so they walked out. The talks did not die completely, but the actual negotiation had to move into hidden hotel backrooms through middle men.",
+      "sections": [
+        {
+          "question": "Why did the Iranian delegation walk out?",
+          "answer": "The Iranian walkout was an act of mandatory political theater driven by intense domestic pressure within Tehran. The delegation, led by chief negotiator Mohammad Bagher Ghalibaf, was already facing deep skepticism from hardline factions inside Iran who viewed any dialogue with the Trump administration as a form of capitulation. When Donald Trump published a message on X threatening to bomb Iran and kidnap its negotiating team, staying in the room became ideologically impossible for Ghalibaf.\n\nTo preserve their domestic authority, the Iranian team formally filed a protest against US bullying with the Qatari and Pakistani mediators and abruptly exited the main Swiss conference building. Ghalibaf publicly minimized the threats, stating that the US had reached a state of desperation and that Iran did not take the statements into account, but the walkout was necessary to demonstrate that Tehran would not negotiate under direct duress.",
+          "table": null
+        },
+        {
+          "question": "What are the real fractures within the US delegation?",
+          "answer": "The incident highlighted a stark, dysfunctional contrast between the institutional diplomacy led by Vice President JD Vance and the erratic public posture of President Trump. On the ground in Switzerland, Vance had been explicitly tasked with turning over a new leaf with Iran, working alongside Jared Kushner and special envoy Steve Witkoff to construct a stable 60 day cooling off framework. Vance actively downplayed the public friction, calmly telling reporters that these things are always a little bit messy and insisting that real progress toward ending hostilities was still being made.\n\nYet, simultaneously, Trump was conducting a chaotic 20 minute phone interview with Fox News, musing about militarily seizing the Strait of Hormuz and collecting tolls from international shipping. This dual track approach suggests that while the US diplomatic team is trying to execute a pragmatic retreat from an untenable regional war, the president is actively undermining his own negotiators to satisfy domestic political audiences.",
+          "table": null
+        },
+        {
+          "question": "What are the core unresolved issues keeping the talks alive?",
+          "answer": "Despite the dramatic walkout, the negotiations have not collapsed because the underlying economic and military pressures on both nations are too severe to ignore. Iran's primary objective is immediate economic survival, specifically the lifting of crushing US sanctions on its oil exports and the unfreezing of billions of dollars in overseas assets. Furthermore, Tehran wants to cement the terms of a permanent ceasefire in Lebanon to protect its primary regional proxy, Hezbollah, from further degradation.\n\nThe US, conversely, is desperate to secure global energy corridors. The talks are pinned to three non negotiable levers: the permanent reopening of the Strait of Hormuz, a stable maritime transit framework, and the structured return of UN nuclear inspectors led by IAEA chief Rafael Grossi. Because both sides require a diplomatic exit from the economic chaos caused by the West Asia war, negotiators from Qatar and Pakistan have successfully kept both delegations engaged through indirect backchannel communications.",
+          "table": null
+        },
+        {
+          "question": "Can personalized bullying deliver a stable treaty?",
+          "answer": "The more convincing reading of the Lucerne crisis is that while Trump's aggressive public messaging is designed to project strength, it structurally weakens the longevity of any potential treaty. By forcing the Iranian delegation to skip joint photo opportunities and refuse direct, on camera meetings, the US has made it incredibly difficult to build the institutional trust required to police a complex, multi phased peace agreement.\n\nPeace deals built entirely on maximum pressure and public insults are structurally brittle. While a formal recess and backroom mediation will likely keep the Lucerne talks moving through the week, any text signed under these conditions will face massive compliance risks, as any future social media post from Washington could instantly trigger a return to active regional warfare.",
+          "table": null
+        }
+      ],
+      "conclusion": "The disruption at Lake Lucerne underscores the fundamental instability of conducting high-stakes diplomacy when public escalation undercuts institutional efforts. Although underlying economic and security pressures keep backchannel avenues operational, any finalized agreement will face persistent risks from sudden rhetorical updates.",
+      "sources": [
+        {
+          "outlet": "The Guardian",
+          "desk": "",
+          "lean": "left",
+          "region": "global",
+          "title": "Diplomatic analysis of Trump's social media threats, the Fox News interview, and JD Vance's mediation efforts",
+          "url": ""
+        },
+        {
+          "outlet": "The Hindu",
+          "desk": "AFP",
+          "lean": "center",
+          "region": "india",
+          "title": "Reporting on the Iranian delegation's formal walkout after the Qatari mediation meeting",
+          "url": ""
+        }
+      ]
+    },
+    {
+      "id": "the-nagrasu-standoff-armed-escalation-inside-an-uttarakhand-s",
+      "headline": "The Nagrasu Standoff: Armed Escalation inside an Uttarakhand Shrine",
+      "tldr": "A volatile 40 hour armed confrontation at a gurdwara in Nagrasu, Uttarakhand, has escalated significantly, forcing the deployment of Indian Army troops to support local law enforcement. The crisis began when a faction of radical Nihang Sikhs stormed the shrine, took volunteers hostage, and barricaded themselves on the rooftop to demand the unconditional release of four sect members arrested after a violent parking dispute in nearby Chamoli. The standoff highlights a dangerous, growing friction between local administrative authorities and itinerant pilgrim groups utilizing religious sites as operational bases to challenge the rule of law.",
+      "region": "india",
+      "simple_explanation": "Imagine a group of traveling pilgrims who get into a violent fight with shopkeepers in a market town over a parking space, leading to their arrest by the police. A few days later, their armed friends march into a completely different religious shrine down the road. They take the kitchen staff hostage, block the doors, climb onto the roof with spears and swords, and threaten to wreck the building unless the police let their friends out of jail immediately. This is the exact situation playing out at the Nagrasu Gurdwara. A small group of Nihangs have turned a place of worship into an armed fortress to blackmail the local government. Even though they have finally released the hostages after intense talks with officials, they are still holding the rooftop, throwing stones, and smashing solar panels. The situation has become so dangerous that the local police had to call in the Indian Army to surround the building and prevent a wider riot.",
+      "sections": [
+        {
+          "question": "What triggered the descent into violence?",
+          "answer": "The current crisis in Nagrasu is the direct second order effect of a violent confrontation that took place on June 16 in the Karnaprayag market of Chamoli district. A group of Nihang pilgrims returning from the Sri Hemkund Sahib Yatra got into a verbal altercation with local traders over a routine vehicle parking issue. The dispute escalated rapidly when four Nihang men drew traditional weapons, attacking local residents and injuring four individuals.\n\nFollowing their swift arrest and placement into judicial custody by Chamoli police, a separate group of approximately eight armed Nihangs moved down the valley to the Nagrasu gurdwara. They initially sought shelter and food, but quickly turned on the shrine's management committee, demanding that the administrators use their political influence to secure the immediate, unconditional bail of the four arrested men. When the committee refused to interfere with the judicial process, the group launched an armed takeover of the premises.",
+          "table": null
+        },
+        {
+          "question": "How did the hostage crisis unfold inside the shrine?",
+          "answer": "According to detailed testimony from the gurdwara's head priest, Baba Beant Singh, the management committee initially provided the group with overnight shelter and community kitchen food out of religious hospitality. However, on Saturday afternoon, the group became deeply violent, assaulting volunteers and systematically vandalizing the property. Armed with spears, swords, axes, and kirpans, the radicals cut off the building's water supply and smashed the solar panels installed on the roof.\n\nThe situation turned into a critical security emergency when the group took a resident devotee and a sevadar hostage, retreating to the third floor and barricading the rooftop entry doors. Garhwal IG Rajeev Swaroop confirmed that intensive, high level negotiations led by the district magistrate and the superintendent of police eventually secured the release of the devotee on Saturday and the sevadar on Sunday evening. However, despite the release of the civilian hostages, the armed core of six Nihangs refused to surrender, maintaining their defensive positions on the roof.",
+          "table": null
+        },
+        {
+          "question": "Why did the administration cut off the local internet?",
+          "answer": "To control the rapidly volatile situation, the Uttarakhand government took the extraordinary step of suspending all mobile internet services across parts of the Rudraprayag district for nearly twelve hours. This marks only the third time since the formation of Uttarakhand in 2000 that internet services have been deactivated for law and order management.\n\nSuperintendent of Police Niharika Tomar noted that the measure was implemented to counter an explosion of highly inflammatory, factually incorrect rumors circulating on social media platforms. Extranational networks and local handles were falsely claiming that the entire gurdwara had been desecrated or that communal clashes had broken out with local residents. By freezing digital communications, the administration successfully prevented external radical groups from mobilizing and marching toward Nagrasu, isolating the crisis to the specific group on the rooftop.",
+          "table": null
+        },
+        {
+          "question": "What is the strategic significance of the Army's arrival?",
+          "answer": "The arrival of Indian Army troops in Nagrasu on Monday signals that the state administration has reached the absolute limit of conventional police negotiations. The state cannot allow a group of armed individuals to successfully use a religious sanctuary as leverage to overwrite judicial arrests, as doing so would set a catastrophic precedent for the safety of the entire Hemkund Sahib pilgrimage corridor.\n\nThe deployment of the Army, alongside the Indo Tibetan Border Police, is a calculated show of overwhelming force designed to compel a peaceful surrender without turning the shrine into an active combat zone. Because the hostages are safe and the gurdwara's daily prayers have quietly resumed below, the military's current objective is to contain the perimeter, run down the group's logistics, and wait out the remaining individuals on the roof without triggering further structural damage to the shrine.",
+          "table": null
+        }
+      ],
+      "conclusion": "The armed containment at the Nagrasu Gurdwara emphasizes the critical boundary between religious tolerance and the uncompromised execution of judicial governance. By involving the military and suspending digital links, the administration has prioritized localized security while managing wider regional stability.",
+      "sources": [
+        {
+          "outlet": "Times of India",
+          "desk": "",
+          "lean": "center",
+          "region": "india",
+          "title": "Chronological breakdown of the Chamoli parking clash, the Nagrasu hostage situation, and Army arrival",
+          "url": ""
+        },
+        {
+          "outlet": "Indian Express",
+          "desk": "",
+          "lean": "center",
+          "region": "india",
+          "title": "Statements from SP Niharika Tomar and Gurdwara Granthi Baba Beant Singh regarding vandalism and negotiation statuses",
+          "url": ""
+        }
+      ]
+    }
+  ]
+}
