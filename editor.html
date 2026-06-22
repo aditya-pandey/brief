@@ -473,6 +473,105 @@
       cons.scrollTop = cons.scrollHeight;
     }
 
+    function stripMarkdown(s = "") {
+      return s
+        .replace(/\*\*([^*]+)\*\*/g, "$1")
+        .replace(/\*([^*]+)\*/g, "$1")
+        .replace(/^#+\s*/gm, "")
+        .trim();
+    }
+    
+    function slugify(text) {
+      return text.toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 60) || "story";
+    }
+    
+    function detectRegionString(title = "", content = "") {
+      const combined = (title + " " + content).toLowerCase();
+      const indiaSignals = [
+        "india", "indian", "delhi", "mumbai", "modi", "bjp", "congress",
+        "rupee", "₹", "nda", "lok sabha", "rajya sabha", "supreme court of india",
+        "rbi", "isro", "neet", "iit", "ias", "ips", "kerala", "maharashtra",
+        "rajasthan", "gujarat", "tamil", "bengal", "assam", "manipur", "punjab",
+        "andhra", "telangana", "karnataka", "odisha", "jharkhand", "chhattisgarh",
+        "uttarakhand", "himachal", "jammu", "kashmir", "northeast india",
+      ];
+      const hits = indiaSignals.filter(s => combined.includes(s)).length;
+      return hits >= 2 ? "india" : "global";
+    }
+
+    function parseMarkdownBriefing(input) {
+      const frontBlocks = input.split(/\n##\s+(?=Front\s+\d)/i).filter(b => b.trim());
+      const parsedStories = [];
+      
+      for (const block of frontBlocks) {
+        if (!block.trim()) continue;
+        const cleanBlock = block.replace(/^##\s+/, "");
+        if (!cleanBlock.match(/^Front\s+\d/i)) continue;
+        
+        try {
+          const titleMatch = cleanBlock.match(/^Front\s+\d+[:.]\s*(.+)/i);
+          const rawTitle = titleMatch ? titleMatch[1].trim() : "Story";
+          const headline = stripMarkdown(rawTitle);
+          
+          const parts = cleanBlock.split(/\n###\s+/);
+          const sections = [];
+          let overview = "";
+          let inPlainEnglish = "";
+          let sources = [];
+          
+          for (let i = 1; i < parts.length; i++) {
+            const part = parts[i];
+            const nl = part.indexOf("\n");
+            if (nl === -1) continue;
+            const title = part.slice(0, nl).trim();
+            const content = part.slice(nl + 1).trim();
+            const cleanTitle = stripMarkdown(title);
+            const cleanContent = stripMarkdown(content);
+            
+            const lowerTitle = cleanTitle.toLowerCase();
+            if (lowerTitle === "overview") {
+              overview = cleanContent;
+            } else if (lowerTitle === "in plain english") {
+              inPlainEnglish = cleanContent;
+            } else if (lowerTitle.startsWith("sources")) {
+              const lines = content.split("\n");
+              for (const line of lines) {
+                const m = line.match(/^\*\s+\[(.*?)\]\((.*?)\)/);
+                if (m) {
+                  const text = m[1].trim();
+                  const url = m[2].trim();
+                  const partsOfText = text.split(/\s*[\u2014\u2013-]\s*/);
+                  const name = partsOfText[0] || "Source";
+                  const description = partsOfText.slice(1).join(" — ") || "Original reporting";
+                  sources.push({ name, description, url });
+                }
+              }
+            } else {
+              sections.push({ title: cleanTitle, content: cleanContent });
+            }
+          }
+          
+          parsedStories.push({
+            id: slugify(headline),
+            headline,
+            subtitle: "",
+            overview,
+            inPlainEnglish,
+            sections,
+            sources,
+            region: detectRegionString(headline, overview + " " + sections.map(s => s.content).join(" "))
+          });
+        } catch (e) {
+          console.error("Failed parsing block:", e);
+        }
+      }
+      return parsedStories;
+    }
+
     // Pipeline orchestration
     async function runPipeline(shouldPublish = false) {
       try {
@@ -482,7 +581,6 @@
           return;
         }
 
-        // 1. Get input
         let stories = [];
         let recap = [];
 
@@ -494,18 +592,32 @@
 
         const rawJson = document.getElementById("raw-json").value;
         if (!rawJson.trim()) {
-          log("Error: JSON input is empty.", true);
+          log("Error: Input text is empty.", true);
           return;
         }
-        try {
-          const cleanedJson = repairJson(rawJson);
-          const payload = JSON.parse(cleanedJson);
-          stories = payload.stories || [];
-          recap = payload.recap || [];
-          log(`Loaded ${stories.length} stories directly from JSON.`);
-        } catch (err) {
-          log(`Error parsing JSON: ${err.message}`, true);
-          return;
+        
+        if (rawJson.trim().startsWith("{") || rawJson.trim().startsWith("[")) {
+          try {
+            const cleanedJson = repairJson(rawJson);
+            const payload = JSON.parse(cleanedJson);
+            stories = payload.stories || [];
+            if (Array.isArray(payload)) {
+              stories = payload;
+            }
+            recap = payload.recap || [];
+            log(`Loaded ${stories.length} stories directly from JSON.`);
+          } catch (err) {
+            log(`Error parsing JSON: ${err.message}`, true);
+            return;
+          }
+        } else {
+          try {
+            stories = parseMarkdownBriefing(rawJson);
+            log(`Loaded ${stories.length} stories parsed from Markdown.`);
+          } catch (err) {
+            log(`Error parsing Markdown: ${err.message}`, true);
+            return;
+          }
         }
 
         if (stories.length === 0) {
@@ -534,11 +646,168 @@
       }
     }
 
+    function adaptStory(story) {
+      if (!story) return null;
+      
+      const isNewSchema = ('simple_explanation' in story) || ('strategic_assessment' in story) || 
+                          (story.sections && story.sections.length > 0 && 'question' in story.sections[0]);
+                          
+      if (isNewSchema) {
+        const sections = [];
+        
+        if (story.sections && Array.isArray(story.sections)) {
+          story.sections.forEach(sec => {
+            if (sec.question && sec.answer) {
+              sections.push({
+                title: sec.question,
+                content: sec.answer
+              });
+            } else if (sec.title && sec.content) {
+              sections.push({
+                title: sec.title,
+                content: sec.content
+              });
+            }
+          });
+        }
+        
+        if (story.strategic_assessment) {
+          sections.push({
+            title: "Strategic Assessment",
+            content: story.strategic_assessment
+          });
+        }
+        
+        if (story.facts_vs_claims) {
+          let content = "";
+          const fc = story.facts_vs_claims;
+          if (fc.facts && fc.facts.length) {
+            content += `### Verified Facts\n` + fc.facts.map(f => `- ${f}`).join("\n") + "\n\n";
+          }
+          if (fc.claims && fc.claims.length) {
+            content += `### Contested Claims\n` + fc.claims.map(c => `- ${c}`).join("\n") + "\n\n";
+          }
+          if (content) {
+            sections.push({
+              title: "Facts vs Claims",
+              content: content.trim()
+            });
+          }
+        }
+        
+        if (story.confidence_note) {
+          sections.push({
+            title: "Confidence & Sourcing Notes",
+            content: story.confidence_note
+          });
+        }
+        
+        const sources = (story.sources || []).map(s => {
+          let name = s.outlet || s.name || "Source";
+          if (s.desk) name += ` / ${s.desk}`;
+          
+          let description = s.title || "";
+          const tags = [];
+          if (s.lean) tags.push(s.lean);
+          if (s.region) tags.push(s.region);
+          if (tags.length > 0) {
+            description += (description ? " " : "") + `(${tags.join(" · ")})`;
+          }
+          if (!description && s.description) description = s.description;
+          
+          return {
+            name: name,
+            description: description || "Reference source",
+            url: s.url || "#"
+          };
+        });
+        
+        return {
+          id: story.id,
+          headline: story.headline || story.title,
+          subtitle: story.subtitle || "",
+          overview: story.tldr || story.overview || "",
+          tldr: story.tldr || story.overview || "",
+          inPlainEnglish: story.simple_explanation || story.inPlainEnglish || "",
+          sections: sections,
+          sources: sources,
+          region: story.region || "global",
+          heroImage: story.heroImage || null
+        };
+      }
+      
+      const sections = [];
+      
+      if (story.situational_analysis) {
+        let content = "";
+        const sa = story.situational_analysis;
+        if (sa.what) content += `**What Happened:** ${sa.what}\n\n`;
+        if (sa.why) content += `**Why It Matters:** ${sa.why}\n\n`;
+        if (sa.who) content += `**Key Actors:** ${sa.who}\n\n`;
+        if (sa.when) content += `**Timeline Context:** ${sa.when}\n\n`;
+        if (sa.where) content += `**Geographic Context:** ${sa.where}\n\n`;
+        if (sa.how) content += `**Mechanisms:** ${sa.how}\n\n`;
+        if (content) sections.push({ title: "Situational Analysis", content: content.trim() });
+      }
+      
+      if (story.strategic_assessment) {
+        sections.push({ title: "Strategic Assessment", content: story.strategic_assessment });
+      }
+      
+      if (story.perspective_matrix) {
+        let content = "";
+        const pm = story.perspective_matrix;
+        if (pm.western_international || pm.global_media) content += `**International Coverage:** ${pm.western_international || pm.global_media}\n\n`;
+        if (pm.indian_media) content += `**Indian Media:** ${pm.indian_media}\n\n`;
+        if (pm.left_leaning) content += `**Left Leaning:** ${pm.left_leaning}\n\n`;
+        if (pm.center) content += `**Centrist:** ${pm.center}\n\n`;
+        if (pm.right_leaning) content += `**Right Leaning:** ${pm.right_leaning}\n\n`;
+        if (content) sections.push({ title: "Perspective Matrix", content: content.trim() });
+      }
+      
+      if (story.facts_vs_claims) {
+        let content = "";
+        const fc = story.facts_vs_claims;
+        if (fc.facts && fc.facts.length) {
+          content += `### Verified Facts\n` + fc.facts.map(f => `- ${f}`).join("\n") + "\n\n";
+        }
+        if (fc.claims && fc.claims.length) {
+          content += `### Contested Claims\n` + fc.claims.map(c => `- ${c}`).join("\n") + "\n\n";
+        }
+        if (content) {
+          sections.push({ title: "Facts vs Claims", content: content.trim() });
+        }
+      }
+      
+      const sources = (story.sources || []).map(s => {
+        let name = s.name || "Source";
+        let description = s.description || "Reference source";
+        return {
+          name: name,
+          description: description,
+          url: s.url || "#"
+        };
+      });
+      
+      return {
+        id: story.id,
+        headline: story.headline || story.title,
+        subtitle: story.subtitle || "",
+        overview: story.overview || "",
+        inPlainEnglish: story.inPlainEnglish || "",
+        sections: sections,
+        sources: sources,
+        region: story.region || "global",
+        heroImage: story.heroImage || null
+      };
+    }
+
     function displayPreviews(stories) {
       currentParsedStories = stories;
       const container = document.getElementById("preview-stories");
       container.innerHTML = "";
-      stories.forEach((story, idx) => {
+      stories.forEach((rawStory, idx) => {
+        const story = adaptStory(rawStory) || rawStory;
         const region = (story.region || "global").toLowerCase();
         const card = document.createElement("div");
         card.className = "story-card";
@@ -552,8 +821,8 @@
               <span class="card-num">FRONT ${String(idx + 1).padStart(2, "0")}</span>
               <span class="card-region">${region}</span>
             </div>
-            <h3 class="card-headline">${story.headline}</h3>
-            <p class="card-tldr" style="-webkit-line-clamp: none; display: block; overflow: visible;">${story.tldr}</p>
+            <h3 class="card-headline">${story.headline || story.title || ""}</h3>
+            <p class="card-tldr" style="-webkit-line-clamp: none; display: block; overflow: visible;">${story.subtitle || (story.tldr || story.overview ? (story.tldr || story.overview).slice(0, 180) + "..." : "")}</p>
             <div style="font-family: var(--mono); font-size: 10px; color: var(--accent); margin-top: 8px; font-weight: bold; text-transform: uppercase;">
               Click card to preview deep dive details &rarr;
             </div>
@@ -562,6 +831,7 @@
         container.appendChild(card);
       });
     }
+
 
     // GitHub API Integrator
     async function publishToGitHub(date, payload) {
@@ -749,123 +1019,215 @@
     // Modal triggers & template
     let currentParsedStories = [];
 
+    function cleanSourceUrl(raw) {
+      if (!raw) return null;
+      raw = raw.trim();
+      
+      const mdMatch = raw.match(/^\[([\s\S]*?)\]\(([\s\S]*?)\)$/);
+      if (mdMatch) {
+        const text = mdMatch[1].trim();
+        const url = mdMatch[2].trim();
+        
+        const isValidUrl = (str) => {
+          try {
+            const u = new URL(str);
+            return u.protocol === 'http:' || u.protocol === 'https:';
+          } catch (e) {
+            return false;
+          }
+        };
+
+        if (url.startsWith('https://www.google.com/search') || url.startsWith('http://www.google.com/search')) {
+          try {
+            const parsedUrl = new URL(url);
+            const q = parsedUrl.searchParams.get('q');
+            if (q && isValidUrl(q)) {
+              return q;
+            }
+          } catch (e) {}
+        }
+        
+        if (isValidUrl(url)) {
+          return url;
+        }
+        
+        if (isValidUrl(text)) {
+          return text;
+        }
+      }
+      
+      const parenMatch = raw.match(/\((https?:\/\/[^\s)]+)\)/);
+      if (parenMatch) {
+        return parenMatch[1];
+      }
+      
+      const bracketMatch = raw.match(/^\[(https?:\/\/[^\s\]]+)\]/);
+      if (bracketMatch) {
+        return bracketMatch[1];
+      }
+      
+      return raw;
+    }
+
+    async function getHeroImage(url) {
+      if (!url) return null;
+      try {
+        log(`Dynamically resolving Hero Image from first source (${url})...`);
+        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+        if (!res.ok) return null;
+        const json = await res.json();
+        const html = json.contents;
+        if (!html) return null;
+        
+        const m =
+          html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+          html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ||
+          html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i) ||
+          html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i);
+        if (m) {
+          let src = m[1].trim();
+          if (src && !src.startsWith("data:")) {
+            if (!src.startsWith("http")) {
+              try {
+                src = new URL(src, url).href;
+              } catch(e) {}
+            }
+            
+            // Filter out generic/publication logo/placeholder images
+            const lowerSrc = src.toLowerCase();
+            const blacklist = [
+              'placeholder', 'avatar', 'favicon', 'fallback',
+              'default-share', 'default_share', 'social-share', 'social_share',
+              'og-default', 'og_default', 'default-og', 'default_og',
+              'share-image', 'share_img', 'share-img', 'default-image',
+              'default_image', 'dummy-image', 'site-image', 'generic-banner',
+              'publication-logo', 'default.jpg', 'default.png', 'default.jpeg',
+              'og-image', 'og_image'
+            ];
+            
+            const isGeneric = blacklist.some(word => lowerSrc.includes(word)) ||
+                              lowerSrc.includes('/logo') ||
+                              lowerSrc.includes('_logo') ||
+                              lowerSrc.includes('-logo') ||
+                              lowerSrc.includes('/brand') ||
+                              lowerSrc.includes('/icon') ||
+                              /\b(logo|brand|icon|placeholder)\b/.test(lowerSrc);
+            
+            if (isGeneric) {
+              log(`Resolved image is generic/blacklisted, ignoring: ${src}`);
+              return null;
+            }
+            
+            log(`Successfully resolved Hero Image: ${src}`);
+            return src;
+          }
+        }
+      } catch (e) {
+        log(`Failed resolving hero image: ${e.message}`);
+      }
+      return null;
+    }
+
+    function setPreviewHeroImage(url) {
+      const container = document.getElementById("preview-hero-container");
+      if (!container) return;
+      container.innerHTML = `<img src="${url}" alt="Hero Image" />`;
+    }
+
     function openDeepDive(idx) {
-      const story = currentParsedStories[idx];
+      const story = adaptStory(currentParsedStories[idx]);
       if (!story) return;
 
-      const sa = story.situational_analysis || {};
-      const pm = story.perspective_matrix || {};
-      const fc = story.facts_vs_claims || {};
-      const ei = story.editorial_expert_insight || {};
-      const sources = story.sources || [];
-
-      let factsLi = (fc.facts || []).map(f => `<li>${f}</li>`).join("");
-      let claimsLi = (fc.claims || []).map(c => `<li>${c}</li>`).join("");
-
+      const firstSourceUrl = story.heroImage || (story.sources?.[0]?.url);
       const modalBody = document.getElementById("preview-modal-body");
+      
       modalBody.innerHTML = `
-        <div class="detail-wrap" style="padding: 0; max-width: 100%;">
-          <h1 class="detail-headline" style="font-size: 32px; line-height: 1.15; margin-bottom: 16px;">${story.headline}</h1>
-          <div class="detail-tldr" style="margin-bottom: 32px; font-size: 17px; line-height: 1.55;">${story.tldr}</div>
-          
-          <!-- 5W1H -->
-          <div class="section">
-            <div class="sec-label">5W1H · Situation</div>
-            <div class="section-card w-grid">
-              <div class="w-cell"><div class="w-key">What</div><div class="w-val">${sa.what || "—"}</div></div>
-              <div class="w-cell"><div class="w-key">Why</div><div class="w-val">${sa.why || "—"}</div></div>
-              <div class="w-cell"><div class="w-key">Who</div><div class="w-val">${sa.who || "—"}</div></div>
-              <div class="w-cell"><div class="w-key">When</div><div class="w-val">${sa.when || "—"}</div></div>
-              <div class="w-cell"><div class="w-key">Where</div><div class="w-val">${sa.where || "—"}</div></div>
-              <div class="w-cell"><div class="w-key">How</div><div class="w-val">${sa.how || "—"}</div></div>
-            </div>
-          </div>
-          
-          <!-- Strategic Assessment -->
-          <div class="section">
-            <div class="sec-label">Strategic Assessment</div>
-            <div class="section-card assessment-body">
-              ${story.strategic_assessment || "—"}
-            </div>
-          </div>
-          
-          <!-- Perspectives -->
-          <div class="section">
-            <div class="sec-label">Perspective Matrix</div>
-            <div class="section-card matrix">
-              ${pm.western_international ? `<div class="matrix-row"><div class="matrix-key scope">Western / Intl</div><div class="matrix-val">${pm.western_international}</div></div>` : ""}
-              ${pm.indian_media ? `<div class="matrix-row"><div class="matrix-key scope">Indian Media</div><div class="matrix-val">${pm.indian_media}</div></div>` : ""}
-              ${pm.left_leaning ? `<div class="matrix-row"><div class="matrix-key lean-left">Left Leaning</div><div class="matrix-val">${pm.left_leaning}</div></div>` : ""}
-              ${pm.center ? `<div class="matrix-row"><div class="matrix-key lean-center">Centrist</div><div class="matrix-val">${pm.center}</div></div>` : ""}
-              ${pm.right_leaning ? `<div class="matrix-row"><div class="matrix-key lean-right">Right Leaning</div><div class="matrix-val">${pm.right_leaning}</div></div>` : ""}
-            </div>
-          </div>
-          
-          <!-- Facts vs Claims -->
-          <div class="section">
-            <div class="sec-label">Facts vs Claims</div>
-            <div class="section-card fc-grid">
-              <div class="fc-col facts">
-                <div class="fc-title">✓ Verified Facts</div>
-                <ul class="fc-list">${factsLi || "<li>No verified facts parsed</li>"}</ul>
+        <div class="longform-article-container" style="background: transparent; min-height: auto;">
+          <div class="longform-article" style="padding: 12px 0 40px;">
+            <header class="article-header" style="margin-bottom: 28px;">
+              <div class="article-kicker-row">
+                <span>PREVIEW MODE</span>
+                <span class="region-badge ${(story.region||"").toLowerCase()}">${(story.region||"GLOBAL").toUpperCase()}</span>
               </div>
-              <div class="fc-col claims">
-                <div class="fc-title">⚠ Claims</div>
-                <ul class="fc-list">${claimsLi || "<li>No claims parsed</li>"}</ul>
+              <h1 class="article-headline">${story.headline || story.title || ""}</h1>
+              ${story.subtitle ? `<p class="article-subtitle">${story.subtitle}</p>` : ""}
+            </header>
+            
+            <div id="preview-hero-container" class="preview-hero-container">
+              <div class="hero-image-loading">
+                Resolving Hero Image...
               </div>
             </div>
-          </div>
-          
-          <!-- Blind Spot -->
-          ${story.blind_spot ? `
-          <div class="section">
-            <div class="blindspot">
-              <span class="blindspot-icon">⚑ What coverage missed</span>
-              ${story.blind_spot}
+            
+            <div class="article-overview">
+              ${(story.overview || "").split("\n\n").map(p => `<p>${p}</p>`).join("")}
             </div>
-          </div>` : ""}
-          
-          <!-- Editorial & Expert Insight -->
-          <div class="section">
-            <div class="sec-label">Editorial & Expert Insight</div>
-            <div class="section-card assessment-body" style="padding: 22px 24px;">
-              ${ei.opinion ? `<p style="margin-bottom: 12px;"><strong>Opinion:</strong> ${ei.opinion}</p>` : ""}
-              ${ei.analysis ? `<p><strong>Analysis:</strong> ${ei.analysis}</p>` : ""}
-            </div>
-          </div>
-          
-          <!-- Stakeholder Impact -->
-          <div class="section">
-            <div class="sec-label">Stakeholder Impact</div>
-            <div class="impact-cards">
-              ${(story.stakeholder_impact || []).map(o => `
-                <div class="impact-card">
-                  <div class="impact-card-head">
-                    <span class="impact-stakeholder">${o.stakeholder}</span>
+            
+            ${story.inPlainEnglish ? `
+              <div class="article-in-plain-english">
+                <div class="article-in-plain-english-label">In Plain English</div>
+                <p>${story.inPlainEnglish}</p>
+              </div>
+            ` : ""}
+            
+            <div class="article-chapters">
+              ${(story.sections || []).map(sec => `
+                <section class="article-chapter">
+                  <h2 class="chapter-title">${sec.title}</h2>
+                  <div class="chapter-content">
+                    ${(sec.content || "").split("\n\n").map(p => `<p>${p}</p>`).join("")}
                   </div>
-                  <div class="impact-card-body">${o.impact}</div>
-                </div>
-              `).join("") || "<div class='section-card assessment-body'>No stakeholder impact data parsed</div>"}
+                </section>
+              `).join("")}
             </div>
-          </div>
-          
-          <!-- Sources -->
-          <div class="section">
-            <div class="sec-label">Sources Used</div>
-            <div class="section-card">
-              <ul class="sources-list">
-                ${sources.map(src => `
-                  <li class="source-item">
-                    <span class="source-name">${src.outlet}</span>
-                    <span class="source-meta">${src.lean || "center"} · ${src.region || "global"}</span>
-                  </li>
-                `).join("") || "<li class='source-item'>No sources found</li>"}
-              </ul>
+            
+            <div class="article-sources">
+              <h3 class="sources-title">Sources</h3>
+              <div class="sources-grid">
+                ${(story.sources || []).map(src => `
+                  <div class="source-card">
+                    <div class="source-card-info">
+                      <h4 class="source-card-name">${src.name}</h4>
+                      <p class="source-card-desc">${src.description}</p>
+                    </div>
+                    <a href="${src.url}" target="_blank" rel="noopener noreferrer" class="source-card-link">Open Link &rarr;</a>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+            
+            <div class="article-related-stories">
+              <h3 class="related-stories-title">More from this Day</h3>
+              <div class="related-stories-list">
+                ${currentParsedStories.map((s, i) => `
+                  <div class="related-story-item ${i === idx ? 'current' : ''}" style="cursor: ${i === idx ? 'default' : 'pointer'};" onclick="${i === idx ? '' : `openDeepDive(${i})`}">
+                    <span class="related-story-number">Front ${String(i + 1).padStart(2, "0")}</span>
+                    <span class="related-story-headline">${s.headline || s.title || ""}</span>
+                    ${i === idx ? '<span class="related-story-badge">Reading</span>' : ''}
+                  </div>
+                `).join("")}
+              </div>
             </div>
           </div>
         </div>
       `;
       document.getElementById("preview-modal").style.display = "flex";
+
+      // Resolve and load hero image
+      if (story.heroImage) {
+        setPreviewHeroImage(story.heroImage);
+      } else if (firstSourceUrl && firstSourceUrl.startsWith("http")) {
+        getHeroImage(firstSourceUrl).then(imgUrl => {
+          if (imgUrl) {
+            story.heroImage = imgUrl;
+            setPreviewHeroImage(imgUrl);
+          } else {
+            document.getElementById("preview-hero-container").style.display = "none";
+          }
+        });
+      } else {
+        document.getElementById("preview-hero-container").style.display = "none";
+      }
     }
 
     function closeDeepDive() {
@@ -970,18 +1332,28 @@
 
         log(`Successfully parsed JSON array with ${stories.length} stories.`);
 
-        // Auto-generate source_search if missing
+        // Clean source_url (strip markdown link syntax)
         let updatedAny = false;
-        stories.forEach(s => {
+        
+        log("Cleaning source URLs...");
+        for (const s of stories) {
+          if (s.source_url) {
+            const rawUrl = s.source_url;
+            const cleanUrl = cleanSourceUrl(rawUrl);
+            if (s.source_url !== cleanUrl) {
+              s.source_url = cleanUrl;
+              updatedAny = true;
+            }
+          }
+          
           if (!s.source_search) {
             const headlineText = s.headline || s.hl || '';
             const sourceText = s.source || s.src || '';
             s.source_search = `${headlineText} ${sourceText}`.trim();
             updatedAny = true;
           }
-        });
+        }
         if (updatedAny) {
-          log("Auto-generated missing 'source_search' fields for the stories.");
           document.getElementById("flash-raw-json").value = JSON.stringify(stories, null, 2);
         }
 
@@ -1183,8 +1555,7 @@
         if (!body) errors.push(`${prefix} is missing key 'summary' or 'body'.`);
         if (!source) errors.push(`${prefix} is missing key 'source' or 'src'.`);
         if (!s.why_it_matters) errors.push(`${prefix} is missing key 'why_it_matters'.`);
-        if (!s.remember) errors.push(`${prefix} is missing key 'remember'.`);
-        if (!s.source_search) errors.push(`${prefix} is missing key 'source_search'.`);
+        if (!s.source_url) errors.push(`${prefix} is missing key 'source_url'.`);
         
         if (cat) {
           const lowerCat = cat.trim().toLowerCase();
@@ -1286,6 +1657,9 @@
                 const text = escapeHtml(source);
                 const newspaperSvg = `<svg viewBox="0 0 24 24" width="10.5" height="10.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -1px; opacity: 0.8; display: inline-block;"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"></path></svg>`;
                 const label = `<span style="opacity: 0.65; font-weight: normal; margin-right: 3px;">Source:</span>`;
+                if (s.source_url) {
+                  return `<span style="color: var(--ink-3); font-family: var(--mono); display: inline-flex; align-items: center;">${newspaperSvg}${label}<a href="${escapeHtml(s.source_url)}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; cursor: pointer;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">${text}&nbsp;↗</a></span>`;
+                }
                 if (s.source_search) {
                   return `<span style="color: var(--ink-3); font-family: var(--mono); display: inline-flex; align-items: center;">${newspaperSvg}${label}<a href="https://www.google.com/search?q=${encodeURIComponent(s.source_search)}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; cursor: pointer;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">${text}&nbsp;↗</a></span>`;
                 }

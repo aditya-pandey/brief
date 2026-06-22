@@ -129,7 +129,7 @@ function fmtHeaderDate(iso) {
     if (!iso || iso === "Unknown Date" || !iso.includes("-")) return iso || "Unknown Date";
     const d = new Date(iso+"T00:00:00");
     if (isNaN(d.getTime())) return iso;
-    return d.toLocaleDateString("en-IN", {day:"numeric",month:"short",year:"numeric"});
+    return d.toLocaleDateString("en-IN", {weekday:"long", day:"numeric", month:"short", year:"numeric"});
   }
   catch { return iso; }
 }
@@ -219,8 +219,106 @@ window.addEventListener("DOMContentLoaded", () => {
   initPushNotifications();
 });
 
-/* ── Progress bar ──────────────────────────────────────────── */
+/* ── Progress bar & Image Resolution ──────────────────────────── */
 let progressActive = false;
+let scrollProgressActive = false;
+
+async function getHeroImage(url) {
+  if (!url) return null;
+  try {
+    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+    if (!res.ok) return null;
+    const json = await res.json();
+    const html = json.contents;
+    if (!html) return null;
+    
+    const m =
+      html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ||
+      html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i);
+    if (m) {
+      let src = m[1].trim();
+      if (src && !src.startsWith("data:")) {
+        if (!src.startsWith("http")) {
+          try {
+            src = new URL(src, url).href;
+          } catch(e) {}
+        }
+        
+        // Filter out generic/publication logo/placeholder images
+        const lowerSrc = src.toLowerCase();
+        const blacklist = [
+          'placeholder', 'avatar', 'favicon', 'fallback',
+          'default-share', 'default_share', 'social-share', 'social_share',
+          'og-default', 'og_default', 'default-og', 'default_og',
+          'share-image', 'share_img', 'share-img', 'default-image',
+          'default_image', 'dummy-image', 'site-image', 'generic-banner',
+          'publication-logo', 'default.jpg', 'default.png', 'default.jpeg',
+          'og-image', 'og_image'
+        ];
+        
+        const isGeneric = blacklist.some(word => lowerSrc.includes(word)) ||
+                          lowerSrc.includes('/logo') ||
+                          lowerSrc.includes('_logo') ||
+                          lowerSrc.includes('-logo') ||
+                          lowerSrc.includes('/brand') ||
+                          lowerSrc.includes('/icon') ||
+                          /\b(logo|brand|icon|placeholder)\b/.test(lowerSrc);
+        
+        if (isGeneric) {
+          return null;
+        }
+        
+        return src;
+      }
+    }
+  } catch (e) {
+    console.error("Error fetching hero image:", e);
+  }
+  return null;
+}
+
+function setArticleHeroImage(url) {
+  const container = document.getElementById("article-hero-container");
+  if (!container) return;
+  container.innerHTML = `<img src="${url}" alt="Hero Image" style="width: 100%; height: 100%; object-fit: cover; animation: fadeIn 0.4s ease;" />`;
+}
+
+function startScrollProgress(totalReadingTime) {
+  scrollProgressActive = true;
+  const bar = $("progress-bar");
+  const headerCenter = $("flash-header-center");
+  
+  bar.style.width = "0%";
+  if (headerCenter) {
+    headerCenter.style.display = "block";
+    headerCenter.style.color = "var(--ink-3)";
+    headerCenter.style.fontSize = "11px";
+    headerCenter.style.fontFamily = "var(--mono)";
+    headerCenter.textContent = `${totalReadingTime} min left`;
+  }
+
+  function update() {
+    if (!scrollProgressActive) return;
+    const el = document.documentElement;
+    const totalHeight = el.scrollHeight - el.clientHeight;
+    const pct = totalHeight > 0 ? (window.scrollY / totalHeight) * 100 : 0;
+    bar.style.width = Math.min(pct, 100) + "%";
+    
+    const minutesLeft = Math.ceil(totalReadingTime * (1 - pct / 100));
+    if (headerCenter) {
+      if (pct >= 95) {
+        headerCenter.textContent = "Finished";
+      } else {
+        headerCenter.textContent = `${minutesLeft} min left`;
+      }
+    }
+    requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
 function startProgress() {
   progressActive = true;
   const bar = $("progress-bar");
@@ -234,9 +332,15 @@ function startProgress() {
   }
   requestAnimationFrame(update);
 }
+
 function stopProgress() {
   progressActive = false;
+  scrollProgressActive = false;
   $("progress-bar").style.width = "0%";
+  const headerCenter = $("flash-header-center");
+  if (headerCenter) {
+    headerCenter.style.display = "none";
+  }
 }
 
 /* ── Data loading ──────────────────────────────────────────── */
@@ -362,12 +466,201 @@ function initDatePicker() {
     });
   }
 }
+function adaptStory(story) {
+  if (!story) return null;
+  
+  // Detect if the story is in the new question-based schema format
+  const isNewSchema = ('simple_explanation' in story) || ('strategic_assessment' in story) || 
+                      (story.sections && story.sections.length > 0 && 'question' in story.sections[0]);
+                      
+  if (isNewSchema) {
+    const sections = [];
+    
+    // Map Q&A sections
+    if (story.sections && Array.isArray(story.sections)) {
+      story.sections.forEach(sec => {
+        if (sec.question && sec.answer) {
+          sections.push({
+            title: sec.question,
+            content: sec.answer
+          });
+        } else if (sec.title && sec.content) {
+          sections.push({
+            title: sec.title,
+            content: sec.content
+          });
+        }
+      });
+    }
+    
+    // Map strategic_assessment
+    if (story.strategic_assessment) {
+      sections.push({
+        title: "Strategic Assessment",
+        content: story.strategic_assessment
+      });
+    }
+    
+    // Map facts_vs_claims
+    if (story.facts_vs_claims) {
+      let content = "";
+      const fc = story.facts_vs_claims;
+      if (fc.facts && fc.facts.length) {
+        content += `### Verified Facts\n` + fc.facts.map(f => `- ${f}`).join("\n") + "\n\n";
+      }
+      if (fc.claims && fc.claims.length) {
+        content += `### Contested Claims\n` + fc.claims.map(c => `- ${c}`).join("\n") + "\n\n";
+      }
+      if (content) {
+        sections.push({
+          title: "Facts vs Claims",
+          content: content.trim()
+        });
+      }
+    }
+    
+    // Map confidence_note (optional)
+    if (story.confidence_note) {
+      sections.push({
+        title: "Confidence & Sourcing Notes",
+        content: story.confidence_note
+      });
+    }
+    
+    // Map sources
+    const sources = (story.sources || []).map(s => {
+      let name = s.outlet || s.name || "Source";
+      if (s.desk) name += ` / ${s.desk}`;
+      
+      let description = s.title || "";
+      const tags = [];
+      if (s.lean) tags.push(s.lean);
+      if (s.region) tags.push(s.region);
+      if (tags.length > 0) {
+        description += (description ? " " : "") + `(${tags.join(" · ")})`;
+      }
+      if (!description && s.description) description = s.description;
+      
+      return {
+        name: name,
+        description: description || "Reference source",
+        url: s.url || "#"
+      };
+    });
+    
+    return {
+      id: story.id,
+      headline: story.headline || story.title,
+      subtitle: story.subtitle || "",
+      overview: story.tldr || story.overview || "",
+      tldr: story.tldr || story.overview || "",
+      inPlainEnglish: story.simple_explanation || story.inPlainEnglish || "",
+      sections: sections,
+      sources: sources,
+      region: story.region || "global",
+      heroImage: story.heroImage || null
+    };
+  }
+  
+  // Old schema fallback
+  const sections = [];
+  
+  if (story.situational_analysis) {
+    let content = "";
+    const sa = story.situational_analysis;
+    if (sa.what) content += `**What Happened:** ${sa.what}\n\n`;
+    if (sa.why) content += `**Why It Matters:** ${sa.why}\n\n`;
+    if (sa.who) content += `**Key Actors:** ${sa.who}\n\n`;
+    if (sa.when) content += `**Timeline Context:** ${sa.when}\n\n`;
+    if (sa.where) content += `**Geographic Context:** ${sa.where}\n\n`;
+    if (sa.how) content += `**Mechanisms:** ${sa.how}\n\n`;
+    if (content) sections.push({ title: "Situational Analysis", content: content.trim() });
+  }
+  
+  if (story.strategic_assessment) {
+    sections.push({ title: "Strategic Assessment", content: story.strategic_assessment });
+  }
+  
+  if (story.perspective_matrix) {
+    let content = "";
+    const pm = story.perspective_matrix;
+    if (pm.western_international || pm.global_media) content += `**International Coverage:** ${pm.western_international || pm.global_media}\n\n`;
+    if (pm.indian_media) content += `**Indian Media:** ${pm.indian_media}\n\n`;
+    if (pm.left_leaning) content += `**Left Leaning:** ${pm.left_leaning}\n\n`;
+    if (pm.center) content += `**Centrist:** ${pm.center}\n\n`;
+    if (pm.right_leaning) content += `**Right Leaning:** ${pm.right_leaning}\n\n`;
+    if (content) sections.push({ title: "Perspective Matrix", content: content.trim() });
+  }
+  
+  if (story.facts_vs_claims) {
+    let content = "";
+    const fc = story.facts_vs_claims;
+    if (fc.facts && fc.facts.length) {
+      content += `### Verified Facts\n` + fc.facts.map(f => `- ${f}`).join("\n") + "\n\n";
+    }
+    if (fc.claims && fc.claims.length) {
+      content += `### Contested Claims\n` + fc.claims.map(c => `- ${c}`).join("\n") + "\n\n";
+    }
+    if (content) sections.push({ title: "Facts vs Claims", content: content.trim() });
+  }
+  
+  if (story.blind_spot) {
+    sections.push({ title: "Underreported Angles", content: story.blind_spot });
+  }
+  
+  if (story.editorial_expert_insight) {
+    let content = "";
+    const ei = story.editorial_expert_insight;
+    if (ei.opinion) content += `**Editorial Opinion:** ${ei.opinion}\n\n`;
+    if (ei.analysis) content += `**Expert Analysis:** ${ei.analysis}\n\n`;
+    if (content) sections.push({ title: "Expert & Editorial Insight", content: content.trim() });
+  }
+  
+  if (story.stakeholder_impact && story.stakeholder_impact.length) {
+    const content = story.stakeholder_impact.map(s => `- **${s.stakeholder}:** ${s.impact}`).join("\n");
+    sections.push({ title: "Stakeholder Impact", content });
+  }
+  
+  if (story.context_background) {
+    sections.push({ title: "Historical Context", content: story.context_background });
+  }
+  
+  if (story.timeline && story.timeline.length) {
+    const content = story.timeline.map(t => `**${t.when}:** ${t.event}`).join("\n\n");
+    sections.push({ title: "Timeline of Events", content });
+  }
+  
+  const sources = (story.sources || []).map(s => ({
+    name: s.outlet || s.name || "Source",
+    description: s.description || `${s.lean || "center"} · ${s.region || "global"}`,
+    url: s.url || "#"
+  }));
+  
+  return {
+    id: story.id,
+    headline: story.headline || story.title,
+    subtitle: story.subtitle || "",
+    overview: story.tldr || story.overview || "",
+    tldr: story.tldr || story.overview || "",
+    inPlainEnglish: story.simple_explanation || story.inPlainEnglish || "",
+    sections: sections,
+    sources: sources,
+    region: story.region || "global",
+    heroImage: story.heroImage || null
+  };
+}
+
 async function loadDay(date) {
   if (dayCache[date]) return dayCache[date];
   const r = await fetch(`${DATA}${date}.json`,{cache:"no-store"});
   if (!r.ok) throw new Error("No data for "+date);
-  return (dayCache[date] = await r.json());
+  const data = await r.json();
+  if (data.stories && Array.isArray(data.stories)) {
+    data.stories = data.stories.map(s => adaptStory(s));
+  }
+  return (dayCache[date] = data);
 }
+
 
 /* ══════════════════════════════════════════════════════════════
    ICON LIBRARY — inline SVGs for visual section headers
@@ -674,8 +967,17 @@ function miniSourceBar(sources) {
 
 function storyVisual(story, idx = 0) {
   const region = (story.region||"global").toLowerCase();
-  const sources = story.sources || [];
-  const terms = keyPhrase(`${story.headline} ${story.tldr}`).slice(0,2);
+  
+  if (story.heroImage) {
+    return `
+      <div class="story-viz ${region}" aria-hidden="true" style="overflow:hidden; position:relative; width: 100%; height: 180px; min-height: 180px; border-bottom: 1px solid var(--rule); display: flex; align-items: center; justify-content: center; background: var(--bg-card-h);">
+        <img src="${story.heroImage}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+        <div style="position:absolute; bottom:12px; right:12px; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); color:#fff; padding:4px 8px; border-radius:4px; font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.05em;">
+          STORY ${String(idx+1).padStart(2,"0")}
+        </div>
+      </div>`;
+  }
+  
   return `
     <div class="story-viz ${region}" aria-hidden="true" style="overflow:hidden; position:relative; width: 100%; height: 180px; min-height: 180px; border-bottom: 1px solid var(--rule);">
       ${semanticGraphic(story, idx)}
@@ -1564,7 +1866,7 @@ async function renderStory(date, id) {
   const stories = payload.stories;
   const storyIdx = stories.findIndex(x => x.id === id);
   if (storyIdx === -1) { app.innerHTML=`<div class="error-state">Story not found.</div>`; return; }
-  const s = stories[storyIdx];
+  const s = adaptStory(stories[storyIdx]);
 
   const pageTitle = `The Briefing | ${s.headline}`;
   const pagePath = `/story/${date}/${id}`;
@@ -1576,52 +1878,122 @@ async function renderStory(date, id) {
   if (sel) sel.value = date;
   $("hero").classList.add("hidden");
 
-  const slides = buildSlides(s, date);
-  
-  // Append related Flash slide for mobile
-  const briefCat = getBriefStoryCategory(s);
-  const related = flashStories.filter(fs => fs.cat === briefCat).slice(0, 5);
-  if (related.length > 0) {
-    const cardsHtml = related.map(fs => {
-      const col = getCategoryColor(fs.cat);
-      const rgb = getCategoryColorRgb(fs.cat);
-      return `
-        <div class="related-flash-item" data-id="${esc(fs.id)}" style="background: var(--bg-card-h); margin-bottom: 12px; border: 1px solid var(--rule); border-radius: 12px; padding: 14px; text-align: left;">
-          <div class="related-flash-item-top" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span class="related-flash-item-cat" style="background: rgba(${rgb}, 0.15); color: ${col}; font-family: var(--sans); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 6px; border-radius: 4px;">${esc(FLASH_LABELS[fs.cat] || fs.cat)}</span>
-            <span class="related-flash-item-time" style="font-family: var(--mono); font-size: 9px; color: var(--ink-3);">${esc(fs.ts)}</span>
-          </div>
-          <div class="related-flash-item-headline" style="font-family: var(--serif); font-size: 15px; font-weight: 700; line-height: 1.35; color: var(--ink); margin-bottom: 6px;">${esc(fs.hl)}</div>
-          <div class="related-flash-item-summary" style="font-family: var(--sans); font-size: 12px; color: var(--ink-2); line-height: 1.5; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${esc(fs.body)}</div>
-          <div class="related-flash-item-tap" style="color: ${col}; font-family: var(--sans); font-size: 9px; font-weight: 700; text-transform: uppercase;">Tap to view card &rarr;</div>
-        </div>`;
-    }).join("");
-    
-    slides.push({
-      id: "related-flash",
-      label: "Related Flash",
-      icon: "⚡",
-      html: `
-        <div class="slide-body" style="padding-bottom: 40px; overflow-y: auto; height: 100%;">
-          <div class="slide-section-label" style="display: flex; align-items: center; gap: 8px; font-family: var(--serif); font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 16px;">
-            <span>⚡</span>Related Flash Speed News
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            ${cardsHtml}
-          </div>
-        </div>`
-    });
-  }
-
-  const isMobile = window.innerWidth < 768;
-
+  // Build unified vertical layout
   app.innerHTML = "";
-  if (isMobile) {
-    app.appendChild(renderMobileDeck(slides, s, date, storyIdx, stories));
+  
+  const articleContainer = document.createElement("div");
+  articleContainer.className = "longform-article-container";
+  
+  const firstSourceUrl = s.heroImage || (s.sources?.[0]?.url);
+  
+  const totalWords = (s.headline + " " + s.overview + " " + s.inPlainEnglish + " " + s.sections.map(sec => sec.title + " " + sec.content).join(" ")).split(/\s+/).length;
+  const totalReadingTime = Math.max(1, Math.round(totalWords / 200));
+
+  articleContainer.innerHTML = `
+    <article class="longform-article">
+      <div class="article-kicker-row">
+        <span>FRONT ${String(storyIdx + 1).padStart(2, "0")}</span>
+        <span class="region-badge ${(s.region||"").toLowerCase()}">${esc((s.region||"GLOBAL").toUpperCase())}</span>
+      </div>
+
+      <h1 class="article-headline">${esc(s.headline)}</h1>
+      ${s.subtitle ? `<p class="article-subtitle">${esc(s.subtitle)}</p>` : ""}
+      
+      <div class="article-meta">
+        <span>${fmtHeaderDate(date)}</span>
+        <span>&middot;</span>
+        <span>${totalReadingTime} min read</span>
+      </div>
+
+      <div id="article-hero-container">
+        <div class="hero-image-loading">
+          Loading imagery...
+        </div>
+      </div>
+
+      <div class="article-overview">
+        ${s.overview.split("\n\n").map(p => `<p>${esc(p)}</p>`).join("")}
+      </div>
+
+      ${s.inPlainEnglish ? `
+        <div class="article-in-plain-english">
+          <div class="article-in-plain-english-label">In Plain English</div>
+          <p>${esc(s.inPlainEnglish)}</p>
+        </div>
+      ` : ""}
+
+      <div class="article-chapters">
+        ${s.sections.map(sec => `
+          <section class="article-chapter">
+            <h2 class="chapter-title">${esc(sec.title)}</h2>
+            <div class="chapter-content">
+              ${sec.content.split("\n\n").map(p => `<p>${esc(p)}</p>`).join("")}
+            </div>
+          </section>
+        `).join("")}
+      </div>
+
+      <div class="article-sources">
+        <h3 class="sources-title">Sources</h3>
+        <div class="sources-grid">
+          ${s.sources.map(src => `
+            <div class="source-card">
+              <div class="source-card-info">
+                <h4 class="source-card-name">${esc(src.name)}</h4>
+                <p class="source-card-desc">${esc(src.description)}</p>
+              </div>
+              <a href="${esc(src.url)}" target="_blank" rel="noopener noreferrer" class="source-card-link">Link &rarr;</a>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="article-related-stories">
+        <h3 class="related-stories-title">More from this Day</h3>
+        <div class="related-stories-list">
+          ${stories.map((story, idx) => `
+            <a href="${BASE_PATH}/story/${date}/${story.id}" class="related-story-item ${story.id === s.id ? 'current' : ''}">
+              <span class="related-story-number">Front ${String(idx + 1).padStart(2, "0")}</span>
+              <span class="related-story-headline">${esc(story.headline)}</span>
+              ${story.id === s.id ? '<span class="related-story-badge">Reading</span>' : ''}
+            </a>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="desktop-story-nav">
+        ${storyIdx > 0 ? `<a class="story-nav-btn prev" href="${BASE_PATH}/story/${date}/${stories[storyIdx-1].id}">&larr; ${esc(stories[storyIdx-1].headline.slice(0, 40))}...</a>` : "<span></span>"}
+        ${storyIdx < stories.length - 1 ? `<a class="story-nav-btn next" href="${BASE_PATH}/story/${date}/${stories[storyIdx+1].id}">${esc(stories[storyIdx+1].headline.slice(0, 40))}... &rarr;</a>` : "<span></span>"}
+      </div>
+    </article>
+  `;
+  
+  app.appendChild(articleContainer);
+
+  articleContainer.querySelectorAll(".story-nav-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const direction = btn.classList.contains("next") ? "Next Story" : "Prev Story";
+      trackEvent("navigate_button", "Desktop Navigation", direction);
+    });
+  });
+
+  startScrollProgress(totalReadingTime);
+
+  if (s.heroImage) {
+    setArticleHeroImage(s.heroImage);
+  } else if (firstSourceUrl && firstSourceUrl.startsWith("http")) {
+    getHeroImage(firstSourceUrl).then(imgUrl => {
+      if (imgUrl) {
+        s.heroImage = imgUrl;
+        setArticleHeroImage(imgUrl);
+      } else {
+        document.getElementById("article-hero-container").style.display = "none";
+      }
+    });
   } else {
-    app.appendChild(renderDesktopLayout(slides, s, date, storyIdx, stories));
-    startProgress();
+    document.getElementById("article-hero-container").style.display = "none";
   }
+
   window.scrollTo(0,0);
 }
 
@@ -2917,11 +3289,72 @@ async function renderFlashView(date = null) {
   }
 }
 
+function cleanSourceUrl(raw) {
+  if (!raw) return null;
+  raw = raw.trim();
+  
+  // Detect markdown link: [text](url)
+  const mdMatch = raw.match(/^\[([\s\S]*?)\]\(([\s\S]*?)\)$/);
+  if (mdMatch) {
+    const text = mdMatch[1].trim();
+    const url = mdMatch[2].trim();
+    
+    // Helper to check if a string is a valid absolute HTTP/HTTPS URL
+    const isValidUrl = (str) => {
+      try {
+        const u = new URL(str);
+        return u.protocol === 'http:' || u.protocol === 'https:';
+      } catch (e) {
+        return false;
+      }
+    };
+
+    // If the destination URL is a Google search redirect, try to extract the real URL from the q parameter
+    if (url.startsWith('https://www.google.com/search') || url.startsWith('http://www.google.com/search')) {
+      try {
+        const parsedUrl = new URL(url);
+        const q = parsedUrl.searchParams.get('q');
+        if (q && isValidUrl(q)) {
+          return q;
+        }
+      } catch (e) {}
+    }
+    
+    // If the destination URL is valid, return it
+    if (isValidUrl(url)) {
+      return url;
+    }
+    
+    // Otherwise, if the link text is a valid URL (not truncated), return that
+    if (isValidUrl(text)) {
+      return text;
+    }
+  }
+  
+  // Fallback: if the whole raw string has a URL inside parentheses at the end
+  const parenMatch = raw.match(/\((https?:\/\/[^\s)]+)\)/);
+  if (parenMatch) {
+    return parenMatch[1];
+  }
+  
+  // Fallback: if the whole raw string has a URL inside brackets at the start
+  const bracketMatch = raw.match(/^\[(https?:\/\/[^\s\]]+)\]/);
+  if (bracketMatch) {
+    return bracketMatch[1];
+  }
+  
+  return raw;
+}
+
 function getFlashSourceHtml(s, timeClass = 'flash-time') {
   if (!s.source && !s.src) return '';
   const sourceText = esc(s.source || s.src);
   const newspaperSvg = `<svg viewBox="0 0 24 24" width="10.5" height="10.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -1px; opacity: 0.8; display: inline-block;"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"></path></svg>`;
   const label = `<span style="opacity: 0.65; font-weight: normal; margin-right: 3px;">Source:</span>`;
+  const cleanUrl = cleanSourceUrl(s.source_url);
+  if (cleanUrl) {
+    return `<span class="${timeClass}">${newspaperSvg}${label}<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="flash-source-link"><span class="flash-source-name-text">${sourceText}</span>&nbsp;↗</a></span>`;
+  }
   if (s.source_search) {
     return `<span class="${timeClass}">${newspaperSvg}${label}<a href="https://www.google.com/search?q=${encodeURIComponent(s.source_search)}" target="_blank" rel="noopener noreferrer" class="flash-source-link"><span class="flash-source-name-text">${sourceText}</span>&nbsp;↗</a></span>`;
   }
@@ -2931,69 +3364,73 @@ function getFlashSourceHtml(s, timeClass = 'flash-time') {
 /* ── Mobile Layout Renderer ── */
 /* ── Flash card inner-HTML builder (reused by animation + render) ── */
 function buildFlashCardInnerHTML(s, col, isSaved) {
-  const benefitsHtml = (s.who_benefits || []).map(b =>
-    `<div class="flash-benefit-chip" title="${esc(b)}">${esc(b)}</div>`).join('');
-  const benefitsSection = benefitsHtml
-    ? `<div class="flash-benefits-container"><span class="flash-benefits-label">Benefits:</span>${benefitsHtml}</div>` : '';
-
+  const rgb = getCategoryColorRgb(s.cat);
   const actionsHtml = `
-    <div class="flash-floating-actions">
+    <div class="flash-why-actions">
       <button class="flash-float-btn flash-bookmark-btn ${isSaved ? 'saved' : ''}" data-id="${esc(s.id)}" aria-label="Save story"${isSaved ? ` style="color:${col};"` : ''}>
-        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="${isSaved ? 'currentColor' : 'none'}" stroke-linecap="round" stroke-linejoin="round">
+        <svg viewBox="0 0 24 24" width="17" height="17" stroke="currentColor" stroke-width="2.2" fill="${isSaved ? 'currentColor' : 'none'}" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
         </svg>
       </button>
       <button class="flash-float-btn flash-share-btn" data-id="${esc(s.id)}" aria-label="Share story">
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle>
           <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
         </svg>
       </button>
     </div>`;
 
-  const whyItMattersHtml = s.why_it_matters ? `<div class="flash-why-it-matters" style="--cat-color:${col};">
-    <div class="flash-section-header" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-      <div style="display: flex; align-items: center; gap: 4px;">
-        <div class="flash-section-icon flash-why-icon">
-          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-        </div>
+  const whyItMattersHtml = s.why_it_matters ? `
+    <div class="flash-why-it-matters" style="--cat-color:${col};">
+      <div class="flash-why-header-row">
         <span class="flash-why-label">Why It Matters</span>
+        ${actionsHtml}
       </div>
-      ${actionsHtml}
-    </div>
-    <span class="flash-why-value">${esc(s.why_it_matters)}</span>
-  </div>` : '';
+      <span class="flash-why-value">${esc(s.why_it_matters)}</span>
+    </div>` : '';
 
-  const rememberHtml = s.remember ? `<div class="flash-remember-box">
-    <div class="flash-section-header">
-      <div class="flash-section-icon flash-remember-icon">
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-        </svg>
-      </div>
-      <span class="flash-remember-label">Remember</span>
-    </div>
-    <span class="flash-remember-value">${esc(s.remember)}</span>
-  </div>` : '';
+  const imgId = `flash-img-${s.id}`;
+  // Defer heroImage resolution to client-side page load/render if missing
+  const cleanUrl = cleanSourceUrl(s.source_url);
+  if (!s.heroImage && cleanUrl && cleanUrl.startsWith("http")) {
+    getHeroImage(cleanUrl).then(imgUrl => {
+      if (imgUrl) {
+        s.heroImage = imgUrl;
+        const imgEl = document.getElementById(imgId);
+        if (imgEl) {
+          imgEl.src = imgUrl;
+          imgEl.style.display = 'block';
+          const fallbackEl = imgEl.nextElementSibling;
+          if (fallbackEl) fallbackEl.style.display = 'none';
+        }
+      }
+    });
+  }
 
-  const headerActionsHtml = s.why_it_matters ? '' : actionsHtml;
-
+    const hasImage = !!s.heroImage;
   return `
-    <div class="flash-card-header">
-      <div class="flash-card-visual">${getFlashIllustration(s.cat, s.id)}</div>
-      <span class="flash-cat-badge">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
-      <span class="flash-header-spacer"></span>
-      ${headerActionsHtml}
+    <div class="flash-card-image-wrapper" style="--cat-color: ${col}; --cat-color-rgb: ${rgb};">
+      <img id="${imgId}" class="flash-card-image" src="${s.heroImage || ''}" 
+           alt="${esc(s.headline || s.hl)}" 
+           style="display: ${hasImage ? 'block' : 'none'};"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+      <div class="flash-card-fallback-visual" style="display: ${hasImage ? 'none' : 'flex'}; width: 100%; height: 100%; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(${rgb}, 0.12), rgba(${rgb}, 0.03));">
+        <div class="flash-card-visual" style="width: 44px; height: 44px; color: ${col}; opacity: 0.85;">
+          ${getFlashIllustration(s.cat, s.id)}
+        </div>
+      </div>
+      <div class="flash-card-image-overlay">
+        <span class="flash-cat-badge" style="background:rgba(${rgb},0.25); color:${col}; border: 1px solid rgba(${rgb},0.4);">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
+        <span class="flash-time">${esc(s.ts)}</span>
+      </div>
     </div>
-    <div class="flash-card-body">
+    <div class="flash-card-content-area">
       <h2 class="flash-headline">${esc(s.headline || s.hl)}</h2>
-      <hr class="flash-divider" />
       <div class="flash-summary"><p>${esc(s.summary || s.body)}</p></div>
-      ${whyItMattersHtml}${rememberHtml}${benefitsSection}
-      <div class="flash-card-source-bottom" style="margin-top: 4px;">
+      ${whyItMattersHtml}
+      <div class="flash-card-source-bottom" style="margin-top: auto; padding-top: 8px; border-top: 1px solid var(--rule); display: flex; align-items: center; justify-content: space-between;">
         ${getFlashSourceHtml(s, 'flash-time')}
+        ${!s.why_it_matters ? actionsHtml : ''}
       </div>
     </div>`;
 }
@@ -3029,9 +3466,6 @@ function renderFlashMobileLayout(filtered, targetDate) {
 
   app.innerHTML = `
     <div class="flash-container" style="--cat-color:${firstCol};--cat-color-rgb:${firstRgb}; position: relative;">
-      <div class="flash-date-display" style="text-align: center; font-family: var(--mono); font-size: 8px; font-weight: 600; color: var(--ink-3); margin-top: 4px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.12em;">
-        ${fmtLong(targetDate)}
-      </div>
       <div class="flash-categories-bar" id="flash-cats">
         ${renderFlashCategoryPills()}
       </div>
@@ -3115,11 +3549,22 @@ function renderDesktopGrid(filtered, targetDate) {
        </div>`
     : "";
 
-  const heroRememberHtml = heroStory.remember
-    ? `<div class="hero-remember-box" style="border-left: 2px solid #8B5CF6; padding-left: 10px; margin-top: 10px; font-family: var(--body); font-size: 15px; color: var(--ink-2); line-height: 1.5;">
-         <strong style="color: #8B5CF6; font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; margin-right: 4px;">Remember:</strong> ${esc(heroStory.remember)}
-       </div>`
-    : "";
+  const heroImgId = `flash-img-${heroStory.id}`;
+  const cleanHeroUrl = cleanSourceUrl(heroStory.source_url);
+  if (!heroStory.heroImage && cleanHeroUrl && cleanHeroUrl.startsWith("http")) {
+    getHeroImage(cleanHeroUrl).then(imgUrl => {
+      if (imgUrl) {
+        heroStory.heroImage = imgUrl;
+        const imgEl = document.getElementById(heroImgId);
+        if (imgEl) {
+          imgEl.src = imgUrl;
+          imgEl.style.display = 'block';
+          const fallbackEl = imgEl.nextElementSibling;
+          if (fallbackEl) fallbackEl.style.display = 'none';
+        }
+      }
+    });
+  }
 
   const heroHtml = `
     <div class="desktop-hero-card" data-id="${esc(heroStory.id)}" style="--cat-color: ${heroCol}; --cat-color-rgb: ${heroRgb};">
@@ -3127,14 +3572,21 @@ function renderDesktopGrid(filtered, targetDate) {
         <span class="hero-cat-badge" style="background: rgba(${heroRgb}, 0.1); color: ${heroCol};">${esc(FLASH_LABELS[heroStory.cat] || heroStory.cat)}</span>
         ${getFlashSourceHtml(heroStory, 'hero-time')}
       </div>
-      <div class="desktop-card-visual">
-        ${getFlashIllustration(heroStory.cat, heroStory.id)}
+      <div class="desktop-card-visual" style="height: 140px; overflow: hidden; border-radius: 8px; background: var(--bg-2); border: 1px solid var(--rule); display: flex;">
+        <img id="${heroImgId}" src="${heroStory.heroImage || ''}" 
+             alt="${esc(heroHl)}" 
+             style="width: 100%; height: 100%; object-fit: cover; display: ${heroStory.heroImage ? 'block' : 'none'};" 
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+        <div style="display: ${heroStory.heroImage ? 'none' : 'flex'}; width: 100%; height: 100%; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(${heroRgb}, 0.12), rgba(${heroRgb}, 0.03));">
+          <div class="flash-card-visual" style="width: 48px; height: 48px; color: ${heroCol}; opacity: 0.85;">
+            ${getFlashIllustration(heroStory.cat, heroStory.id)}
+          </div>
+        </div>
       </div>
       <h2 class="hero-headline">${esc(heroHl)}</h2>
       <p class="hero-summary">${esc(heroBody)}</p>
       
       ${heroWhyHtml}
-      ${heroRememberHtml}
       ${heroBenefitsChips ? `
         <div class="hero-benefits-row">
           <span class="hero-benefits-label">Benefits:</span>
@@ -3191,34 +3643,51 @@ function renderDesktopGrid(filtered, targetDate) {
     const sGoDeeper = s.hasDeepDive || dayCache[targetDate]?.stories.some(ts => ts.id === s.id);
     const sHl = s.headline || s.hl;
     const sBody = s.summary || s.body;
-    const sSource = s.source || s.src;
     
     const sWhyHtml = s.why_it_matters
       ? `<div class="grid-why-box" style="border-left: 2px solid ${col}; padding-left: 8px; margin-top: 10px; font-family: var(--body); font-size: 14.5px; color: var(--ink-2); line-height: 1.5;">
            <strong style="color: var(--accent); font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; margin-right: 4px;">Why it matters:</strong> ${esc(s.why_it_matters)}
          </div>`
       : "";
-
-    const sRememberHtml = s.remember
-      ? `<div class="grid-remember-box" style="border-left: 2px solid #8B5CF6; padding-left: 8px; margin-top: 8px; font-family: var(--body); font-size: 14.5px; color: var(--ink-2); line-height: 1.5;">
-           <strong style="color: #8B5CF6; font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; margin-right: 4px;">Remember:</strong> ${esc(s.remember)}
-         </div>`
-      : "";
     
+    const gridImgId = `flash-img-${s.id}`;
+    const cleanGridUrl = cleanSourceUrl(s.source_url);
+    if (!s.heroImage && cleanGridUrl && cleanGridUrl.startsWith("http")) {
+      getHeroImage(cleanGridUrl).then(imgUrl => {
+        if (imgUrl) {
+          s.heroImage = imgUrl;
+          const imgEl = document.getElementById(gridImgId);
+          if (imgEl) {
+            imgEl.src = imgUrl;
+            imgEl.style.display = 'block';
+            const fallbackEl = imgEl.nextElementSibling;
+            if (fallbackEl) fallbackEl.style.display = 'none';
+          }
+        }
+      });
+    }
+
     return `
       <div class="desktop-grid-card" data-id="${esc(s.id)}" style="--cat-color: ${col}; --cat-color-rgb: ${rgb};">
         <div class="grid-card-header">
           <span class="grid-cat-badge" style="background: rgba(${rgb}, 0.1); color: ${col};">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
           ${getFlashSourceHtml(s, 'grid-time')}
         </div>
-        <div class="desktop-card-visual">
-          ${getFlashIllustration(s.cat, s.id)}
+        <div class="desktop-card-visual" style="height: 110px; overflow: hidden; border-radius: 8px; background: var(--bg-2); border: 1px solid var(--rule); display: flex;">
+          <img id="${gridImgId}" src="${s.heroImage || ''}" 
+               alt="${esc(sHl)}" 
+               style="width: 100%; height: 100%; object-fit: cover; display: ${s.heroImage ? 'block' : 'none'};" 
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div style="display: ${s.heroImage ? 'none' : 'flex'}; width: 100%; height: 100%; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(${rgb}, 0.12), rgba(${rgb}, 0.03));">
+            <div class="flash-card-visual" style="width: 40px; height: 40px; color: ${col}; opacity: 0.85;">
+              ${getFlashIllustration(s.cat, s.id)}
+            </div>
+          </div>
         </div>
         <h3 class="grid-headline">${esc(sHl)}</h3>
         <p class="grid-summary">${esc(sBody)}</p>
         
         ${sWhyHtml}
-        ${sRememberHtml}
         ${benefitsChips ? `
           <div class="grid-benefits-row">
             ${benefitsChips}
@@ -3335,10 +3804,15 @@ function wireFlashDesktopEvents(filtered, targetDate) {
 
 function updateSavedBadge() {
   const badge = $("saved-count-badge");
+  const bottomBadge = $("bottom-nav-saved-badge");
+  const savedCount = getSavedStories().length;
   if (badge) {
-    const savedCount = getSavedStories().length;
     badge.textContent = savedCount;
     badge.style.display = savedCount > 0 ? "inline-flex" : "none";
+  }
+  if (bottomBadge) {
+    bottomBadge.textContent = savedCount;
+    bottomBadge.style.display = savedCount > 0 ? "flex" : "none";
   }
 }
 
@@ -3427,6 +3901,8 @@ function updateModeToggleUI() {
   const segFlash = $("seg-flash");
   const segBriefing = $("seg-briefing");
   const wordmark = $("wordmark-link");
+  const bottomFlash = $("bottom-nav-flash");
+  const bottomBriefing = $("bottom-nav-briefing");
   
   if (currentMode === "flash") {
     document.body.classList.add("mode-flash-active");
@@ -3434,6 +3910,8 @@ function updateModeToggleUI() {
     if (segFlash)    { segFlash.classList.add("active"); }
     if (segBriefing) { segBriefing.classList.remove("active"); }
     if (wordmark) { wordmark.href = `${BASE_PATH}/flash`; }
+    if (bottomFlash) bottomFlash.classList.add("active");
+    if (bottomBriefing) bottomBriefing.classList.remove("active");
     
     if (!window.flashTimer) {
       window.flashTimer = setInterval(() => {
@@ -3452,6 +3930,8 @@ function updateModeToggleUI() {
     if (segFlash)    { segFlash.classList.remove("active"); }
     if (segBriefing) { segBriefing.classList.add("active"); }
     if (wordmark) { wordmark.href = `${BASE_PATH}/briefings`; }
+    if (bottomFlash) bottomFlash.classList.remove("active");
+    if (bottomBriefing) bottomBriefing.classList.add("active");
     const ctr = $("flash-header-counter");
     if (ctr) ctr.textContent = "";
     
@@ -4024,6 +4504,57 @@ initModeToggle();
 initSavedStories();
 initSlideMenu();
 initDatePicker();
+
+function initBottomNav() {
+  const briefingBtn = $("bottom-nav-briefing");
+  const flashBtn = $("bottom-nav-flash");
+  const searchBtn = $("bottom-nav-search");
+  const menuBtn = $("bottom-nav-menu");
+  
+  if (briefingBtn) {
+    briefingBtn.onclick = () => {
+      if (currentMode !== "briefing") {
+        currentMode = "briefing";
+        localStorage.setItem("currentMode", "briefing");
+        updateModeToggleUI();
+        navigate(`${BASE_PATH}/briefings`);
+      }
+    };
+  }
+
+  if (flashBtn) {
+    flashBtn.onclick = () => {
+      if (currentMode !== "flash") {
+        currentMode = "flash";
+        localStorage.setItem("currentMode", "flash");
+        updateModeToggleUI();
+        navigate(`${BASE_PATH}/flash`);
+      }
+    };
+  }
+
+  if (searchBtn) {
+    searchBtn.onclick = () => {
+      if (window.openGlobalSearch) {
+        window.openGlobalSearch();
+      }
+    };
+  }
+
+  if (menuBtn) {
+    menuBtn.onclick = () => {
+      const menu = $("slide-menu");
+      const overlay = $("menu-overlay");
+      if (menu && overlay) {
+        menu.classList.add("open");
+        overlay.classList.add("open");
+        document.body.style.overflow = "hidden";
+      }
+    };
+  }
+}
+
+initBottomNav();
 route();
 
 window.showPwaBanner = function() {
