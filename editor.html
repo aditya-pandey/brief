@@ -648,10 +648,10 @@
 
     function adaptStory(story) {
       if (!story) return null;
+      if (story._adapted) return story;
       
-      const isNewSchema = ('simple_explanation' in story) || ('strategic_assessment' in story) || 
-                          (story.sections && story.sections.length > 0 && 'question' in story.sections[0]);
-                          
+      const isNewSchema = Array.isArray(story.sections) && story.sections.length > 0;
+                           
       if (isNewSchema) {
         const sections = [];
         
@@ -732,7 +732,9 @@
           sections: sections,
           sources: sources,
           region: story.region || "global",
-          heroImage: story.heroImage || null
+          heroImage: story.heroImage || null,
+          conclusion: story.conclusion || null,
+          _adapted: true
         };
       }
       
@@ -798,7 +800,9 @@
         sections: sections,
         sources: sources,
         region: story.region || "global",
-        heroImage: story.heroImage || null
+        heroImage: story.heroImage || null,
+        conclusion: story.conclusion || null,
+        _adapted: true
       };
     }
 
@@ -1144,6 +1148,13 @@
       modalBody.innerHTML = `
         <div class="longform-article-container" style="background: transparent; min-height: auto;">
           <div class="longform-article" style="padding: 12px 0 40px;">
+            <div class="manual-image-override" style="margin-bottom: 24px; padding: 12px; background: var(--bg-card); border: 1px solid var(--rule); border-radius: 8px; display: flex; flex-direction: column; gap: 8px;">
+              <label for="override-hero-image" style="font-family: var(--sans); font-size: 12px; font-weight: 600; color: var(--ink-3); text-align: left;">Manual Hero Image Override URL</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="override-hero-image" class="input-text" style="flex: 1; padding: 6px 10px; font-size: 12px; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg); color: var(--ink);" value="${story.heroImage || ""}" placeholder="https://example.com/image.jpg" />
+                <button onclick="updateHeroImageOverride(${idx})" class="editor-btn" style="padding: 6px 12px; font-size: 12px; border-radius: 4px; border: none; background: var(--ink); color: var(--bg); font-family: var(--sans); font-weight: 500; cursor: pointer;">Apply</button>
+              </div>
+            </div>
             <header class="article-header" style="margin-bottom: 28px;">
               <div class="article-kicker-row">
                 <span>PREVIEW MODE</span>
@@ -1180,6 +1191,15 @@
                 </section>
               `).join("")}
             </div>
+            
+            ${story.conclusion ? `
+              <div class="article-conclusion">
+                <h3 class="conclusion-title">Conclusion</h3>
+                <div class="conclusion-content">
+                  ${story.conclusion.split("\n\n").map(p => `<p>${p}</p>`).join("")}
+                </div>
+              </div>
+            ` : ""}
             
             <div class="article-sources">
               <h3 class="sources-title">Sources</h3>
@@ -1233,6 +1253,26 @@
     function closeDeepDive() {
       document.getElementById("preview-modal").style.display = "none";
     }
+
+    window.updateHeroImageOverride = function(idx) {
+      const val = document.getElementById("override-hero-image").value.trim() || null;
+      const rawJsonEl = document.getElementById("raw-json");
+      try {
+        const payload = JSON.parse(rawJsonEl.value);
+        if (payload.stories && payload.stories[idx]) {
+          payload.stories[idx].heroImage = val;
+        } else if (Array.isArray(payload) && payload[idx]) {
+          payload[idx].heroImage = val;
+        }
+        rawJsonEl.value = JSON.stringify(payload, null, 2);
+        if (currentParsedStories && currentParsedStories[idx]) {
+          currentParsedStories[idx].heroImage = val;
+        }
+        openDeepDive(idx);
+      } catch (e) {
+        alert("Failed to update JSON: Make sure raw JSON in the textarea is valid.");
+      }
+    };
 
     /* ══════════════════════════════════════════════════════════════
        ⚡ FLASH EDITOR CONTROLLERS & VALIDATION

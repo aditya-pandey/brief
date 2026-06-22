@@ -146,6 +146,15 @@ if (themeToggleBtn) {
     trackEvent("theme_toggle", "Preferences", next);
   };
 }
+const desktopThemeBtn = $("desktop-theme-btn");
+if (desktopThemeBtn) {
+  desktopThemeBtn.onclick = () => {
+    const next = document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("theme", next);
+    trackEvent("theme_toggle", "Preferences", next);
+  };
+}
 
 /* ── Push Notifications ───────────────────────────────────── */
 async function initPushNotifications() {
@@ -292,11 +301,7 @@ function startScrollProgress(totalReadingTime) {
   
   bar.style.width = "0%";
   if (headerCenter) {
-    headerCenter.style.display = "block";
-    headerCenter.style.color = "var(--ink-3)";
-    headerCenter.style.fontSize = "11px";
-    headerCenter.style.fontFamily = "var(--mono)";
-    headerCenter.textContent = `${totalReadingTime} min left`;
+    headerCenter.style.display = "none";
   }
 
   function update() {
@@ -307,13 +312,6 @@ function startScrollProgress(totalReadingTime) {
     bar.style.width = Math.min(pct, 100) + "%";
     
     const minutesLeft = Math.ceil(totalReadingTime * (1 - pct / 100));
-    if (headerCenter) {
-      if (pct >= 95) {
-        headerCenter.textContent = "Finished";
-      } else {
-        headerCenter.textContent = `${minutesLeft} min left`;
-      }
-    }
     requestAnimationFrame(update);
   }
   requestAnimationFrame(update);
@@ -468,10 +466,10 @@ function initDatePicker() {
 }
 function adaptStory(story) {
   if (!story) return null;
+  if (story._adapted) return story;
   
   // Detect if the story is in the new question-based schema format
-  const isNewSchema = ('simple_explanation' in story) || ('strategic_assessment' in story) || 
-                      (story.sections && story.sections.length > 0 && 'question' in story.sections[0]);
+  const isNewSchema = Array.isArray(story.sections) && story.sections.length > 0;
                       
   if (isNewSchema) {
     const sections = [];
@@ -558,7 +556,9 @@ function adaptStory(story) {
       sections: sections,
       sources: sources,
       region: story.region || "global",
-      heroImage: story.heroImage || null
+      heroImage: story.heroImage || null,
+      conclusion: story.conclusion || null,
+      _adapted: true
     };
   }
   
@@ -646,7 +646,9 @@ function adaptStory(story) {
     sections: sections,
     sources: sources,
     region: story.region || "global",
-    heroImage: story.heroImage || null
+    heroImage: story.heroImage || null,
+    conclusion: story.conclusion || null,
+    _adapted: true
   };
 }
 
@@ -1891,6 +1893,12 @@ async function renderStory(date, id) {
 
   articleContainer.innerHTML = `
     <article class="longform-article">
+      <div class="article-back-row">
+        <a href="${BASE_PATH}/briefings" class="article-back-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12" style="vertical-align: -1px; margin-right: 4px;"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to Today's Deep Dives
+        </a>
+      </div>
       <div class="article-kicker-row">
         <span>FRONT ${String(storyIdx + 1).padStart(2, "0")}</span>
         <span class="region-badge ${(s.region||"").toLowerCase()}">${esc((s.region||"GLOBAL").toUpperCase())}</span>
@@ -1932,6 +1940,15 @@ async function renderStory(date, id) {
           </section>
         `).join("")}
       </div>
+
+      ${s.conclusion ? `
+        <div class="article-conclusion">
+          <h3 class="conclusion-title">Conclusion</h3>
+          <div class="conclusion-content">
+            ${s.conclusion.split("\n\n").map(p => `<p>${esc(p)}</p>`).join("")}
+          </div>
+        </div>
+      ` : ""}
 
       <div class="article-sources">
         <h3 class="sources-title">Sources</h3>
@@ -2136,6 +2153,13 @@ async function route() {
       return await renderFlashView(decodeURIComponent(flashDayMatch[1]));
     }
     
+    if (p === "/saved") {
+      stopProgress();
+      $("hero").classList.add("hidden");
+      await renderSavedPage();
+      return;
+    }
+
     if (p === "/install") {
       stopProgress();
       $("hero").classList.add("hidden");
@@ -3154,6 +3178,87 @@ function renderSavedStoriesList() {
   });
 }
 
+async function renderSavedPage() {
+  updateModeToggleUI();
+  $("hero").classList.add("hidden");
+  app.innerHTML = "";
+  
+  const savedContainer = document.createElement("div");
+  savedContainer.className = "saved-page-container";
+  
+  const saved = getSavedStories();
+  
+  let contentHtml = "";
+  if (saved.length === 0) {
+    contentHtml = `
+      <div class="saved-empty-state-page">
+        <div class="saved-empty-icon-page">◦</div>
+        <h2 class="saved-empty-title-page">No Saved Stories</h2>
+        <p class="saved-empty-text-page">Stories you save will appear here for easy reading later.</p>
+      </div>`;
+  } else {
+    contentHtml = `
+      <h1 class="saved-page-title">Saved Items</h1>
+      <div class="saved-page-grid">
+        ${saved.map((s, index) => {
+          const col = getCategoryColor(s.cat);
+          const hl = s.headline || s.hl;
+          const source = s.source || s.src;
+          const isDeepDive = s.sections !== undefined;
+          return `
+            <div class="saved-page-card" data-id="${esc(s.id)}" data-type="${isDeepDive ? 'briefing' : 'flash'}" data-date="${esc(s.date || '')}">
+              <div class="saved-page-card-header">
+                <span class="saved-page-cat" style="color: ${col};">${esc((FLASH_LABELS[s.cat] || s.cat || 'NEWS').toUpperCase())}</span>
+                ${source ? `<span class="saved-page-source">${esc(source)}</span>` : ""}
+              </div>
+              <h3 class="saved-page-headline">${esc(hl)}</h3>
+              <div class="saved-page-actions">
+                <span class="saved-page-type-badge">${isDeepDive ? 'Deep Dive' : 'Flash'}</span>
+                <button class="saved-page-remove-btn" data-id="${esc(s.id)}" aria-label="Remove bookmark">
+                  Remove
+                </button>
+              </div>
+            </div>`;
+        }).join("")}
+      </div>`;
+  }
+  
+  savedContainer.innerHTML = contentHtml;
+  app.appendChild(savedContainer);
+  
+  // Wire click event on cards
+  savedContainer.querySelectorAll(".saved-page-card").forEach(card => {
+    card.onclick = (e) => {
+      if (e.target.closest(".saved-page-remove-btn")) return;
+      const id = card.dataset.id;
+      const type = card.dataset.type;
+      const date = card.dataset.date;
+      if (type === "briefing") {
+        navigate(`${BASE_PATH}/story/${date}/${id}`);
+      } else {
+        openFlashStory(id);
+      }
+    };
+  });
+  
+  // Wire remove buttons
+  savedContainer.querySelectorAll(".saved-page-remove-btn").forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const storyId = btn.dataset.id;
+      const savedList = getSavedStories();
+      const story = savedList.find(s => s.id === storyId);
+      if (story) {
+        toggleBookmark(story);
+        renderSavedPage();
+      }
+    };
+  });
+  
+  trackPageView("/saved", "The Briefing | Saved Items");
+  window.scrollTo(0, 0);
+}
+
 function openFlashStory(storyId) {
   currentMode = "flash";
   localStorage.setItem("currentMode", "flash");
@@ -3805,6 +3910,7 @@ function wireFlashDesktopEvents(filtered, targetDate) {
 function updateSavedBadge() {
   const badge = $("saved-count-badge");
   const bottomBadge = $("bottom-nav-saved-badge");
+  const desktopBadge = $("desktop-saved-badge");
   const savedCount = getSavedStories().length;
   if (badge) {
     badge.textContent = savedCount;
@@ -3813,6 +3919,9 @@ function updateSavedBadge() {
   if (bottomBadge) {
     bottomBadge.textContent = savedCount;
     bottomBadge.style.display = savedCount > 0 ? "flex" : "none";
+  }
+  if (desktopBadge) {
+    desktopBadge.style.display = savedCount > 0 ? "block" : "none";
   }
 }
 
@@ -3903,15 +4012,22 @@ function updateModeToggleUI() {
   const wordmark = $("wordmark-link");
   const bottomFlash = $("bottom-nav-flash");
   const bottomBriefing = $("bottom-nav-briefing");
+  const bottomSaved = $("bottom-nav-saved");
   
-  if (currentMode === "flash") {
+  if (bottomFlash) bottomFlash.classList.remove("active");
+  if (bottomBriefing) bottomBriefing.classList.remove("active");
+  if (bottomSaved) bottomSaved.classList.remove("active");
+
+  const path = window.location.pathname;
+  if (path.endsWith("/saved")) {
+    if (bottomSaved) bottomSaved.classList.add("active");
+  } else if (currentMode === "flash") {
     document.body.classList.add("mode-flash-active");
     document.documentElement.classList.add("mode-flash-active");
     if (segFlash)    { segFlash.classList.add("active"); }
     if (segBriefing) { segBriefing.classList.remove("active"); }
     if (wordmark) { wordmark.href = `${BASE_PATH}/flash`; }
     if (bottomFlash) bottomFlash.classList.add("active");
-    if (bottomBriefing) bottomBriefing.classList.remove("active");
     
     if (!window.flashTimer) {
       window.flashTimer = setInterval(() => {
@@ -4333,6 +4449,8 @@ function initSearch() {
   }
 
   if (trigger)  trigger.onclick  = openSearch;
+  const desktopSearchBtn = $("desktop-search-btn");
+  if (desktopSearchBtn) desktopSearchBtn.onclick = openSearch;
   if (closeBtn) closeBtn.onclick = closeSearch;
 
   // ESC to close
@@ -4508,17 +4626,15 @@ initDatePicker();
 function initBottomNav() {
   const briefingBtn = $("bottom-nav-briefing");
   const flashBtn = $("bottom-nav-flash");
-  const searchBtn = $("bottom-nav-search");
+  const savedBtn = $("bottom-nav-saved");
   const menuBtn = $("bottom-nav-menu");
   
   if (briefingBtn) {
     briefingBtn.onclick = () => {
-      if (currentMode !== "briefing") {
-        currentMode = "briefing";
-        localStorage.setItem("currentMode", "briefing");
-        updateModeToggleUI();
-        navigate(`${BASE_PATH}/briefings`);
-      }
+      currentMode = "briefing";
+      localStorage.setItem("currentMode", "briefing");
+      updateModeToggleUI();
+      navigate(`${BASE_PATH}/briefings`);
     };
   }
 
@@ -4533,11 +4649,9 @@ function initBottomNav() {
     };
   }
 
-  if (searchBtn) {
-    searchBtn.onclick = () => {
-      if (window.openGlobalSearch) {
-        window.openGlobalSearch();
-      }
+  if (savedBtn) {
+    savedBtn.onclick = () => {
+      navigate(`${BASE_PATH}/saved`);
     };
   }
 

@@ -271,6 +271,92 @@ function getVectorArtForCategory(label) {
   `;
 }
 
+// Clean/validate og:image URL and check against generic logo/placeholder words
+function isGenericImage(src) {
+  if (!src) return true;
+  const lowerSrc = src.toLowerCase();
+  const blacklist = [
+    'placeholder', 'avatar', 'favicon', 'fallback',
+    'default-share', 'default_share', 'social-share', 'social_share',
+    'og-default', 'og_default', 'default-og', 'default_og',
+    'share-image', 'share_img', 'share-img', 'default-image',
+    'default_image', 'dummy-image', 'site-image', 'generic-banner',
+    'publication-logo', 'default.jpg', 'default.png', 'default.jpeg',
+    'og-image', 'og_image'
+  ];
+  return blacklist.some(word => lowerSrc.includes(word)) ||
+         lowerSrc.includes('/logo') ||
+         lowerSrc.includes('_logo') ||
+         lowerSrc.includes('-logo') ||
+         lowerSrc.includes('/brand') ||
+         lowerSrc.includes('/icon') ||
+         /\b(logo|brand|icon|placeholder)\b/.test(lowerSrc);
+}
+
+// Scrape og:image directly from URL (runs Node-side, no CORS block)
+async function scrapeHeroImage(url) {
+  if (!url || !url.startsWith("http")) return null;
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; NewsBriefingBot/1.0)" },
+      signal: AbortSignal.timeout(10000)
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const m =
+      html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ||
+      html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i);
+    if (m) {
+      let src = m[1].trim();
+      if (src && !src.startsWith("data:")) {
+        if (!src.startsWith("http")) {
+          try {
+            src = new URL(src, url).href;
+          } catch(e) {}
+        }
+        if (!isGenericImage(src)) {
+          return src;
+        }
+      }
+    }
+  } catch (e) {
+    console.log(`      ! Failed scraping image for ${url}: ${e.message}`);
+  }
+  return null;
+}
+
+// Read JSON, scan for missing heroImage, fetch and resolve it, and write back to disk
+async function backfillBriefingImages(dataPath, date) {
+  try {
+    const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+    let modified = false;
+    for (const story of (data.stories || [])) {
+      if (!story.heroImage) {
+        const firstSourceUrl = story.sources?.[0]?.url;
+        if (firstSourceUrl && firstSourceUrl.startsWith("http")) {
+          console.log(`   [SSG Image Scraper] Resolving cover image for story: "${story.headline}"`);
+          const imgUrl = await scrapeHeroImage(firstSourceUrl);
+          if (imgUrl) {
+            console.log(`      ✓ Resolved: ${imgUrl}`);
+            story.heroImage = imgUrl;
+            modified = true;
+          } else {
+            console.log(`      ✗ No valid cover image found.`);
+          }
+        }
+      }
+    }
+    if (modified) {
+      fs.writeFileSync(dataPath, JSON.stringify(data, null, 2), 'utf8');
+      console.log(`   [SSG Image Scraper] Updated ${dataPath} with resolved cover images.`);
+    }
+  } catch (e) {
+    console.error(`   [SSG Image Scraper] Error backfilling images:`, e);
+  }
+}
+
 // Generate the beautiful card layout SVG (1200x630) for Deep Dives
 function generateOgSvg(story, date, idx = 0) {
   const catLabel = getCategoryLabel(story, false);
@@ -917,6 +1003,7 @@ async function runSSG() {
     fs.writeFileSync(path.join(fDayDir, 'index.html'), fDayHtml);
     
     if (briefingExists) {
+      await backfillBriefingImages(dataPath, date);
       const briefing = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
       let idx = 0;
       for (const story of briefing.stories) {
