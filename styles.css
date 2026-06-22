@@ -3540,9 +3540,9 @@ body.mode-flash-active #progress-bar {
 .flash-why-it-matters {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   border-left: 2px solid var(--section-border-color, var(--cat-color));
-  padding-left: 10px;
+  padding-left: 12px;
   flex-shrink: 0;
   margin-top: 14px;
 }
@@ -3575,8 +3575,8 @@ body.mode-flash-active #progress-bar {
 .flash-why-value {
   font-family: var(--sans);
   font-weight: 400;
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: 14px;
+  line-height: 1.55;
   color: var(--ink-2);
   display: block;
 }
@@ -4267,12 +4267,12 @@ body.mode-flash-active #progress-bar {
   .flash-signal-box { padding: 6px 8px !important; margin-bottom: 4px !important; }
   .flash-signal-label { font-size: 7.5px !important; }
   .flash-signal-value { font-size: 10px !important; }
-  .flash-why-it-matters { gap: 2px !important; padding-left: 8px !important; margin-bottom: 2px !important; margin-top: auto !important; }
+  .flash-why-it-matters { gap: 4px !important; padding-left: 9px !important; margin-bottom: 2px !important; margin-top: auto !important; }
   .flash-card-source-bottom { margin-top: 2px !important; }
   .flash-section-icon { width: 12px !important; height: 12px !important; }
   .flash-section-icon svg { width: 7px !important; height: 7px !important; }
   .flash-why-label { font-size: 7.5px !important; }
-  .flash-why-value { font-size: 11px !important; line-height: 1.25 !important; }
+  .flash-why-value { font-size: 12px !important; line-height: 1.35 !important; }
   .flash-benefits-container { gap: 4px !important; }
   .flash-benefit-chip { font-size: 7.5px !important; padding: 2px 6px !important; }
   .flash-benefits-label { font-size: 7.5px !important; }
@@ -5457,115 +5457,6 @@ body.mode-flash-active #progress-bar {
   letter-spacing: -.02em;
 }
 
-.menu-section-container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-.menu-date-picker-inline {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease;
-  padding: 0 16px;
-  background: var(--bg-card);
-  box-sizing: border-box;
-}
-.menu-date-picker-inline.open {
-  max-height: 230px;
-  padding: 8px 16px 16px 16px;
-  border-bottom: 1px solid var(--rule);
-}
-
-.date-picker-body {
-  position: relative;
-  height: 120px;
-  overflow: hidden;
-  background: var(--bg-2);
-  border-radius: 12px;
-  border: 1px solid var(--rule);
-  margin-bottom: 12px;
-}
-.drum-highlight-zone {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 45px; /* (120px - 30px) / 2 */
-  height: 30px;
-  background: var(--bg-card);
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
-  pointer-events: none;
-  z-index: 1;
-}
-.drum-columns {
-  display: flex;
-  height: 100%;
-  position: relative;
-  z-index: 2;
-}
-.drum-column {
-  flex: 1;
-  height: 100%;
-  overflow-y: scroll;
-  scroll-snap-type: y mandatory;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.drum-column::-webkit-scrollbar {
-  display: none;
-}
-.drum-scroll {
-  display: flex;
-  flex-direction: column;
-}
-.drum-item {
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--sans);
-  font-size: 12px;
-  color: var(--ink-3);
-  scroll-snap-align: center;
-  cursor: pointer;
-  transition: color 0.15s, font-size 0.15s, font-weight 0.15s;
-  user-select: none;
-}
-.drum-item.active {
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 14px;
-}
-.drum-item.dummy {
-  height: 45px;
-  cursor: default;
-  pointer-events: none;
-}
-
-.date-picker-continue-btn {
-  display: block;
-  width: 100%;
-  max-width: 180px;
-  margin: 0 auto;
-  height: 34px;
-  border-radius: 6px;
-  border: none;
-  background: var(--accent); /* Brand accent color (coral/red) */
-  color: #ffffff; /* Contrast text */
-  font-family: var(--sans);
-  font-weight: 700;
-  font-size: 12px;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: opacity 0.2s, transform 0.1s;
-}
-.date-picker-continue-btn:hover {
-  opacity: 0.9;
-}
-.date-picker-continue-btn:active {
-  transform: scale(0.98);
-}
-
 /* ── Redesigned Deep Dive Longform Article Styles ────────────────── */
 
 .longform-article-container {
@@ -5652,9 +5543,31 @@ body.mode-flash-active #progress-bar {
   color: var(--ink-3);
   margin-bottom: 36px;
   display: flex;
+  align-items: center;
   gap: 16px;
   border-bottom: 1px solid var(--rule);
   padding-bottom: 18px;
+}
+
+.article-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.article-share-btn:hover {
+  color: var(--ink);
 }
 
 #article-hero-container, .preview-hero-container {
@@ -6235,12 +6148,12 @@ body.mode-flash-active #progress-bar {
   border: none;
   border-left: 3px solid var(--cat-color, var(--accent));
   border-top: none;
-  padding: 0 0 0 12px;
+  padding: 2px 0 2px 14px;
   margin-top: 20px;
   margin-bottom: 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 9px;
 }
 
 .flash-why-label-group {
@@ -6304,9 +6217,9 @@ body.mode-flash-active #progress-bar {
 }
 
 .flash-card-content-area .flash-why-value {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ink-2);
-  line-height: 1.5;
+  line-height: 1.6;
   word-break: break-word;
 }
 
@@ -6357,13 +6270,13 @@ body.mode-flash-active #progress-bar {
 .header-date-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: var(--bg-card);
   border: 1px solid var(--rule);
-  border-radius: 10px;
-  padding: 6px 10px;
+  border-radius: 999px;
+  padding: 5px 14px 5px 7px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease, color 0.2s ease;
   color: var(--ink-2);
   font-family: var(--mono);
   font-size: 11px;
@@ -6372,23 +6285,40 @@ body.mode-flash-active #progress-bar {
   text-transform: uppercase;
   white-space: nowrap;
   line-height: 1;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 .header-date-trigger:hover {
-  background: var(--bg-2);
-  border-color: var(--ink-3);
+  border-color: var(--accent);
   color: var(--ink);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 .header-date-trigger .header-top-date {
   margin-right: 0;
 }
 .header-date-cal-icon {
   flex-shrink: 0;
-  opacity: 0.6;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb, 59, 130, 246), 0.12);
+  color: var(--accent);
+  padding: 0;
+  transition: background 0.2s ease;
+}
+.header-date-trigger:hover .header-date-cal-icon {
+  background: rgba(var(--accent-rgb, 59, 130, 246), 0.18);
 }
 .header-date-chevron {
   flex-shrink: 0;
   opacity: 0.5;
-  transition: transform 0.25s ease;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+.header-date-trigger:hover .header-date-chevron {
+  opacity: 0.8;
 }
 .header-date-wrapper.open .header-date-chevron {
   transform: rotate(180deg);
@@ -6396,7 +6326,7 @@ body.mode-flash-active #progress-bar {
 .header-date-wrapper.open .header-date-trigger {
   border-color: var(--accent);
   color: var(--ink);
-  box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 59, 130, 246), 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 59, 130, 246), 0.12);
 }
 
 /* Dropdown panel */
@@ -6602,16 +6532,20 @@ body.mode-flash-active #progress-bar {
 /* Mobile responsive */
 @media (max-width: 600px) {
   .header-date-trigger {
-    padding: 5px 8px;
-    border-radius: 8px;
-    gap: 4px;
+    padding: 4px 10px 4px 4px;
+    border-radius: 999px;
+    gap: 6px;
   }
   .header-date-trigger .header-top-date {
     font-size: 9px;
   }
   .header-date-cal-icon {
-    width: 12px;
-    height: 12px;
+    width: 18px;
+    height: 18px;
+  }
+  .header-date-cal-icon svg {
+    width: 11px;
+    height: 11px;
   }
   .header-date-chevron {
     width: 10px;

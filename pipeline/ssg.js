@@ -1007,7 +1007,7 @@ async function runSSG() {
       const briefing = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
       let idx = 0;
       for (const story of briefing.stories) {
-        // 1. Generate PNG
+        // 1. Generate fallback illustration PNG (used only if no hero image is available)
         const svgString = generateOgSvg(story, date, idx);
         const resvg = new Resvg(svgString, {
           background: 'rgba(255, 255, 255, 1)',
@@ -1015,18 +1015,21 @@ async function runSSG() {
         });
         const pngData = resvg.render();
         const pngBuffer = pngData.asPng();
-        
+
         const pngPath = path.join(dateOgDir, `${story.id}.png`);
         fs.writeFileSync(pngPath, pngBuffer);
-        
+
         // 2. Generate HTML
         const storyDir = path.join(process.cwd(), 'story', date, story.id);
         if (!fs.existsSync(storyDir)) fs.mkdirSync(storyDir, { recursive: true });
-        
+
         const ogTitle = story.headline.replace(/"/g, '&quot;');
         const ogDesc = story.tldr.replace(/"/g, '&quot;');
-        const domain = process.env.HOST || "https://thebriefings.netlify.app"; 
-        const ogImage = `${domain}/og-images/${date}/${story.id}.png`;
+        const domain = process.env.HOST || "https://thebriefings.netlify.app";
+        // Prefer the real hero image for link previews; fall back to the generated illustration card
+        const ogImage = (story.heroImage && story.heroImage.startsWith("http"))
+          ? story.heroImage
+          : `${domain}/og-images/${date}/${story.id}.png`;
         
         let storyHtml = rootHtml;
         storyHtml = storyHtml.replace(/<title>.*?<\/title>/, `<title>${ogTitle}</title>`);

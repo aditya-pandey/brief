@@ -367,36 +367,6 @@ async function loadIndex() {
 
 function initDatePicker() {
   const sel = $("archive-select");
-  const btn = $("header-date-btn");
-  
-  if (btn && sel) {
-    btn.addEventListener("click", () => {
-      if (window.openSlideMenu) window.openSlideMenu();
-      const inlineDatePicker = $("menu-date-picker-inline");
-      const dateChevron = $("menu-date-chevron");
-      if (inlineDatePicker) {
-        inlineDatePicker.classList.add("open");
-        if (dateChevron) dateChevron.style.transform = "rotate(90deg)";
-      }
-      let curDate = sel.value || (typeof indexEntries !== "undefined" && indexEntries[0]?.date) || new Date().toISOString().split('T')[0];
-      openCustomDatePicker(curDate);
-    });
-    
-    btn.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        if (window.openSlideMenu) window.openSlideMenu();
-        const inlineDatePicker = $("menu-date-picker-inline");
-        const dateChevron = $("menu-date-chevron");
-        if (inlineDatePicker) {
-          inlineDatePicker.classList.add("open");
-          if (dateChevron) dateChevron.style.transform = "rotate(90deg)";
-        }
-        let curDate = sel.value || (typeof indexEntries !== "undefined" && indexEntries[0]?.date) || new Date().toISOString().split('T')[0];
-        openCustomDatePicker(curDate);
-      }
-    });
-  }
 
   if (sel) {
     sel.addEventListener("change", async e => {
@@ -1911,6 +1881,16 @@ async function renderStory(date, id) {
         <span>${fmtHeaderDate(date)}</span>
         <span>&middot;</span>
         <span>${totalReadingTime} min read</span>
+        <button class="article-share-btn" id="article-share-btn" aria-label="Share this story">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          <span>Share</span>
+        </button>
       </div>
 
       <div id="article-hero-container">
@@ -1992,6 +1972,12 @@ async function renderStory(date, id) {
       const direction = btn.classList.contains("next") ? "Next Story" : "Prev Story";
       trackEvent("navigate_button", "Desktop Navigation", direction);
     });
+  });
+
+  articleContainer.querySelector("#article-share-btn")?.addEventListener("click", () => {
+    const url = `${window.location.origin}${BASE_PATH}${pagePath}`;
+    trackEvent("share_action", "Engagement", "Open Share Sheet", s.headline);
+    openShareSheet(url, s.headline, "deep dive");
   });
 
   startScrollProgress(totalReadingTime);
@@ -2484,27 +2470,27 @@ function getFlashIllustration(cat, storyId, indexOverride = null) {
   </svg>`;
 }
 
-function openShareSheet(url, headline) {
+function openShareSheet(url, headline, contentType = "Flash news") {
   const modal = $("share-sheet-modal");
   if (!modal) return;
-  
+
   modal.classList.add("active");
-  
+
   const wa = $("share-opt-wa");
   const x = $("share-opt-x");
   const copy = $("share-opt-copy");
   const native = $("share-opt-native");
   const backdrop = $("share-sheet-backdrop");
   const closeBtn = $("share-sheet-close");
-  
+
   const closeSheet = () => modal.classList.remove("active");
   backdrop.onclick = closeSheet;
   closeBtn.onclick = closeSheet;
-  
+
   if (wa) {
     wa.onclick = () => {
       const shareUrl = encodeURIComponent(getShareUrl("whatsapp", url));
-      const text = encodeURIComponent(`Check out this Flash news on The Briefing: "${headline}" - `);
+      const text = encodeURIComponent(`Check out this ${contentType} on The Briefing: "${headline}" - `);
       if (typeof trackEvent === 'function') trackEvent("share_action", "Engagement", "WhatsApp", headline);
       window.open(`https://api.whatsapp.com/send?text=${text}${shareUrl}`, "_blank");
       closeSheet();
@@ -2513,7 +2499,7 @@ function openShareSheet(url, headline) {
   if (x) {
     x.onclick = () => {
       const shareUrl = encodeURIComponent(getShareUrl("twitter", url));
-      const text = encodeURIComponent(`Check out this Flash news: "${headline}" on The Briefing`);
+      const text = encodeURIComponent(`Check out this ${contentType}: "${headline}" on The Briefing`);
       if (typeof trackEvent === 'function') trackEvent("share_action", "Engagement", "Twitter X", headline);
       window.open(`https://twitter.com/intent/tweet?url=${shareUrl}&text=${text}`, "_blank");
       closeSheet();
@@ -2527,7 +2513,7 @@ function openShareSheet(url, headline) {
         if (typeof trackEvent === 'function') trackEvent("share_action", "Engagement", "Share Anywhere", headline);
         navigator.share({
           title: headline,
-          text: `Check out this Flash news on The Briefing: "${headline}"`,
+          text: `Check out this ${contentType} on The Briefing: "${headline}"`,
           url: shareUrl
         }).catch(err => console.log("Share cancelled:", err));
       } else {
@@ -4179,16 +4165,6 @@ function initSlideMenu() {
     document.body.style.overflow = "hidden";
     renderMenuSavedItems();
     updateMenuThemeUI();
-
-    const desc = $("menu-current-date-desc");
-    if (desc) {
-      const activeDate = $("archive-select") ? $("archive-select").value : "";
-      if (activeDate) {
-        desc.textContent = `Selected: ${fmtLong(activeDate)}`;
-      } else {
-        desc.textContent = "Browse previous editions";
-      }
-    }
   }
 
   function closeMenu() {
@@ -4213,24 +4189,6 @@ function initSlideMenu() {
     menuSearchTrigger.onclick = () => {
       closeMenu();
       if (window.openGlobalSearch) window.openGlobalSearch();
-    };
-  }
-
-  // Date archive trigger inside menu (accordion toggle)
-  const dateArchiveTrigger = $("menu-date-archive");
-  const inlineDatePicker = $("menu-date-picker-inline");
-  const dateChevron = $("menu-date-chevron");
-  if (dateArchiveTrigger && inlineDatePicker) {
-    dateArchiveTrigger.onclick = () => {
-      const isOpen = inlineDatePicker.classList.toggle("open");
-      if (dateChevron) {
-        dateChevron.style.transform = isOpen ? "rotate(90deg)" : "";
-      }
-      if (isOpen) {
-        const sel = $("archive-select");
-        let curDate = sel ? sel.value : ((typeof indexEntries !== "undefined" && indexEntries[0]?.date) || new Date().toISOString().split('T')[0]);
-        openCustomDatePicker(curDate);
-      }
     };
   }
 
@@ -4578,12 +4536,10 @@ function initBottomNav() {
 
   if (flashBtn) {
     flashBtn.onclick = () => {
-      if (currentMode !== "flash") {
-        currentMode = "flash";
-        localStorage.setItem("currentMode", "flash");
-        updateModeToggleUI();
-        navigate(`${BASE_PATH}/flash`);
-      }
+      currentMode = "flash";
+      localStorage.setItem("currentMode", "flash");
+      updateModeToggleUI();
+      navigate(`${BASE_PATH}/flash`);
     };
   }
 
@@ -4934,178 +4890,3 @@ window.addEventListener("DOMContentLoaded", () => {
   window.closeCalendarPicker = closeCalendar;
 })();
 
-/* ── Custom scroll drum date picker implementation ── */
-function openCustomDatePicker(currentDateStr) {
-  let dateObj;
-  if (currentDateStr) {
-    dateObj = new Date(currentDateStr + "T00:00:00");
-  } else {
-    dateObj = new Date();
-  }
-  const curMonth = isNaN(dateObj.getTime()) ? new Date().getMonth() : dateObj.getMonth();
-  const curDay = isNaN(dateObj.getTime()) ? new Date().getDate() : dateObj.getDate();
-  const curYear = isNaN(dateObj.getTime()) ? new Date().getFullYear() : dateObj.getFullYear();
-
-  // Populate Month Scroll
-  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const scrollMonth = $("scroll-month");
-  if (scrollMonth) {
-    let monthHtml = '<div class="drum-item dummy"></div>';
-    months.forEach((m, idx) => {
-      monthHtml += `<div class="drum-item" data-value="${idx}">${m}</div>`;
-    });
-    monthHtml += '<div class="drum-item dummy"></div>';
-    scrollMonth.innerHTML = monthHtml;
-  }
-
-  // Populate Year Scroll
-  const years = [];
-  const startY = 2024;
-  const endY = 2027;
-  for (let y = startY; y <= endY; y++) years.push(y);
-  const scrollYear = $("scroll-year");
-  if (scrollYear) {
-    let yearHtml = '<div class="drum-item dummy"></div>';
-    years.forEach(y => {
-      yearHtml += `<div class="drum-item" data-value="${y}">${y}</div>`;
-    });
-    yearHtml += '<div class="drum-item dummy"></div>';
-    scrollYear.innerHTML = yearHtml;
-  }
-
-  // Populate Day Scroll
-  function updateDays(monthIdx, yearVal) {
-    const daysInMonth = new Date(yearVal, monthIdx + 1, 0).getDate();
-    const scrollDay = $("scroll-day");
-    if (!scrollDay) return;
-    let dayHtml = '<div class="drum-item dummy"></div>';
-    for (let d = 1; d <= daysInMonth; d++) {
-      dayHtml += `<div class="drum-item" data-value="${d}">${d}</div>`;
-    }
-    dayHtml += '<div class="drum-item dummy"></div>';
-    scrollDay.innerHTML = dayHtml;
-    
-    // Attach click listeners to day items
-    scrollDay.querySelectorAll(".drum-item:not(.dummy)").forEach(item => {
-      item.onclick = () => {
-        const val = parseInt(item.dataset.value);
-        scrollColumnToValue($("drum-day"), val);
-      };
-    });
-  }
-
-  updateDays(curMonth, curYear);
-
-  // Helper function to scroll a column to a specific value
-  function scrollColumnToValue(columnEl, value) {
-    if (!columnEl) return;
-    const scrollEl = columnEl.querySelector(".drum-scroll");
-    const items = Array.from(scrollEl.querySelectorAll(".drum-item:not(.dummy)"));
-    const targetItem = items.find(it => parseInt(it.dataset.value) === value);
-    if (targetItem) {
-      const index = items.indexOf(targetItem);
-      columnEl.scrollTo({ top: index * 30, behavior: "smooth" });
-    }
-  }
-
-  // Scroll columns to current values
-  setTimeout(() => {
-    scrollColumnToValue($("drum-month"), curMonth);
-    scrollColumnToValue($("drum-day"), curDay);
-    scrollColumnToValue($("drum-year"), curYear);
-    updateActiveStates();
-  }, 100);
-
-  const columns = [$("drum-month"), $("drum-day"), $("drum-year")];
-  
-  function updateActiveStates() {
-    columns.forEach(col => {
-      if (!col) return;
-      const scrollEl = col.querySelector(".drum-scroll");
-      const items = Array.from(scrollEl.querySelectorAll(".drum-item:not(.dummy)"));
-      const selectedIdx = Math.round(col.scrollTop / 30);
-      
-      items.forEach((it, idx) => {
-        it.classList.toggle("active", idx === selectedIdx);
-      });
-    });
-  }
-
-  columns.forEach(col => {
-    if (!col) return;
-    let scrollTimeout;
-    col.addEventListener("scroll", () => {
-      updateActiveStates();
-      
-      // Debounce the date verification to prevent layout jitter during active scrolling
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        if (col.id === "drum-month" || col.id === "drum-year") {
-          const selectedMonth = getSelectedValue($("drum-month"));
-          const selectedYear = getSelectedValue($("drum-year"));
-          const selectedDay = getSelectedValue($("drum-day"));
-          
-          updateDays(selectedMonth, selectedYear);
-          
-          const maxDay = new Date(selectedYear, selectedMonth + 1, 0).getDate();
-          const finalDay = Math.min(selectedDay, maxDay);
-          scrollColumnToValue($("drum-day"), finalDay);
-        }
-      }, 150);
-    });
-  });
-
-  // Attach click listeners to month and year items
-  if (scrollMonth) {
-    scrollMonth.querySelectorAll(".drum-item:not(.dummy)").forEach(item => {
-      item.onclick = () => {
-        const val = parseInt(item.dataset.value);
-        scrollColumnToValue($("drum-month"), val);
-      };
-    });
-  }
-  if (scrollYear) {
-    scrollYear.querySelectorAll(".drum-item:not(.dummy)").forEach(item => {
-      item.onclick = () => {
-        const val = parseInt(item.dataset.value);
-        scrollColumnToValue($("drum-year"), val);
-      };
-    });
-  }
-
-  function getSelectedValue(col) {
-    if (!col) return null;
-    const scrollEl = col.querySelector(".drum-scroll");
-    const items = Array.from(scrollEl.querySelectorAll(".drum-item:not(.dummy)"));
-    const selectedIdx = Math.round(col.scrollTop / 30);
-    const selectedItem = items[Math.max(0, Math.min(items.length - 1, selectedIdx))];
-    return selectedItem ? parseInt(selectedItem.dataset.value) : null;
-  }
-
-  // Continue button wiring
-  const continueBtn = $("date-picker-continue");
-  if (continueBtn) {
-    continueBtn.onclick = () => {
-      const month = getSelectedValue($("drum-month"));
-      const day = getSelectedValue($("drum-day"));
-      const year = getSelectedValue($("drum-year"));
-
-      const pad = (n) => String(n).padStart(2, '0');
-      const selectedDateStr = `${year}-${pad(month + 1)}-${pad(day)}`;
-
-      if (window.closeSlideMenu) window.closeSlideMenu();
-      const inlineDatePicker = $("menu-date-picker-inline");
-      const dateChevron = $("menu-date-chevron");
-      if (inlineDatePicker) {
-        inlineDatePicker.classList.remove("open");
-        if (dateChevron) dateChevron.style.transform = "";
-      }
-
-      const archiveSelect = $("archive-select");
-      if (archiveSelect) {
-        archiveSelect.value = selectedDateStr;
-        archiveSelect.dispatchEvent(new Event("change"));
-      }
-    };
-  }
-}

@@ -426,48 +426,8 @@
         </div>
       </div>
 
-      <!-- Date Archive Section (with inline roller, collapsed by default) -->
-      <div class="menu-section-container" id="menu-date-archive-section">
-        <div class="menu-section menu-clickable-row" id="menu-date-archive">
-          <div class="menu-section-icon">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="16" y1="2" x2="16" y2="6"></line>
-              <line x1="8" y1="2" x2="8" y2="6"></line>
-              <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-          </div>
-          <div class="menu-section-info">
-            <h4 class="menu-section-title">Date Archive</h4>
-            <p class="menu-section-desc" id="menu-current-date-desc">Browse previous editions</p>
-          </div>
-          <div class="menu-chevron" id="menu-date-chevron" style="transition: transform 0.2s ease;">&rarr;</div>
-          <input type="date" id="archive-select" class="archive-date-picker" aria-label="Search by date" style="display: none;" />
-        </div>
-        
-        <div class="menu-date-picker-inline" id="menu-date-picker-inline">
-          <div class="date-picker-body">
-            <div class="drum-highlight-zone"></div>
-            <div class="drum-columns">
-              <!-- Month Column -->
-              <div class="drum-column" id="drum-month" data-type="month">
-                <div class="drum-scroll" id="scroll-month"></div>
-              </div>
-              <!-- Day Column -->
-              <div class="drum-column" id="drum-day" data-type="day">
-                <div class="drum-scroll" id="scroll-day"></div>
-              </div>
-              <!-- Year Column -->
-              <div class="drum-column" id="drum-year" data-type="year">
-                <div class="drum-scroll" id="scroll-year"></div>
-              </div>
-            </div>
-          </div>
-          <div class="date-picker-footer">
-            <button id="date-picker-continue" class="date-picker-continue-btn">Continue</button>
-          </div>
-        </div>
-      </div>
+      <!-- Date selection lives in the header calendar picker; kept here only as a hidden data store -->
+      <input type="date" id="archive-select" class="archive-date-picker" aria-label="Search by date" style="display: none;" />
 
       <!-- Install The App Section -->
       <div class="menu-section menu-clickable-row" id="menu-install-trigger">
