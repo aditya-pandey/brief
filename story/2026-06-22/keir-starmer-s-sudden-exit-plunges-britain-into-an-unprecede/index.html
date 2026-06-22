@@ -10,8 +10,8 @@
   <!-- Favicon and Social Share Images -->
   <link rel="icon" type="image/png" href="icon-briefing.png" />
   <link rel="apple-touch-icon" href="icon-briefing.png" />
-  <meta property="og:image" content="https://thebriefings.netlify.app/og-images/2026-06-22/keir-starmer-s-sudden-exit-plunges-britain-into-an-unprecede.png" />
-  <meta name="twitter:image" content="https://thebriefings.netlify.app/og-images/2026-06-22/keir-starmer-s-sudden-exit-plunges-britain-into-an-unprecede.png" />
+  <meta property="og:image" content="https://static.time.com/v3/assets/bltea6093859af6183b/bltcd29355b633466d8/6a38ffe599e9a720b53c9797/GettyImages-2282212228.jpg?branch=production&amp;width=3840&amp;quality=75&amp;auto=webp&amp;crop=16:9" />
+  <meta name="twitter:image" content="https://static.time.com/v3/assets/bltea6093859af6183b/bltcd29355b633466d8/6a38ffe599e9a720b53c9797/GettyImages-2282212228.jpg?branch=production&amp;width=3840&amp;quality=75&amp;auto=webp&amp;crop=16:9" />
   <meta property="og:title" content="Keir Starmer's sudden exit plunges Britain into an unprecedented leadership loop" />
   <meta property="og:description" content="British Prime Minister Keir Starmer announced his resignation outside 10 Downing Street on Monday morning, succumbing to a fierce rebellion within his own Labour Party. His departure follows the victory of his prominent rival, Greater Manchester Mayor Andy Burnham, in the Makerfield by-election. By stepping down after less than two years in office, Starmer triggers a summer leadership contest that will hand the United Kingdom its seventh prime minister in a single decade. Readers will understand the internal arithmetic that broke Starmer's landslide mandate and why the British premiership has become structurally unstable." />
   <meta name="twitter:card" content="summary_large_image" />
@@ -132,8 +132,37 @@
             <button id="desktop-switch-briefing" class="desktop-switch-briefing-btn">📰 Switch to Briefing</button>
           </div>
 
-          <!-- Date at top right with Day -->
-          <span id="header-date" class="header-top-date"></span>
+          <!-- Date at top right with Day + Calendar -->
+          <div class="header-date-wrapper" id="header-date-wrapper">
+            <button class="header-date-trigger" id="header-date-trigger" aria-label="Open date picker">
+              <svg class="header-date-cal-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <span id="header-date" class="header-top-date"></span>
+              <svg class="header-date-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="calendar-dropdown" id="calendar-dropdown">
+              <div class="calendar-header">
+                <button class="cal-nav-btn" id="cal-prev-month" aria-label="Previous month">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <span class="cal-month-year" id="cal-month-year"></span>
+                <button class="cal-nav-btn" id="cal-next-month" aria-label="Next month">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+              </div>
+              <div class="cal-weekdays" id="cal-weekdays"></div>
+              <div class="cal-grid" id="cal-grid"></div>
+              <div class="cal-footer">
+                <button class="cal-today-btn" id="cal-today-btn">Today</button>
+              </div>
+            </div>
+          </div>
 
           <!-- Desktop Actions -->
           <div class="desktop-header-actions">
@@ -387,48 +416,8 @@
         </div>
       </div>
 
-      <!-- Date Archive Section (with inline roller, collapsed by default) -->
-      <div class="menu-section-container" id="menu-date-archive-section">
-        <div class="menu-section menu-clickable-row" id="menu-date-archive">
-          <div class="menu-section-icon">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="16" y1="2" x2="16" y2="6"></line>
-              <line x1="8" y1="2" x2="8" y2="6"></line>
-              <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-          </div>
-          <div class="menu-section-info">
-            <h4 class="menu-section-title">Date Archive</h4>
-            <p class="menu-section-desc" id="menu-current-date-desc">Browse previous editions</p>
-          </div>
-          <div class="menu-chevron" id="menu-date-chevron" style="transition: transform 0.2s ease;">&rarr;</div>
-          <input type="date" id="archive-select" class="archive-date-picker" aria-label="Search by date" style="display: none;" />
-        </div>
-        
-        <div class="menu-date-picker-inline" id="menu-date-picker-inline">
-          <div class="date-picker-body">
-            <div class="drum-highlight-zone"></div>
-            <div class="drum-columns">
-              <!-- Month Column -->
-              <div class="drum-column" id="drum-month" data-type="month">
-                <div class="drum-scroll" id="scroll-month"></div>
-              </div>
-              <!-- Day Column -->
-              <div class="drum-column" id="drum-day" data-type="day">
-                <div class="drum-scroll" id="scroll-day"></div>
-              </div>
-              <!-- Year Column -->
-              <div class="drum-column" id="drum-year" data-type="year">
-                <div class="drum-scroll" id="scroll-year"></div>
-              </div>
-            </div>
-          </div>
-          <div class="date-picker-footer">
-            <button id="date-picker-continue" class="date-picker-continue-btn">Continue</button>
-          </div>
-        </div>
-      </div>
+      <!-- Date selection lives in the header calendar picker; kept here only as a hidden data store -->
+      <input type="date" id="archive-select" class="archive-date-picker" aria-label="Search by date" style="display: none;" />
 
       <!-- Install The App Section -->
       <div class="menu-section menu-clickable-row" id="menu-install-trigger">
