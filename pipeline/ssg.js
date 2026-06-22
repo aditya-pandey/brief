@@ -293,6 +293,16 @@ function isGenericImage(src) {
          /\b(logo|brand|icon|placeholder)\b/.test(lowerSrc);
 }
 
+// LLM-generated source URLs sometimes come back wrapped in markdown link
+// syntax (e.g. "[https://x.com/a](https://x.com/a)") instead of a bare URL.
+function cleanSourceUrl(raw) {
+  if (!raw) return "";
+  let url = raw.trim();
+  const mdLink = url.match(/^\[(https?:\/\/[^\]]+)\]\((https?:\/\/[^)]+)\)$/);
+  if (mdLink) url = mdLink[2] || mdLink[1];
+  return url;
+}
+
 // Scrape og:image directly from URL (runs Node-side, no CORS block)
 async function scrapeHeroImage(url) {
   if (!url || !url.startsWith("http")) return null;
@@ -334,15 +344,22 @@ async function backfillBriefingImages(dataPath, date) {
     let modified = false;
     for (const story of (data.stories || [])) {
       if (!story.heroImage) {
-        const firstSourceUrl = story.sources?.[0]?.url;
-        if (firstSourceUrl && firstSourceUrl.startsWith("http")) {
+        const candidateUrls = (story.sources || [])
+          .map(s => cleanSourceUrl(s?.url))
+          .filter(u => u.startsWith("http"));
+
+        if (candidateUrls.length > 0) {
           console.log(`   [SSG Image Scraper] Resolving cover image for story: "${story.headline}"`);
-          const imgUrl = await scrapeHeroImage(firstSourceUrl);
-          if (imgUrl) {
-            console.log(`      ✓ Resolved: ${imgUrl}`);
-            story.heroImage = imgUrl;
-            modified = true;
-          } else {
+          for (const sourceUrl of candidateUrls) {
+            const imgUrl = await scrapeHeroImage(sourceUrl);
+            if (imgUrl) {
+              console.log(`      ✓ Resolved: ${imgUrl}`);
+              story.heroImage = imgUrl;
+              modified = true;
+              break;
+            }
+          }
+          if (!story.heroImage) {
             console.log(`      ✗ No valid cover image found.`);
           }
         }
