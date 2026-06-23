@@ -875,7 +875,9 @@
         card.dataset.region = region;
         card.style.cursor = "pointer";
         card.setAttribute("onclick", `openDeepDive(${idx})`);
+        card.style.position = "relative";
         card.innerHTML = `
+          <button onclick="event.stopPropagation(); confirmDeleteStory(${idx})" title="Delete this deep dive" style="position: absolute; top: 10px; right: 10px; z-index: 2; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--rule); background: var(--bg-card); color: var(--red, #c0392b); cursor: pointer; font-size: 13px; line-height: 1;">🗑️</button>
           <div class="card-accent"></div>
           <div class="card-body">
             <div class="card-top">
@@ -1052,6 +1054,151 @@
       }
     }
 
+    // Best-effort delete of a single repo file (used to clean up generated
+    // static pages/og-images after a story is removed). Never throws — a
+    // missing file is fine, anything else is just logged as a warning.
+    async function deleteRepoFileIfExists(path, headers, owner, repo, message) {
+      try {
+        const getRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, { headers });
+        if (!getRes.ok) {
+          log(`(skip) ${path} not found, nothing to delete.`);
+          return;
+        }
+        const fileJson = await getRes.json();
+        const delRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+          method: "DELETE",
+          headers,
+          body: JSON.stringify({ message, sha: fileJson.sha, branch: "main" })
+        });
+        if (delRes.ok) {
+          log(`Deleted ${path}.`);
+        } else {
+          log(`Warning: could not delete ${path}.`, true);
+        }
+      } catch (e) {
+        log(`Warning: error deleting ${path}: ${e.message}`, true);
+      }
+    }
+
+    function confirmDeleteStory(idx) {
+      const story = adaptStory(currentParsedStories[idx]) || currentParsedStories[idx];
+      if (!story) return;
+      const date = document.getElementById("briefing-date").value;
+      if (!date) {
+        alert("No target date set — select the date this story belongs to first.");
+        return;
+      }
+      const headline = story.headline || story.title || story.id;
+      if (!confirm(`Delete "${headline}" from ${date}? This permanently removes it from the live site and cannot be undone.`)) return;
+      deleteStoryFromGitHub(date, story.id, headline, idx);
+    }
+
+    async function deleteStoryFromGitHub(date, storyId, headline, localIdx) {
+      const owner = localStorage.getItem("gh-owner");
+      const repo = localStorage.getItem("gh-repo");
+      const token = localStorage.getItem("gh-token");
+      if (!owner || !repo || !token) {
+        alert("GitHub configuration missing! Open the settings panel above.");
+        return;
+      }
+
+      const headers = {
+        "Authorization": `token ${token}`,
+        "Content-Type": "application/json",
+        "Accept": "application/vnd.github.v3+json"
+      };
+
+      document.getElementById("logger-section").style.display = "block";
+      log(`Deleting story "${headline}" from ${date}...`);
+
+      try {
+        const dailyRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/${date}.json`, { headers });
+        if (dailyRes.status === 404) {
+          log(`data/${date}.json doesn't exist remotely yet — removing it locally only.`);
+          removeStoryLocally(storyId, localIdx);
+          return;
+        }
+        if (!dailyRes.ok) throw new Error(`Could not load data/${date}.json (HTTP ${dailyRes.status})`);
+
+        const dailyJson = await dailyRes.json();
+        const decoded = atob(dailyJson.content.replace(/\s/g, ''));
+        const payload = JSON.parse(decoded);
+        const before = (payload.stories || []).length;
+        payload.stories = (payload.stories || []).filter(s => s.id !== storyId);
+
+        if (payload.stories.length === before) {
+          log(`Warning: Story id "${storyId}" was not found in remote data/${date}.json.`, true);
+        }
+
+        const dailyBody = {
+          message: `update: remove story ${storyId} from ${date}`,
+          content: btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2)))),
+          sha: dailyJson.sha,
+          branch: "main"
+        };
+        const writeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/${date}.json`, {
+          method: "PUT", headers, body: JSON.stringify(dailyBody)
+        });
+        if (!writeRes.ok) {
+          const errBody = await writeRes.json();
+          throw new Error(`Failed to update data/${date}.json: ${errBody.message}`);
+        }
+        log(`Removed story from data/${date}.json (${payload.stories.length} stories remaining).`);
+
+        // Update (or remove from) data/index.json so the archive count stays accurate
+        const indexRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/index.json`, { headers });
+        if (indexRes.ok) {
+          const indexJson = await indexRes.json();
+          let indexData = JSON.parse(atob(indexJson.content.replace(/\s/g, '')));
+          if (payload.stories.length === 0) {
+            indexData = indexData.filter(e => e.date !== date);
+          } else {
+            const ei = indexData.findIndex(e => e.date === date);
+            if (ei >= 0) indexData[ei].count = payload.stories.length;
+          }
+          const indexBody = {
+            message: `update: index update after removing story from ${date}`,
+            content: btoa(unescape(encodeURIComponent(JSON.stringify(indexData, null, 2)))),
+            sha: indexJson.sha,
+            branch: "main"
+          };
+          const idxWrite = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/index.json`, {
+            method: "PUT", headers, body: JSON.stringify(indexBody)
+          });
+          log(idxWrite.ok ? "Updated data/index.json." : "Warning: failed to update data/index.json.", !idxWrite.ok);
+        }
+
+        // Best-effort cleanup of the generated static page and og-image so the
+        // deleted story isn't still reachable by direct URL.
+        await deleteRepoFileIfExists(`story/${date}/${storyId}/index.html`, headers, owner, repo, `cleanup: remove static page for ${storyId}`);
+        await deleteRepoFileIfExists(`og-images/${date}/${storyId}.png`, headers, owner, repo, `cleanup: remove og image for ${storyId}`);
+
+        log(`Done. "${headline}" has been removed from ${date}.`);
+        alert(`Removed "${headline}" from ${date}. The live site will update shortly.`);
+
+        removeStoryLocally(storyId, localIdx);
+      } catch (err) {
+        log(`Error deleting story: ${err.message}`, true);
+        alert(`Failed to delete story: ${err.message}`);
+      }
+    }
+
+    function removeStoryLocally(storyId, localIdx) {
+      if (typeof localIdx === "number" && currentParsedStories[localIdx]) {
+        currentParsedStories.splice(localIdx, 1);
+      }
+      const rawJsonEl = document.getElementById("raw-json");
+      try {
+        const rawPayload = JSON.parse(rawJsonEl.value);
+        if (rawPayload.stories) {
+          rawPayload.stories = rawPayload.stories.filter(s => s.id !== storyId);
+          rawJsonEl.value = JSON.stringify(rawPayload, null, 2);
+        }
+      } catch (e) { /* raw-json may be empty/invalid; nothing to sync */ }
+      displayPreviews(currentParsedStories);
+      closeDeepDive();
+    }
+
     // Push Notification Dispatcher
     async function dispatchPushNotifications() {
       const secret = prompt("Enter the ADMIN_SECRET to dispatch notifications to all users:");
@@ -1211,6 +1358,9 @@
                 <input type="text" id="override-hero-image" class="input-text" style="flex: 1; padding: 6px 10px; font-size: 12px; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg); color: var(--ink);" value="${story.heroImage || ""}" placeholder="https://example.com/image.jpg" />
                 <button onclick="updateHeroImageOverride(${idx})" class="editor-btn" style="padding: 6px 12px; font-size: 12px; border-radius: 4px; border: none; background: var(--ink); color: var(--bg); font-family: var(--sans); font-weight: 500; cursor: pointer;">Apply</button>
               </div>
+            </div>
+            <div style="margin-bottom: 24px;">
+              <button onclick="confirmDeleteStory(${idx})" class="editor-btn" style="padding: 6px 12px; font-size: 12px; border-radius: 4px; border: 1px solid var(--red, #c0392b); background: none; color: var(--red, #c0392b); font-family: var(--sans); font-weight: 600; cursor: pointer;">🗑️ Delete This Deep Dive</button>
             </div>
             <header class="article-header" style="margin-bottom: 28px;">
               <div class="article-kicker-row">
