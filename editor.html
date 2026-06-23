@@ -335,6 +335,11 @@
           </div>
         </div>
 
+        <div style="margin-bottom: 16px;">
+          <button class="btn btn-secondary" id="btn-flash-load-existing" onclick="loadExistingFlashDay()">📥 Load Existing Day (edit/delete)</button>
+          <p style="font-family: var(--sans); font-size: 12px; color: var(--ink-3); margin-top: 6px;">Pulls the already-published Flash stories for the date above into the editor below, so you can delete any of them, then publish to save.</p>
+        </div>
+
         <div class="form-group">
           <label for="flash-raw-json">Paste Flash JSON (25 Stories Array)</label>
           <textarea id="flash-raw-json" class="input-textarea" placeholder="Paste the daily Flash JSON array directly..."></textarea>
@@ -1534,6 +1539,58 @@
 
     let currentParsedFlashStories = [];
 
+    // Fetch an already-published Flash day from GitHub so its stories can be
+    // edited/deleted and republished via the normal Flash publish flow.
+    async function loadExistingFlashDay() {
+      const date = document.getElementById("flash-date").value;
+      if (!date) {
+        alert("Please select a target date first.");
+        return;
+      }
+
+      const owner = localStorage.getItem("gh-owner");
+      const repo = localStorage.getItem("gh-repo");
+      const token = localStorage.getItem("gh-token");
+      if (!owner || !repo || !token) {
+        alert("GitHub configuration missing! Open the settings panel above.");
+        return;
+      }
+
+      document.getElementById("logger-section").style.display = "block";
+      document.getElementById("console-log").innerHTML = "";
+      log(`Fetching existing Flash stories for ${date}...`);
+
+      try {
+        const headers = {
+          "Authorization": `token ${token}`,
+          "Accept": "application/vnd.github.v3+json"
+        };
+        const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/flash-${date}.json`, { headers });
+        if (res.status === 404) {
+          log(`No existing Flash stories found for ${date}.`, true);
+          alert(`No Flash stories exist yet for ${date}.`);
+          return;
+        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const json = await res.json();
+        const decoded = atob(json.content.replace(/\s/g, ''));
+        const stories = JSON.parse(decoded);
+
+        log(`Loaded ${stories.length} existing Flash stories for ${date}.`);
+        document.getElementById("flash-raw-json").value = JSON.stringify(stories, null, 2);
+        document.getElementById("flash-merge-stories").checked = true;
+
+        currentParsedFlashStories = stories;
+        renderFlashPreviews(stories, {});
+        document.getElementById("flash-results-section").style.display = "block";
+        log(`Click the 🗑️ on any card to delete it, then "Publish to GitHub" to save.`);
+      } catch (err) {
+        log(`Error loading existing Flash day: ${err.message}`, true);
+        alert(`Failed to load existing Flash stories: ${err.message}`);
+      }
+    }
+
     async function runFlashPipeline(shouldPublish = false) {
       try {
         const date = document.getElementById("flash-date").value;
@@ -1896,8 +1953,9 @@
           : "";
           
         return `
-          <div style="background: var(--bg-card); border: 1px solid var(--rule); border-top: 4px solid ${col}; border-radius: var(--radius-sm); padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow-sm); text-align: left;">
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+          <div style="position: relative; background: var(--bg-card); border: 1px solid var(--rule); border-top: 4px solid ${col}; border-radius: var(--radius-sm); padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow-sm); text-align: left;">
+            <button onclick="confirmDeleteFlashStory(${idx})" title="Delete this Flash story" style="position: absolute; top: 10px; right: 10px; z-index: 2; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--rule); background: var(--bg-card); color: var(--red, #c0392b); cursor: pointer; font-size: 12px; line-height: 1;">🗑️</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; padding-right: 28px;">
               <span style="color: ${col}; font-weight: 700; text-transform: uppercase;">${escapeHtml(s.cat)}</span>
               ${(() => {
                 if (!source) return '';
@@ -2119,6 +2177,133 @@
       } catch (err) {
         log(`Error: ${err.message}`, true);
       }
+    }
+
+    function confirmDeleteFlashStory(idx) {
+      const story = currentParsedFlashStories[idx];
+      if (!story) return;
+      const date = document.getElementById("flash-date").value;
+      if (!date) {
+        alert("No target date set — select the date this Flash story belongs to first.");
+        return;
+      }
+      const headline = story.headline || story.hl || story.id;
+      if (!confirm(`Delete "${headline}" from Flash ${date}? This permanently removes it from the live site and cannot be undone.`)) return;
+      deleteFlashStoryFromGitHub(date, story.id, headline, idx);
+    }
+
+    async function deleteFlashStoryFromGitHub(date, storyId, headline, localIdx) {
+      const owner = localStorage.getItem("gh-owner");
+      const repo = localStorage.getItem("gh-repo");
+      const token = localStorage.getItem("gh-token");
+      if (!owner || !repo || !token) {
+        alert("GitHub configuration missing! Open the settings panel above.");
+        return;
+      }
+
+      const headers = {
+        "Authorization": `token ${token}`,
+        "Content-Type": "application/json",
+        "Accept": "application/vnd.github.v3+json"
+      };
+
+      document.getElementById("logger-section").style.display = "block";
+      log(`Deleting Flash story "${headline}" from ${date}...`);
+
+      try {
+        const dailyRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/flash-${date}.json`, { headers });
+        if (dailyRes.status === 404) {
+          log(`data/flash-${date}.json doesn't exist remotely yet — removing it locally only.`);
+          removeFlashStoryLocally(storyId, localIdx);
+          return;
+        }
+        if (!dailyRes.ok) throw new Error(`Could not load data/flash-${date}.json (HTTP ${dailyRes.status})`);
+
+        const dailyJson = await dailyRes.json();
+        const decoded = atob(dailyJson.content.replace(/\s/g, ''));
+        let stories = JSON.parse(decoded);
+        const before = stories.length;
+        stories = stories.filter(s => s.id !== storyId);
+
+        if (stories.length === before) {
+          log(`Warning: Flash story id "${storyId}" was not found in remote data/flash-${date}.json.`, true);
+        }
+
+        const dailyBody = {
+          message: `update: remove Flash story ${storyId} from ${date}`,
+          content: btoa(unescape(encodeURIComponent(JSON.stringify(stories, null, 2)))),
+          sha: dailyJson.sha,
+          branch: "main"
+        };
+        const writeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/flash-${date}.json`, {
+          method: "PUT", headers, body: JSON.stringify(dailyBody)
+        });
+        if (!writeRes.ok) {
+          const errBody = await writeRes.json();
+          throw new Error(`Failed to update data/flash-${date}.json: ${errBody.message}`);
+        }
+        log(`Removed Flash story from data/flash-${date}.json (${stories.length} stories remaining).`);
+
+        // If this date is also reflected in the root flash.json (the live "latest" feed),
+        // remove the story there too so it isn't still showing on the homepage.
+        try {
+          const indexRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/index.json`, { headers });
+          let isLatest = false;
+          if (indexRes.ok) {
+            const indexJson = await indexRes.json();
+            const indexData = JSON.parse(atob(indexJson.content.replace(/\s/g, '')));
+            isLatest = indexData.length > 0 && date >= indexData[0].date;
+          }
+          if (isLatest) {
+            const rootRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/flash.json`, { headers });
+            if (rootRes.ok) {
+              const rootJson = await rootRes.json();
+              let rootStories = JSON.parse(atob(rootJson.content.replace(/\s/g, '')));
+              rootStories = rootStories.filter(s => s.id !== storyId);
+              const rootBody = {
+                message: `update: remove Flash story ${storyId} from root flash.json`,
+                content: btoa(unescape(encodeURIComponent(JSON.stringify(rootStories, null, 2)))),
+                sha: rootJson.sha,
+                branch: "main"
+              };
+              const rootWrite = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/flash.json`, {
+                method: "PUT", headers, body: JSON.stringify(rootBody)
+              });
+              log(rootWrite.ok ? "Removed story from root flash.json as well." : "Warning: failed to update root flash.json.", !rootWrite.ok);
+            }
+          }
+        } catch (e) {
+          log(`Warning: could not check/update root flash.json: ${e.message}`, true);
+        }
+
+        // Best-effort cleanup of the generated static page and og-image so the
+        // deleted Flash story isn't still reachable by direct URL.
+        await deleteRepoFileIfExists(`flash/story/${storyId}/index.html`, headers, owner, repo, `cleanup: remove static Flash page for ${storyId}`);
+        await deleteRepoFileIfExists(`og-images/flash/${storyId}.png`, headers, owner, repo, `cleanup: remove Flash og image for ${storyId}`);
+
+        log(`Done. "${headline}" has been removed from Flash ${date}.`);
+        alert(`Removed "${headline}" from Flash ${date}. The live site will update shortly.`);
+
+        removeFlashStoryLocally(storyId, localIdx);
+      } catch (err) {
+        log(`Error deleting Flash story: ${err.message}`, true);
+        alert(`Failed to delete Flash story: ${err.message}`);
+      }
+    }
+
+    function removeFlashStoryLocally(storyId, localIdx) {
+      if (typeof localIdx === "number" && currentParsedFlashStories[localIdx]) {
+        currentParsedFlashStories.splice(localIdx, 1);
+      }
+      const rawJsonEl = document.getElementById("flash-raw-json");
+      try {
+        let rawStories = JSON.parse(rawJsonEl.value);
+        if (Array.isArray(rawStories)) {
+          rawStories = rawStories.filter(s => s.id !== storyId);
+          rawJsonEl.value = JSON.stringify(rawStories, null, 2);
+        }
+      } catch (e) { /* flash-raw-json may be empty/invalid; nothing to sync */ }
+      renderFlashPreviews(currentParsedFlashStories, {});
     }
 
     function closeDeepDive() {
