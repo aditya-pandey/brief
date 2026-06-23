@@ -1936,32 +1936,30 @@ async function renderStory(date, id) {
           ${s.sources.map(src => `
             <div class="source-card">
               <div class="source-card-info">
-                <h4 class="source-card-name">${esc(src.name)}</h4>
-                <p class="source-card-desc">${esc(src.description)}</p>
+                <h4 class="source-card-name">${esc(src.outlet)}</h4>
+                <p class="source-card-desc">${esc(src.title)}</p>
               </div>
-              <a href="${esc(src.url)}" target="_blank" rel="noopener noreferrer" class="source-card-link">Link &rarr;</a>
+              ${src.url ? `<a href="${esc(src.url)}" target="_blank" rel="noopener noreferrer" class="source-card-link">Link &rarr;</a>` : ''}
             </div>
           `).join("")}
         </div>
       </div>
 
-      <div class="article-related-stories">
-        <h3 class="related-stories-title">More from this Day</h3>
-        <div class="related-stories-list">
-          ${stories.map((story, idx) => `
-            <a href="${BASE_PATH}/story/${date}/${story.id}" class="related-story-item ${story.id === s.id ? 'current' : ''}">
-              <span class="related-story-number">Front ${String(idx + 1).padStart(2, "0")}</span>
-              <span class="related-story-headline">${esc(story.headline)}</span>
-              ${story.id === s.id ? '<span class="related-story-badge">Reading</span>' : ''}
-            </a>
-          `).join("")}
-        </div>
-      </div>
-
-      <div class="desktop-story-nav">
-        ${storyIdx > 0 ? `<a class="story-nav-btn prev" href="${BASE_PATH}/story/${date}/${stories[storyIdx-1].id}">&larr; ${esc(stories[storyIdx-1].headline.slice(0, 40))}...</a>` : "<span></span>"}
-        ${storyIdx < stories.length - 1 ? `<a class="story-nav-btn next" href="${BASE_PATH}/story/${date}/${stories[storyIdx+1].id}">${esc(stories[storyIdx+1].headline.slice(0, 40))}... &rarr;</a>` : "<span></span>"}
-      </div>
+      <nav class="story-bottom-nav">
+        ${storyIdx > 0 ? `
+          <a class="story-nav-card prev" href="${BASE_PATH}/story/${date}/${stories[storyIdx-1].id}">
+            <span class="story-nav-label">&larr; Previous Story</span>
+            <span class="story-nav-title">${esc(stories[storyIdx-1].headline)}</span>
+          </a>
+        ` : `<div class="story-nav-empty"></div>`}
+        
+        ${storyIdx < stories.length - 1 ? `
+          <a class="story-nav-card next" href="${BASE_PATH}/story/${date}/${stories[storyIdx+1].id}">
+            <span class="story-nav-label">Next Story &rarr;</span>
+            <span class="story-nav-title">${esc(stories[storyIdx+1].headline)}</span>
+          </a>
+        ` : `<div class="story-nav-empty"></div>`}
+      </nav>
     </article>
   `;
   
@@ -3249,34 +3247,8 @@ function openFlashStory(storyId) {
   currentMode = "flash";
   localStorage.setItem("currentMode", "flash");
   updateModeToggleUI();
-  
-  // Reset category to "all" to make sure the story can be found
   activeFlashCategory = "all";
-  
-  const isDesktop = window.innerWidth >= 992;
-  if (isDesktop) {
-    // Navigate/route first
-    navigate(`${BASE_PATH}/`);
-    // Scroll to card after short timeout to allow rendering
-    setTimeout(() => {
-      const card = document.querySelector(`[data-id="${storyId}"]`);
-      if (card) {
-        card.scrollIntoView({ behavior: "smooth", block: "center" });
-        card.classList.add("highlighted");
-        setTimeout(() => card.classList.remove("highlighted"), 2000);
-      }
-    }, 150);
-  } else {
-    // Navigate to root to ensure we render flash view
-    navigate(`${BASE_PATH}/`);
-    // Set current flash index
-    const index = flashStories.findIndex(fs => fs.id === storyId);
-    if (index >= 0) {
-      currentFlashIndex = index;
-      selectedFlashStoryId = storyId;
-      renderFlashView();
-    }
-  }
+  navigate(`${BASE_PATH}/#flash-${storyId}`);
 }
 
 function renderRelatedFlashCards(s) {

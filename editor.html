@@ -1419,27 +1419,15 @@
                 ${(story.sources || []).map(src => `
                   <div class="source-card">
                     <div class="source-card-info">
-                      <h4 class="source-card-name">${src.name}</h4>
-                      <p class="source-card-desc">${src.description}</p>
+                      <h4 class="source-card-name">${src.outlet || ""}</h4>
+                      <p class="source-card-desc">${src.title || ""}</p>
                     </div>
-                    <a href="${src.url}" target="_blank" rel="noopener noreferrer" class="source-card-link">Open Link &rarr;</a>
+                    ${src.url ? `<a href="${src.url}" target="_blank" rel="noopener noreferrer" class="source-card-link">Open Link &rarr;</a>` : ""}
                   </div>
                 `).join("")}
               </div>
             </div>
-            
-            <div class="article-related-stories">
-              <h3 class="related-stories-title">More from this Day</h3>
-              <div class="related-stories-list">
-                ${currentParsedStories.map((s, i) => `
-                  <div class="related-story-item ${i === idx ? 'current' : ''}" style="cursor: ${i === idx ? 'default' : 'pointer'};" onclick="${i === idx ? '' : `openDeepDive(${i})`}">
-                    <span class="related-story-number">Front ${String(i + 1).padStart(2, "0")}</span>
-                    <span class="related-story-headline">${s.headline || s.title || ""}</span>
-                    ${i === idx ? '<span class="related-story-badge">Reading</span>' : ''}
-                  </div>
-                `).join("")}
-              </div>
-            </div>
+
           </div>
         </div>
       `;
