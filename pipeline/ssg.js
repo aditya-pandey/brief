@@ -294,13 +294,62 @@ function isGenericImage(src) {
 }
 
 // LLM-generated source URLs sometimes come back wrapped in markdown link
-// syntax (e.g. "[https://x.com/a](https://x.com/a)") instead of a bare URL.
+// syntax (e.g. "[https://x.com/a](https://x.com/a)" or "[The Hindu](https://...)") instead of a bare URL.
 function cleanSourceUrl(raw) {
   if (!raw) return "";
-  let url = raw.trim();
-  const mdLink = url.match(/^\[(https?:\/\/[^\]]+)\]\((https?:\/\/[^)]+)\)$/);
-  if (mdLink) url = mdLink[2] || mdLink[1];
-  return url;
+  raw = raw.trim();
+
+  // Detect markdown link: [text](url)
+  const mdMatch = raw.match(/^\[([\s\S]*?)\]\(([\s\S]*?)\)$/);
+  if (mdMatch) {
+    const text = mdMatch[1].trim();
+    const url = mdMatch[2].trim();
+
+    // Helper to check if a string is a valid absolute HTTP/HTTPS URL
+    const isValidUrl = (str) => {
+      try {
+        const u = new URL(str);
+        return u.protocol === 'http:' || u.protocol === 'https:';
+      } catch (e) {
+        return false;
+      }
+    };
+
+    // If the destination URL is a Google search redirect, try to extract the real URL from the q parameter
+    if (url.startsWith('https://www.google.com/search') || url.startsWith('http://www.google.com/search')) {
+      try {
+        const parsedUrl = new URL(url);
+        const q = parsedUrl.searchParams.get('q');
+        if (q && isValidUrl(q)) {
+          return q;
+        }
+      } catch (e) { }
+    }
+
+    // If the destination URL is valid, return it
+    if (isValidUrl(url)) {
+      return url;
+    }
+
+    // Otherwise, if the link text is a valid URL (not truncated), return that
+    if (isValidUrl(text)) {
+      return text;
+    }
+  }
+
+  // Fallback: if the whole raw string has a URL inside parentheses at the end
+  const parenMatch = raw.match(/\((https?:\/\/[^\s)]+)\)/);
+  if (parenMatch) {
+    return parenMatch[1];
+  }
+
+  // Fallback: if the whole raw string has a URL inside brackets at the start
+  const bracketMatch = raw.match(/^\[(https?:\/\/[^\s\]]+)\]/);
+  if (bracketMatch) {
+    return bracketMatch[1];
+  }
+
+  return raw;
 }
 
 // Scrape og:image directly from URL (runs Node-side, no CORS block)

@@ -54,11 +54,11 @@ function getShareUrl(channel, customUrl = null) {
       'gclid', 'fbclid', 'msclkid'
     ];
     trackingParams.forEach(param => urlObj.searchParams.delete(param));
-    
+
     urlObj.searchParams.set('utm_source', channel);
     urlObj.searchParams.set('utm_medium', 'social');
     urlObj.searchParams.set('utm_campaign', 'share');
-    
+
     return urlObj.toString();
   } catch (e) {
     console.error("Failed to parse share URL:", e);
@@ -73,7 +73,7 @@ const app = $("app");
 
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, c =>
-    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 function navigate(path) {
   history.pushState(null, "", path);
@@ -84,15 +84,15 @@ function formatMdText(s) {
   return esc(s).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 }
 function leanClass(lean) {
-  const l = (lean||"").toLowerCase();
-  if (l.includes("left"))  return "lean-left";
+  const l = (lean || "").toLowerCase();
+  if (l.includes("left")) return "lean-left";
   if (l.includes("right")) return "lean-right";
   return "lean-center";
 }
 function sourceBuckets(sources = []) {
-  const buckets = { left:0, center:0, right:0, other:0 };
+  const buckets = { left: 0, center: 0, right: 0, other: 0 };
   sources.forEach(s => {
-    const l = (s.lean||"").toLowerCase();
+    const l = (s.lean || "").toLowerCase();
     if (l.includes("left")) buckets.left++;
     else if (l.includes("right")) buckets.right++;
     else if (l.includes("center")) buckets.center++;
@@ -109,27 +109,31 @@ function keyPhrase(text = "") {
   const stop = new Set("the a an and or of on in to for by with from as is are was were be been this that into amid against after before over under through it its their".split(" "));
   const words = String(text).toLowerCase().match(/[a-z][a-z-]{3,}/g) || [];
   const counts = {};
-  words.forEach(w => { if (!stop.has(w)) counts[w] = (counts[w]||0) + 1; });
-  return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([w]) => w);
+  words.forEach(w => { if (!stop.has(w)) counts[w] = (counts[w] || 0) + 1; });
+  return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([w]) => w);
 }
 function fmtLong(iso) {
-  try { return new Date(iso+"T00:00:00").toLocaleDateString("en-IN",
-    {weekday:"long",day:"numeric",month:"long",year:"numeric"}); }
+  try {
+    return new Date(iso + "T00:00:00").toLocaleDateString("en-IN",
+      { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  }
   catch { return iso; }
 }
 function fmtShort(iso) {
   try {
-    const d = new Date(iso+"T00:00:00");
-    return {day:d.getDate(), month:d.toLocaleDateString("en-IN",{month:"short"}).toUpperCase(),
-            year:d.getFullYear(), dow:d.toLocaleDateString("en-IN",{weekday:"short"}).toUpperCase()};
-  } catch { return {day:iso,month:"",year:"",dow:""}; }
+    const d = new Date(iso + "T00:00:00");
+    return {
+      day: d.getDate(), month: d.toLocaleDateString("en-IN", { month: "short" }).toUpperCase(),
+      year: d.getFullYear(), dow: d.toLocaleDateString("en-IN", { weekday: "short" }).toUpperCase()
+    };
+  } catch { return { day: iso, month: "", year: "", dow: "" }; }
 }
 function fmtHeaderDate(iso) {
   try {
     if (!iso || iso === "Unknown Date" || !iso.includes("-")) return iso || "Unknown Date";
-    const d = new Date(iso+"T00:00:00");
+    const d = new Date(iso + "T00:00:00");
     if (isNaN(d.getTime())) return iso;
-    return d.toLocaleDateString("en-IN", {weekday:"long", day:"numeric", month:"short", year:"numeric"});
+    return d.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short", year: "numeric" });
   }
   catch { return iso; }
 }
@@ -140,7 +144,7 @@ if (saved) document.documentElement.setAttribute("data-theme", saved);
 const themeToggleBtn = $("theme-toggle");
 if (themeToggleBtn) {
   themeToggleBtn.onclick = () => {
-    const next = document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark";
+    const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
     localStorage.setItem("theme", next);
     trackEvent("theme_toggle", "Preferences", next);
@@ -149,7 +153,7 @@ if (themeToggleBtn) {
 const desktopThemeBtn = $("desktop-theme-btn");
 if (desktopThemeBtn) {
   desktopThemeBtn.onclick = () => {
-    const next = document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark";
+    const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
     localStorage.setItem("theme", next);
     trackEvent("theme_toggle", "Preferences", next);
@@ -163,7 +167,7 @@ async function initPushNotifications() {
 
   try {
     const pushService = await import('./push-placeholder.js');
-    
+
     // Check current state
     const { supported, subscribed } = await pushService.getSubscriptionStatus();
     if (!supported) {
@@ -240,7 +244,7 @@ async function getHeroImage(url) {
     const json = await res.json();
     const html = json.contents;
     if (!html) return null;
-    
+
     const m =
       html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
       html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ||
@@ -252,9 +256,9 @@ async function getHeroImage(url) {
         if (!src.startsWith("http")) {
           try {
             src = new URL(src, url).href;
-          } catch(e) {}
+          } catch (e) { }
         }
-        
+
         // Filter out generic/publication logo/placeholder images
         const lowerSrc = src.toLowerCase();
         const blacklist = [
@@ -266,19 +270,19 @@ async function getHeroImage(url) {
           'publication-logo', 'default.jpg', 'default.png', 'default.jpeg',
           'og-image', 'og_image'
         ];
-        
+
         const isGeneric = blacklist.some(word => lowerSrc.includes(word)) ||
-                          lowerSrc.includes('/logo') ||
-                          lowerSrc.includes('_logo') ||
-                          lowerSrc.includes('-logo') ||
-                          lowerSrc.includes('/brand') ||
-                          lowerSrc.includes('/icon') ||
-                          /\b(logo|brand|icon|placeholder)\b/.test(lowerSrc);
-        
+          lowerSrc.includes('/logo') ||
+          lowerSrc.includes('_logo') ||
+          lowerSrc.includes('-logo') ||
+          lowerSrc.includes('/brand') ||
+          lowerSrc.includes('/icon') ||
+          /\b(logo|brand|icon|placeholder)\b/.test(lowerSrc);
+
         if (isGeneric) {
           return null;
         }
-        
+
         return src;
       }
     }
@@ -298,7 +302,7 @@ function startScrollProgress(totalReadingTime) {
   scrollProgressActive = true;
   const bar = $("progress-bar");
   const headerCenter = $("flash-header-center");
-  
+
   bar.style.width = "0%";
   if (headerCenter) {
     headerCenter.style.display = "none";
@@ -310,7 +314,7 @@ function startScrollProgress(totalReadingTime) {
     const totalHeight = el.scrollHeight - el.clientHeight;
     const pct = totalHeight > 0 ? (window.scrollY / totalHeight) * 100 : 0;
     bar.style.width = Math.min(pct, 100) + "%";
-    
+
     const minutesLeft = Math.ceil(totalReadingTime * (1 - pct / 100));
     requestAnimationFrame(update);
   }
@@ -325,7 +329,7 @@ function startProgress() {
     if (!progressActive) return;
     const el = document.documentElement;
     const pct = el.scrollTop / (el.scrollHeight - el.clientHeight) * 100;
-    bar.style.width = Math.min(pct,100)+"%";
+    bar.style.width = Math.min(pct, 100) + "%";
     requestAnimationFrame(update);
   }
   requestAnimationFrame(update);
@@ -344,9 +348,9 @@ function stopProgress() {
 /* ── Data loading ──────────────────────────────────────────── */
 async function loadIndex() {
   if (indexEntries.length) return indexEntries;
-  const r = await fetch(DATA+"index.json",{cache:"no-store"});
+  const r = await fetch(DATA + "index.json", { cache: "no-store" });
   const raw = await r.json();
-  const mapped = raw.map(x => typeof x==="string" ? {date:x,count:null} : x);
+  const mapped = raw.map(x => typeof x === "string" ? { date: x, count: null } : x);
   const unique = [];
   const seen = new Set();
   for (const entry of mapped) {
@@ -356,7 +360,7 @@ async function loadIndex() {
     }
   }
   indexEntries = unique;
-  
+
   const sel = $("archive-select");
   if (sel && indexEntries.length > 0) {
     sel.max = indexEntries[0].date;
@@ -380,16 +384,16 @@ function initDatePicker() {
           p = p.replace(/\/+$/, "") || "/";
           if (BASE_PATH && p.startsWith(BASE_PATH)) p = p.slice(BASE_PATH.length) || "/";
           p = p.replace(/\/+$/, "") || "/";
-          
+
           const briefingsDayMatch = p.match(/^\/briefings\/day\/([^/]+)$/);
           const flashDayMatch = p.match(/^\/flash\/day\/([^/]+)$/);
           const storyMatch = p.match(/^\/story\/([^/]+)\/(.+)$/);
-          
+
           let curDate = indexEntries[0]?.date;
           if (briefingsDayMatch) curDate = briefingsDayMatch[1];
           else if (flashDayMatch) curDate = flashDayMatch[1];
           else if (storyMatch) curDate = storyMatch[1];
-          
+
           sel.value = curDate || "";
         };
 
@@ -437,13 +441,13 @@ function initDatePicker() {
 function adaptStory(story) {
   if (!story) return null;
   if (story._adapted) return story;
-  
+
   // Detect if the story is in the new question-based schema format
   const isNewSchema = Array.isArray(story.sections) && story.sections.length > 0;
-                      
+
   if (isNewSchema) {
     const sections = [];
-    
+
     // Map Q&A sections
     if (story.sections && Array.isArray(story.sections)) {
       story.sections.forEach(sec => {
@@ -460,7 +464,7 @@ function adaptStory(story) {
         }
       });
     }
-    
+
     // Map strategic_assessment
     if (story.strategic_assessment) {
       sections.push({
@@ -468,7 +472,7 @@ function adaptStory(story) {
         content: story.strategic_assessment
       });
     }
-    
+
     // Map facts_vs_claims
     if (story.facts_vs_claims) {
       let content = "";
@@ -486,7 +490,7 @@ function adaptStory(story) {
         });
       }
     }
-    
+
     // Map confidence_note (optional)
     if (story.confidence_note) {
       sections.push({
@@ -494,12 +498,12 @@ function adaptStory(story) {
         content: story.confidence_note
       });
     }
-    
+
     // Map sources
     const sources = (story.sources || []).map(s => {
       let name = s.outlet || s.name || "Source";
       if (s.desk) name += ` / ${s.desk}`;
-      
+
       let description = s.title || "";
       const tags = [];
       if (s.lean) tags.push(s.lean);
@@ -508,14 +512,21 @@ function adaptStory(story) {
         description += (description ? " " : "") + `(${tags.join(" · ")})`;
       }
       if (!description && s.description) description = s.description;
-      
+
+      const cleanedUrl = cleanSourceUrl(s.url) || s.url || "#";
+
       return {
         name: name,
         description: description || "Reference source",
-        url: s.url || "#"
+        url: cleanedUrl,
+        outlet: s.outlet || s.name || name,
+        title: s.title || s.description || description || "Reference source",
+        desk: s.desk || "",
+        lean: s.lean || "center",
+        region: s.region || "global"
       };
     });
-    
+
     return {
       id: story.id,
       headline: story.headline || story.title,
@@ -531,10 +542,10 @@ function adaptStory(story) {
       _adapted: true
     };
   }
-  
+
   // Old schema fallback
   const sections = [];
-  
+
   if (story.situational_analysis) {
     let content = "";
     const sa = story.situational_analysis;
@@ -546,11 +557,11 @@ function adaptStory(story) {
     if (sa.how) content += `**Mechanisms:** ${sa.how}\n\n`;
     if (content) sections.push({ title: "Situational Analysis", content: content.trim() });
   }
-  
+
   if (story.strategic_assessment) {
     sections.push({ title: "Strategic Assessment", content: story.strategic_assessment });
   }
-  
+
   if (story.perspective_matrix) {
     let content = "";
     const pm = story.perspective_matrix;
@@ -561,7 +572,7 @@ function adaptStory(story) {
     if (pm.right_leaning) content += `**Right Leaning:** ${pm.right_leaning}\n\n`;
     if (content) sections.push({ title: "Perspective Matrix", content: content.trim() });
   }
-  
+
   if (story.facts_vs_claims) {
     let content = "";
     const fc = story.facts_vs_claims;
@@ -573,11 +584,11 @@ function adaptStory(story) {
     }
     if (content) sections.push({ title: "Facts vs Claims", content: content.trim() });
   }
-  
+
   if (story.blind_spot) {
     sections.push({ title: "Underreported Angles", content: story.blind_spot });
   }
-  
+
   if (story.editorial_expert_insight) {
     let content = "";
     const ei = story.editorial_expert_insight;
@@ -585,27 +596,37 @@ function adaptStory(story) {
     if (ei.analysis) content += `**Expert Analysis:** ${ei.analysis}\n\n`;
     if (content) sections.push({ title: "Expert & Editorial Insight", content: content.trim() });
   }
-  
+
   if (story.stakeholder_impact && story.stakeholder_impact.length) {
     const content = story.stakeholder_impact.map(s => `- **${s.stakeholder}:** ${s.impact}`).join("\n");
     sections.push({ title: "Stakeholder Impact", content });
   }
-  
+
   if (story.context_background) {
     sections.push({ title: "Historical Context", content: story.context_background });
   }
-  
+
   if (story.timeline && story.timeline.length) {
     const content = story.timeline.map(t => `**${t.when}:** ${t.event}`).join("\n\n");
     sections.push({ title: "Timeline of Events", content });
   }
-  
-  const sources = (story.sources || []).map(s => ({
-    name: s.outlet || s.name || "Source",
-    description: s.description || `${s.lean || "center"} · ${s.region || "global"}`,
-    url: s.url || "#"
-  }));
-  
+
+  const sources = (story.sources || []).map(s => {
+    const cleanedUrl = cleanSourceUrl(s.url) || s.url || "#";
+    const name = s.outlet || s.name || "Source";
+    const description = s.description || s.title || `${s.lean || "center"} · ${s.region || "global"}`;
+    return {
+      name: name,
+      description: description,
+      url: cleanedUrl,
+      outlet: s.outlet || s.name || name,
+      title: s.title || s.description || description,
+      desk: s.desk || "",
+      lean: s.lean || "center",
+      region: s.region || "global"
+    };
+  });
+
   return {
     id: story.id,
     headline: story.headline || story.title,
@@ -624,8 +645,8 @@ function adaptStory(story) {
 
 async function loadDay(date) {
   if (dayCache[date]) return dayCache[date];
-  const r = await fetch(`${DATA}${date}.json`,{cache:"no-store"});
-  if (!r.ok) throw new Error("No data for "+date);
+  const r = await fetch(`${DATA}${date}.json`, { cache: "no-store" });
+  if (!r.ok) throw new Error("No data for " + date);
   const data = await r.json();
   if (data.stories && Array.isArray(data.stories)) {
     data.stories = data.stories.map(s => adaptStory(s));
@@ -638,17 +659,17 @@ async function loadDay(date) {
    ICON LIBRARY — inline SVGs for visual section headers
    ══════════════════════════════════════════════════════════════ */
 const ICON = {
-  hex:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 7 22 17 12 22 2 17 2 7"/></svg>`,
-  chess:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-7h6v7"/></svg>`,
-  scale:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 8h18M6 8l-3 6a3 3 0 0 0 6 0L6 8zM18 8l-3 6a3 3 0 0 0 6 0L18 8z"/></svg>`,
-  fact:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
-  eye:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="21" x2="21" y2="3"/></svg>`,
-  quote:   `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 6h4v4H8c0 2 1 3 3 3v3c-3 0-4-2-4-4V6zm9 0h4v4h-3c0 2 1 3 3 3v3c-3 0-4-2-4-4V6z"/></svg>`,
-  impact:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" opacity=".5"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg>`,
-  clock:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
-  timeline:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="5" cy="12" r="2"/><line x1="5" y1="8" x2="5" y2="10"/><line x1="5" y1="14" x2="5" y2="16"/><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="16" y2="12"/><line x1="9" y1="18" x2="18" y2="18"/></svg>`,
-  bulb:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c1 .9 1 1.6 1 2.3v1h6v-1c0-.7 0-1.4 1-2.3A7 7 0 0 0 12 2z"/></svg>`,
-  link:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>`,
+  hex: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 7 22 17 12 22 2 17 2 7"/></svg>`,
+  chess: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-7h6v7"/></svg>`,
+  scale: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 8h18M6 8l-3 6a3 3 0 0 0 6 0L6 8zM18 8l-3 6a3 3 0 0 0 6 0L18 8z"/></svg>`,
+  fact: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  eye: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="21" x2="21" y2="3"/></svg>`,
+  quote: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 6h4v4H8c0 2 1 3 3 3v3c-3 0-4-2-4-4V6zm9 0h4v4h-3c0 2 1 3 3 3v3c-3 0-4-2-4-4V6z"/></svg>`,
+  impact: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" opacity=".5"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg>`,
+  clock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  timeline: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="5" cy="12" r="2"/><line x1="5" y1="8" x2="5" y2="10"/><line x1="5" y1="14" x2="5" y2="16"/><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="16" y2="12"/><line x1="9" y1="18" x2="18" y2="18"/></svg>`,
+  bulb: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c1 .9 1 1.6 1 2.3v1h6v-1c0-.7 0-1.4 1-2.3A7 7 0 0 0 12 2z"/></svg>`,
+  link: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>`,
 };
 
 /* Decorative hero pattern (geometric, story-themed) */
@@ -656,7 +677,7 @@ function hashStr(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = ((hash << 5) - hash) + str.charCodeAt(i);
-    hash |= 0; 
+    hash |= 0;
   }
   return Math.abs(hash);
 }
@@ -675,14 +696,14 @@ function semanticGraphic(story, idx = 0) {
     let x = Math.sin(hash++) * 10000;
     return x - Math.floor(x);
   }
-  
+
   // Claude-inspired ultra-soft pastel backgrounds
   const bgs = ["#F4F4F5", "#F8FAFC", "#FAF5FF", "#FDF4FF", "#FFFBEB", "#F0FDF4", "#F0F9FF", "#FEF2F2", "#FFF7ED"];
   const bg = bgs[Math.floor(rand() * bgs.length)];
 
-  const stroke = "currentColor"; 
-  const sw = "1.5"; 
-  
+  const stroke = "currentColor";
+  const sw = "1.5";
+
   const common = `fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"`;
 
   const library = {
@@ -890,7 +911,7 @@ function semanticGraphic(story, idx = 0) {
 
   const icons = library[activeTheme];
   const icon = icons[Math.floor(rand() * icons.length)];
-  
+
   return `<div class="cover-pattern" aria-hidden="true" style="--pastel-bg:${bg}; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
     <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet" style="width:100%; height:100%; max-width:240px; max-height:240px; padding: 24px;">
       ${icon}
@@ -904,9 +925,9 @@ function sourceDistribution(sources) {
   const buckets = sourceBuckets(sources);
   const total = sources.length;
   const segs = [
-    { cls:"seg-left",   n:buckets.left,   label:"Left" },
-    { cls:"seg-center", n:buckets.center+buckets.other, label:"Center" },
-    { cls:"seg-right",  n:buckets.right,  label:"Right" },
+    { cls: "seg-left", n: buckets.left, label: "Left" },
+    { cls: "seg-center", n: buckets.center + buckets.other, label: "Center" },
+    { cls: "seg-right", n: buckets.right, label: "Right" },
   ].filter(s => s.n > 0);
   return `
     <div class="source-dist">
@@ -917,9 +938,9 @@ function sourceDistribution(sources) {
       </div>
       <div class="source-dist-legend">
         <span><span class="dot lean-left"></span>${buckets.left} Left</span>
-        <span><span class="dot lean-center"></span>${buckets.center+buckets.other} Center</span>
+        <span><span class="dot lean-center"></span>${buckets.center + buckets.other} Center</span>
         <span><span class="dot lean-right"></span>${buckets.right} Right</span>
-        <span class="source-dist-total">${total} source${total!==1?"s":""}</span>
+        <span class="source-dist-total">${total} source${total !== 1 ? "s" : ""}</span>
       </div>
     </div>`;
 }
@@ -938,23 +959,23 @@ function miniSourceBar(sources) {
 }
 
 function storyVisual(story, idx = 0) {
-  const region = (story.region||"global").toLowerCase();
-  
+  const region = (story.region || "global").toLowerCase();
+
   if (story.heroImage) {
     return `
       <div class="story-viz ${region}" aria-hidden="true" style="overflow:hidden; position:relative; width: 100%; height: 180px; min-height: 180px; border-bottom: 1px solid var(--rule); display: flex; align-items: center; justify-content: center; background: var(--bg-card-h);">
         <img src="${story.heroImage}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
         <div style="position:absolute; bottom:12px; right:12px; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); color:#fff; padding:4px 8px; border-radius:4px; font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.05em;">
-          STORY ${String(idx+1).padStart(2,"0")}
+          STORY ${String(idx + 1).padStart(2, "0")}
         </div>
       </div>`;
   }
-  
+
   return `
     <div class="story-viz ${region}" aria-hidden="true" style="overflow:hidden; position:relative; width: 100%; height: 180px; min-height: 180px; border-bottom: 1px solid var(--rule);">
       ${semanticGraphic(story, idx)}
       <div style="position:absolute; bottom:12px; right:12px; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); color:#fff; padding:4px 8px; border-radius:4px; font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.05em;">
-        STORY ${String(idx+1).padStart(2,"0")}
+        STORY ${String(idx + 1).padStart(2, "0")}
       </div>
     </div>`;
 }
@@ -963,14 +984,14 @@ function storyVisual(story, idx = 0) {
 
 /* Sentiment detection for impact text (heuristic) */
 function impactSentiment(text) {
-  const t = (text||"").toLowerCase();
+  const t = (text || "").toLowerCase();
   const neg = /(loss|risk|threat|damage|decline|fall|drop|fail|crisis|burden|deficit|erode|harm|suffer|hurt|crash|collapse|cost|hit|sanction|tension|conflict|strain)/g;
   const pos = /(gain|win|benefit|grow|boost|rise|surge|profit|opportunity|stronger|advance|protect|secure|relief|recovery|invest)/g;
-  const n = (t.match(neg)||[]).length;
-  const p = (t.match(pos)||[]).length;
-  if (p > n + 1) return { dir:"up",   label:"Positive" };
-  if (n > p + 1) return { dir:"down", label:"Negative" };
-  return { dir:"mixed", label:"Mixed" };
+  const n = (t.match(neg) || []).length;
+  const p = (t.match(pos) || []).length;
+  if (p > n + 1) return { dir: "up", label: "Positive" };
+  if (n > p + 1) return { dir: "down", label: "Negative" };
+  return { dir: "mixed", label: "Mixed" };
 }
 
 function firstSentence(text = "", max = 170) {
@@ -980,7 +1001,7 @@ function firstSentence(text = "", max = 170) {
 }
 function metricScore(text = "", positiveWords = [], negativeWords = []) {
   const t = String(text || "").toLowerCase();
-  const hit = words => words.reduce((n,w) => n + (t.includes(w) ? 1 : 0), 0);
+  const hit = words => words.reduce((n, w) => n + (t.includes(w) ? 1 : 0), 0);
   return Math.max(22, Math.min(96, 54 + hit(positiveWords) * 9 + hit(negativeWords) * 11));
 }
 function actorList(story) {
@@ -1027,7 +1048,7 @@ function intelligenceTiles(story) {
     ["WHY", "Motive", sa.why, "tile-teal"],
     ["IMPACT", "Effect", story.stakeholder_impact?.[0]?.impact || story.strategic_assessment, "tile-green"],
   ].filter(([, , v]) => v);
-  return tiles.map(([k,label,text,cls]) => `
+  return tiles.map(([k, label, text, cls]) => `
     <button class="intel-tile ${cls}" type="button">
       <span class="tile-code">${k}</span>
       <strong>${label}</strong>
@@ -1041,9 +1062,9 @@ function mobileBriefingCards(story, slides) {
   const facts = story.facts_vs_claims || {};
   const sources = story.sources || [];
   const threatScore = metricScore(`${story.tldr} ${story.blind_spot} ${story.strategic_assessment}`,
-    ["benefit","relief","recovery"], ["war","threat","risk","crisis","collapse","breach","strike","inflation"]);
-  const impactScore = metricScore(story.stakeholder_impact?.map(x=>x.impact).join(" ") || story.strategic_assessment,
-    ["gain","boost","opportunity"], ["risk","threat","loss","collapse","strain","inflation"]);
+    ["benefit", "relief", "recovery"], ["war", "threat", "risk", "crisis", "collapse", "breach", "strike", "inflation"]);
+  const impactScore = metricScore(story.stakeholder_impact?.map(x => x.impact).join(" ") || story.strategic_assessment,
+    ["gain", "boost", "opportunity"], ["risk", "threat", "loss", "collapse", "strain", "inflation"]);
   const timelineItems = story.timeline?.length ? story.timeline : [
     { when: "Now", event: sa.what || story.tldr },
     { when: "Why", event: sa.why || story.strategic_assessment },
@@ -1055,11 +1076,11 @@ function mobileBriefingCards(story, slides) {
     ["Right", pm.right_leaning, "lean-right"],
     ["India", pm.indian_media, "scope"],
     ["Global", pm.western_international || pm.global_media, "scope"],
-  ].filter(([,v]) => v);
+  ].filter(([, v]) => v);
 
   return [
     {
-      id:"overview", label:"Situation", kicker:"CLASSIFIED BRIEFING", tone:"hero",
+      id: "overview", label: "Situation", kicker: "CLASSIFIED BRIEFING", tone: "hero",
       summary: `
         ${intelMap(story)}
         <h1>${esc(story.headline)}</h1>
@@ -1078,68 +1099,68 @@ function mobileBriefingCards(story, slides) {
         </dl>`
     },
     {
-      id:"what", label:"5W1H", kicker:"FIELD NOTES", tone:"tiles",
+      id: "what", label: "5W1H", kicker: "FIELD NOTES", tone: "tiles",
       summary: `<h2>What Happened</h2><p>${esc(firstSentence(sa.what || story.tldr, 180))}</p><div class="intel-tile-grid">${intelligenceTiles(story)}</div>`,
       detail: `<h2>Full 5W1H Intelligence</h2><div class="intel-report-grid">
-        ${[["What",sa.what],["Who",sa.who],["When",sa.when],["Where",sa.where],["Why",sa.why],["How",sa.how]].filter(([,v])=>v).map(([k,v])=>`
+        ${[["What", sa.what], ["Who", sa.who], ["When", sa.when], ["Where", sa.where], ["Why", sa.why], ["How", sa.how]].filter(([, v]) => v).map(([k, v]) => `
           <section><strong>${k}</strong><p>${esc(v)}</p></section>`).join("")}
       </div>`
     },
     {
-      id:"timeline", label:"Timeline", kicker:"EVENT REEL", tone:"timeline",
+      id: "timeline", label: "Timeline", kicker: "EVENT REEL", tone: "timeline",
       summary: `<h2>Timeline</h2><p>${esc(firstSentence(timelineItems[0]?.event || story.context_background || story.tldr, 170))}</p>
-        <div class="story-reel">${timelineItems.slice(0,3).map((o,i)=>`
+        <div class="story-reel">${timelineItems.slice(0, 3).map((o, i) => `
           <article style="--i:${i}"><span>${esc(o.when)}</span><strong>${esc(firstSentence(o.event, 92))}</strong></article>`).join("")}</div>`,
       detail: `<h2>Event Sequence</h2><div class="intel-timeline">
-        ${timelineItems.map((o,i)=>`<article><b>${String(i+1).padStart(2,"0")}</b><span>${esc(o.when)}</span><p>${esc(o.event)}</p></article>`).join("")}
+        ${timelineItems.map((o, i) => `<article><b>${String(i + 1).padStart(2, "0")}</b><span>${esc(o.when)}</span><p>${esc(o.event)}</p></article>`).join("")}
       </div>`
     },
     {
-      id:"map", label:"Network", kicker:"RELATIONSHIP MAP", tone:"map",
+      id: "map", label: "Network", kicker: "RELATIONSHIP MAP", tone: "map",
       summary: `${intelMap(story)}<h2>Relationship Map</h2><p>${esc(firstSentence(sa.who || story.context_background || story.tldr, 180))}</p>`,
       detail: `<h2>Network Reading</h2><p>${esc(sa.who || "The available briefing does not isolate a single actor network.")}</p><p>${esc(story.context_background || "")}</p>`
     },
     {
-      id:"perspective", label:"Perspectives", kicker:"NARRATIVE SPLIT", tone:"matrix",
+      id: "perspective", label: "Perspectives", kicker: "NARRATIVE SPLIT", tone: "matrix",
       summary: `<h2>Perspective Matrix</h2><div class="mobile-spectrum"><span>Left</span><b></b><span>Right</span></div>
-        <div class="matrix-chips">${perspectiveItems.slice(0,3).map(([k,v,cls])=>`<article class="${cls}"><strong>${k}</strong><p>${esc(firstSentence(v, 104))}</p></article>`).join("")}</div>`,
+        <div class="matrix-chips">${perspectiveItems.slice(0, 3).map(([k, v, cls]) => `<article class="${cls}"><strong>${k}</strong><p>${esc(firstSentence(v, 104))}</p></article>`).join("")}</div>`,
       detail: `<h2>Competing Readings</h2><div class="matrix-deep">
-        ${perspectiveItems.map(([k,v,cls])=>`<section class="${cls}"><strong>${k}</strong><p>${esc(v)}</p></section>`).join("")}
+        ${perspectiveItems.map(([k, v, cls]) => `<section class="${cls}"><strong>${k}</strong><p>${esc(v)}</p></section>`).join("")}
       </div>`
     },
     {
-      id:"facts", label:"Evidence", kicker:"FACTS VS CLAIMS", tone:"evidence",
+      id: "facts", label: "Evidence", kicker: "FACTS VS CLAIMS", tone: "evidence",
       summary: `<h2>Evidence Split</h2><div class="evidence-split">
         <article><span>Facts</span><strong>${facts.facts?.length || 0}</strong><p>${esc(firstSentence(facts.facts?.[0] || "No verified fact list provided.", 100))}</p></article>
         <article><span>Claims</span><strong>${facts.claims?.length || 0}</strong><p>${esc(firstSentence(facts.claims?.[0] || "No contested claim list provided.", 100))}</p></article>
       </div>`,
       detail: `<h2>Evidence Ledger</h2><div class="ledger">
-        <section><strong>Verified Facts</strong>${(facts.facts||[]).map(x=>`<p>${esc(x)}</p>`).join("")}</section>
-        <section><strong>Claims</strong>${(facts.claims||[]).map(x=>`<p>${esc(x)}</p>`).join("")}</section>
+        <section><strong>Verified Facts</strong>${(facts.facts || []).map(x => `<p>${esc(x)}</p>`).join("")}</section>
+        <section><strong>Claims</strong>${(facts.claims || []).map(x => `<p>${esc(x)}</p>`).join("")}</section>
       </div>`
     },
     {
-      id:"impact", label:"Impact", kicker:"STAKEHOLDER RISK", tone:"impact",
+      id: "impact", label: "Impact", kicker: "STAKEHOLDER RISK", tone: "impact",
       summary: `<h2>Stakeholder Impact</h2><div class="impact-radar" style="--impact:${impactScore}%"><strong>${impactScore}</strong><span>impact</span></div>
         <p>${esc(firstSentence(story.stakeholder_impact?.[0]?.impact || story.strategic_assessment, 180))}</p>`,
       detail: `<h2>Impact Assessment</h2><div class="impact-deep">
-        ${(story.stakeholder_impact||[]).map(o=>`<section><strong>${esc(o.stakeholder)}</strong><p>${esc(o.impact)}</p></section>`).join("") || `<p>${esc(story.strategic_assessment || "")}</p>`}
+        ${(story.stakeholder_impact || []).map(o => `<section><strong>${esc(o.stakeholder)}</strong><p>${esc(o.impact)}</p></section>`).join("") || `<p>${esc(story.strategic_assessment || "")}</p>`}
       </div>`
     },
     {
-      id:"context", label:"Context", kicker:"ARCHIVE BACKDROP", tone:"context",
+      id: "context", label: "Context", kicker: "ARCHIVE BACKDROP", tone: "context",
       summary: `<h2>Historical Context</h2><p>${esc(firstSentence(story.context_background || story.simple_explanation, 190))}</p>`,
       detail: `<h2>Background File</h2><p>${esc(story.context_background || "")}</p><h2>Plain Terms</h2><p>${esc(story.simple_explanation || "")}</p>`
     },
     {
-      id:"sources", label:"Sources", kicker:"SOURCE ANALYSIS", tone:"sources",
+      id: "sources", label: "Sources", kicker: "SOURCE ANALYSIS", tone: "sources",
       summary: `<h2>Source Analysis</h2>${sourceDistribution(sources)}<p>Source transparency and outlet leanings are detailed below.</p>`,
       detail: `<h2>Transparency Log</h2><p>Attributed sources used in this briefing:</p><ul class="mobile-source-list">
-        ${sources.map(src=>`<li><span class="${leanClass(src.lean)}"></span><a href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.outlet)}</a><em>${esc(src.lean)} · ${esc(src.region)}</em></li>`).join("")}
+        ${sources.map(src => `<li><span class="${leanClass(src.lean)}"></span><a href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.outlet)}</a><em>${esc(src.lean)} · ${esc(src.region)}</em></li>`).join("")}
       </ul>`
     },
     {
-      id:"strategy", label:"Strategy", kicker:"STRATEGIC ASSESSMENT", tone:"strategy",
+      id: "strategy", label: "Strategy", kicker: "STRATEGIC ASSESSMENT", tone: "strategy",
       summary: `<h2>Strategic Assessment</h2><p>${esc(firstSentence(story.strategic_assessment, 190))}</p>`,
       detail: `<h2>Strategic Assessment</h2><p>${esc(story.strategic_assessment || "")}</p><h2>Blind Spot</h2><p>${esc(story.blind_spot || "")}</p>`
     },
@@ -1151,12 +1172,13 @@ function mobileBriefingCards(story, slides) {
    ══════════════════════════════════════════════════════════════ */
 function buildSlides(s, date) {
   const slides = [];
-  const region = (s.region||"global").toLowerCase();
-  const sourceCount = (s.sources||[]).length;
+  const region = (s.region || "global").toLowerCase();
+  const sourceCount = (s.sources || []).length;
   const readMin = readMinutes(s);
 
   // 1 · Cover
-  slides.push({ id:"cover", label:"Overview", icon:"◉", html:`
+  slides.push({
+    id: "cover", label: "Overview", icon: "◉", html: `
     <div class="slide-cover">
       <div class="slide-cover-visual" style="background-color: ${semanticGraphicBg(s)};">
         ${semanticGraphic(s, 0)}
@@ -1189,16 +1211,17 @@ function buildSlides(s, date) {
 
   // 2. Situational Analysis (5W1H)
   const sa = s.situational_analysis;
-  const wIcons = { "WHAT":"▣", "WHY":"?", "WHO":"◉", "WHEN":"⏱", "WHERE":"⌖", "HOW":"⚙" };
-  if (sa) slides.push({ id:"situational", label:"Situational Analysis", icon:"⬡", html:`
+  const wIcons = { "WHAT": "▣", "WHY": "?", "WHO": "◉", "WHEN": "⏱", "WHERE": "⌖", "HOW": "⚙" };
+  if (sa) slides.push({
+    id: "situational", label: "Situational Analysis", icon: "⬡", html: `
     <div class="slide-body">
       <div class="slide-section-label"><span class="ssl-icon">${ICON.hex}</span>Situational Analysis (5W1H)</div>
       <div class="w-list">
-        ${[["WHAT",sa.what],["WHY",sa.why],["WHO",sa.who],["WHEN",sa.when],["WHERE",sa.where],["HOW",sa.how]]
-          .filter(([,v])=>v).map(([k,v])=>`
+        ${[["WHAT", sa.what], ["WHY", sa.why], ["WHO", sa.who], ["WHEN", sa.when], ["WHERE", sa.where], ["HOW", sa.how]]
+        .filter(([, v]) => v).map(([k, v]) => `
           <div class="w-item">
             <div class="w-keyrow">
-              <span class="w-glyph" data-k="${k}">${wIcons[k]||"·"}</span>
+              <span class="w-glyph" data-k="${k}">${wIcons[k] || "·"}</span>
               <span class="w-key">${k}</span>
             </div>
             <div class="w-val">${esc(v)}</div>
@@ -1212,14 +1235,15 @@ function buildSlides(s, date) {
   const ei = s.editorial_expert_insight;
   if (pm || ei) {
     const regional = [
-      { cls:"region-in", label:"Indian View",       glyph:"IN", view:pm?.indian_media },
-      { cls:"region-wi", label:"International View", glyph:"WW", view:pm?.western_international||pm?.global_media },
+      { cls: "region-in", label: "Indian View", glyph: "IN", view: pm?.indian_media },
+      { cls: "region-wi", label: "International View", glyph: "WW", view: pm?.western_international || pm?.global_media },
     ].filter(p => p.view);
     const polLeft = pm?.left_leaning;
     const polRight = pm?.right_leaning;
     const expert = ei?.analysis;
 
-    slides.push({ id:"perspectives", label:"Perspective Matrix", icon:"⊞", html:`
+    slides.push({
+      id: "perspectives", label: "Perspective Matrix", icon: "⊞", html: `
     <div class="slide-body">
       <div class="slide-section-label"><span class="ssl-icon">${ICON.scale}</span>Perspective Matrix</div>
       ${regional.length ? `
@@ -1254,17 +1278,18 @@ function buildSlides(s, date) {
 
   // 4. Facts vs Claims
   const fc = s.facts_vs_claims;
-  if (fc) slides.push({ id:"facts", label:"Facts & Claims", icon:"⊛", html:`
+  if (fc) slides.push({
+    id: "facts", label: "Facts & Claims", icon: "⊛", html: `
     <div class="slide-body">
       <div class="slide-section-label"><span class="ssl-icon">${ICON.fact}</span>Facts & Contested Claims</div>
       <div class="fc-slide">
         <div class="fc-half facts">
           <div class="fc-title">✓ Verified Facts</div>
-          <ul>${(fc.facts||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+          <ul>${(fc.facts || []).map(x => `<li>${esc(x)}</li>`).join("")}</ul>
         </div>
         <div class="fc-half claims">
           <div class="fc-title">⚠ Claims / Disputed Narratives</div>
-          <ul>${(fc.claims||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+          <ul>${(fc.claims || []).map(x => `<li>${esc(x)}</li>`).join("")}</ul>
         </div>
       </div>
     </div>`
@@ -1272,17 +1297,18 @@ function buildSlides(s, date) {
 
   // 5. Impact Analysis
   const arrowSvg = {
-    up:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 14 12 8 18 14"/></svg>`,
-    down:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 10 12 16 18 10"/></svg>`,
+    up: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 14 12 8 18 14"/></svg>`,
+    down: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 10 12 16 18 10"/></svg>`,
     mixed: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="18" y2="12"/><polyline points="14 8 18 12 14 16"/></svg>`,
   };
-  if (s.stakeholder_impact?.length) slides.push({ id:"impact", label:"Impact", icon:"◎", html:`
+  if (s.stakeholder_impact?.length) slides.push({
+    id: "impact", label: "Impact", icon: "◎", html: `
     <div class="slide-body">
       <div class="slide-section-label"><span class="ssl-icon">${ICON.impact}</span>Impact Analysis</div>
       <div class="impact-cards">
-        ${(s.stakeholder_impact||[]).map(o=>{
-          const sent = impactSentiment(o.impact);
-          return `
+        ${(s.stakeholder_impact || []).map(o => {
+      const sent = impactSentiment(o.impact);
+      return `
           <div class="impact-card sent-${sent.dir}">
             <div class="impact-card-head">
               <span class="impact-arrow sent-${sent.dir}">${arrowSvg[sent.dir]}</span>
@@ -1290,19 +1316,20 @@ function buildSlides(s, date) {
             </div>
             <div class="impact-card-body">${esc(o.impact)}</div>
           </div>`;
-        }).join("")}
+    }).join("")}
       </div>
     </div>`
   });
 
   // 6. Historical Context
-  if (s.context_background || s.timeline?.length) slides.push({ id:"context", label:"Historical Context", icon:"⊙", html:`
+  if (s.context_background || s.timeline?.length) slides.push({
+    id: "context", label: "Historical Context", icon: "⊙", html: `
     <div class="slide-body">
       <div class="slide-section-label"><span class="ssl-icon">${ICON.timeline}</span>Historical Context</div>
       ${s.context_background ? `<p class="slide-prose" style="margin-bottom:24px;">${esc(s.context_background)}</p>` : ""}
       ${s.timeline?.length ? `
       <div class="timeline-list">
-        ${s.timeline.map(o=>`
+        ${s.timeline.map(o => `
           <div class="tl-item">
             <div class="tl-when">${esc(o.when)}</div>
             <div class="tl-event">${esc(o.event)}</div>
@@ -1312,7 +1339,8 @@ function buildSlides(s, date) {
   });
 
   // 7. Blind Spots & Sources
-  slides.push({ id:"blindspot", label:"Blind Spots", icon:"⚑", html:`
+  slides.push({
+    id: "blindspot", label: "Blind Spots", icon: "⚑", html: `
     <div class="slide-body">
       <div class="slide-section-label"><span class="ssl-icon">${ICON.eye}</span>Blind Spots & Sources</div>
       ${s.blind_spot ? `
@@ -1325,7 +1353,7 @@ function buildSlides(s, date) {
         <div class="editorial-label" style="margin-bottom:12px;">Sources Used</div>
         ${sourceDistribution(s.sources)}
         <ul class="sources-list" style="margin-top: 16px;">
-          ${(s.sources||[]).map(src=>`
+          ${(s.sources || []).map(src => `
             <li class="source-item">
               <span class="source-dot ${leanClass(src.lean)}"></span>
               <span class="source-name">${esc(src.outlet)}</span>
@@ -1429,18 +1457,18 @@ function renderMobileDeck(slides, s, date, storyIdx, stories) {
 
   function setActiveTab(idx) {
     activeTabIdx = Math.max(0, Math.min(allSlides.length - 1, idx));
-    
+
     if (activeTabIdx === allSlides.length - 1 && !storyCompleted) {
       storyCompleted = true;
       trackEvent("story_complete", "Engagement", s.headline);
     }
-    
+
     // Update wrapper transform
     wrapper.style.transform = `translateX(-${activeTabIdx * 100}%)`;
 
     // Update active tab buttons
     tabs.forEach((btn, i) => btn.classList.toggle("active", i === activeTabIdx));
-    
+
     // Scroll active tab into view in the tab bar
     const activeTabBtn = tabs[activeTabIdx];
     activeTabBtn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
@@ -1611,27 +1639,27 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
   const toc = stories.map((st, i) => `
     <button class="sidebar-item ${i === storyIdx ? 'active' : ''}" 
             data-id="${esc(st.id)}" aria-label="${esc(st.headline)}">
-      <span class="sidebar-num">${String(i+1).padStart(2,"0")}</span>
+      <span class="sidebar-num">${String(i + 1).padStart(2, "0")}</span>
       <span class="sidebar-title">${esc(st.headline)}</span>
     </button>`).join("");
 
   // Cover slide is shown as headline+tldr above; skip it in the section list.
   // Magazine layout: top is 2-col flex masonry, deep sections span full width.
   const sections = slides.filter(sl => sl.id !== "cover");
-  const fullWidthIds = new Set(["context","blindspot"]);
+  const fullWidthIds = new Set(["context", "blindspot"]);
   // Estimated content density per section type for balanced 2-col distribution
   const weight = { "exec_summary": 3, "situational": 6, "perspectives": 6, "facts": 3, "impact": 4, "context": 4, "blindspot": 4 };
   const grid = sections.filter(s => !fullWidthIds.has(s.id));
   const fullWidth = sections.filter(s => fullWidthIds.has(s.id));
 
   // Sort by weight desc, then greedy place into shorter column
-  const sorted = [...grid].sort((a,b) => (weight[b.id]||3) - (weight[a.id]||3));
+  const sorted = [...grid].sort((a, b) => (weight[b.id] || 3) - (weight[a.id] || 3));
   const colA = [], colB = [];
   let sumA = 0, sumB = 0;
   for (const sl of sorted) {
     const w = weight[sl.id] || 3;
     if (sumA <= sumB) { colA.push(sl); sumA += w; }
-    else              { colB.push(sl); sumB += w; }
+    else { colB.push(sl); sumB += w; }
   }
   const renderSection = sl => `
     <div class="desktop-section" id="section-${sl.id}">${sl.html}</div>`;
@@ -1678,7 +1706,7 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
             ${semanticGraphic(s, 0)}
           </div>
           <div class="dossier-copy">
-            <span class="detail-region ${(s.region||"").toLowerCase()}">${esc((s.region||"").toUpperCase())}</span>
+            <span class="detail-region ${(s.region || "").toLowerCase()}">${esc((s.region || "").toUpperCase())}</span>
             <h1 class="detail-headline">${esc(s.headline)}</h1>
             <p class="detail-tldr">${esc(s.tldr)}</p>
             ${s.simple_explanation ? `
@@ -1693,8 +1721,8 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
         ${renderRelatedFlashCards(s)}
 
         <div class="desktop-story-nav">
-          ${storyIdx > 0 ? `<a class="story-nav-btn prev" href="${BASE_PATH}/story/${date}/${stories[storyIdx-1].id}">← ${esc(stories[storyIdx-1].headline.slice(0,50))}…</a>` : "<span></span>"}
-          ${storyIdx < stories.length - 1 ? `<a class="story-nav-btn next" href="${BASE_PATH}/story/${date}/${stories[storyIdx+1].id}">${esc(stories[storyIdx+1].headline.slice(0,50))}… →</a>` : "<span></span>"}
+          ${storyIdx > 0 ? `<a class="story-nav-btn prev" href="${BASE_PATH}/story/${date}/${stories[storyIdx - 1].id}">← ${esc(stories[storyIdx - 1].headline.slice(0, 50))}…</a>` : "<span></span>"}
+          ${storyIdx < stories.length - 1 ? `<a class="story-nav-btn next" href="${BASE_PATH}/story/${date}/${stories[storyIdx + 1].id}">${esc(stories[storyIdx + 1].headline.slice(0, 50))}… →</a>` : "<span></span>"}
         </div>
       </div>
     </div>`;
@@ -1726,7 +1754,7 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
         }
       });
     }, { threshold: 0.1 });
-    
+
     setTimeout(() => {
       const target = wrap.querySelector(".desktop-story-nav");
       if (target) observer.observe(target);
@@ -1744,7 +1772,7 @@ async function renderHome(date) {
 
   await loadIndex();
   if (!date) date = indexEntries.find(x => x.count > 0)?.date || indexEntries[0]?.date;
-  if (!date) { app.innerHTML=`<div class="error-state">No briefings yet.</div>`; return; }
+  if (!date) { app.innerHTML = `<div class="error-state">No briefings yet.</div>`; return; }
 
   const payload = await loadDay(date);
   const isLatest = date === indexEntries[0]?.date;
@@ -1762,8 +1790,8 @@ async function renderHome(date) {
   hero.classList.remove("hidden");
   $("hero-title-h1").textContent = fmtLong(date);
   const count = payload.stories.length;
-  $("hero-meta").textContent = isLatest 
-    ? `The ${count} Stor${count === 1 ? "y" : "ies"} That Matter${count === 1 ? "s" : ""} Today` 
+  $("hero-meta").textContent = isLatest
+    ? `The ${count} Stor${count === 1 ? "y" : "ies"} That Matter${count === 1 ? "s" : ""} Today`
     : `Curated Daily Briefings · Archive (${count} stories)`;
 
   const pastBanner = isLatest ? "" : `
@@ -1772,8 +1800,8 @@ async function renderHome(date) {
       <a href="./">← Today</a>
     </div>`;
 
-  const cards = payload.stories.map((s,i) => {
-    const region = (s.region||"global").toLowerCase();
+  const cards = payload.stories.map((s, i) => {
+    const region = (s.region || "global").toLowerCase();
     const readMin = readMinutes(s);
     return `
       <div class="story-card" data-id="${esc(s.id)}" data-date="${esc(date)}"
@@ -1782,7 +1810,7 @@ async function renderHome(date) {
         <div class="card-accent"></div>
         <div class="card-body">
           <div class="card-top">
-            <span class="card-num">${String(i+1).padStart(2,"0")}</span>
+            <span class="card-num">${String(i + 1).padStart(2, "0")}</span>
             <span class="card-region">${esc(region.toUpperCase())}</span>
           </div>
           <h2 class="card-headline">${esc(s.headline)}</h2>
@@ -1810,7 +1838,7 @@ async function renderHome(date) {
       navigate(`${BASE_PATH}/story/${card.dataset.date}/${card.dataset.id}`);
     };
     card.onclick = go;
-    card.onkeydown = e => { if(e.key==="Enter"||e.key===" ") go(); };
+    card.onkeydown = e => { if (e.key === "Enter" || e.key === " ") go(); };
   });
 
 
@@ -1822,7 +1850,7 @@ async function renderHome(date) {
   });
 
   stopProgress();
-  window.scrollTo(0,0);
+  window.scrollTo(0, 0);
 }
 
 
@@ -1837,7 +1865,7 @@ async function renderStory(date, id) {
   const payload = await loadDay(date);
   const stories = payload.stories;
   const storyIdx = stories.findIndex(x => x.id === id);
-  if (storyIdx === -1) { app.innerHTML=`<div class="error-state">Story not found.</div>`; return; }
+  if (storyIdx === -1) { app.innerHTML = `<div class="error-state">Story not found.</div>`; return; }
   const s = adaptStory(stories[storyIdx]);
 
   const pageTitle = `The Briefing | ${s.headline}`;
@@ -1852,12 +1880,12 @@ async function renderStory(date, id) {
 
   // Build unified vertical layout
   app.innerHTML = "";
-  
+
   const articleContainer = document.createElement("div");
   articleContainer.className = "longform-article-container";
-  
+
   const firstSourceUrl = s.heroImage || (s.sources?.[0]?.url);
-  
+
   const totalWords = (s.headline + " " + s.overview + " " + s.inPlainEnglish + " " + s.sections.map(sec => sec.title + " " + sec.content).join(" ")).split(/\s+/).length;
   const totalReadingTime = Math.max(1, Math.round(totalWords / 200));
 
@@ -1871,7 +1899,7 @@ async function renderStory(date, id) {
       </div>
       <div class="article-kicker-row">
         <span>FRONT ${String(storyIdx + 1).padStart(2, "0")}</span>
-        <span class="region-badge ${(s.region||"").toLowerCase()}">${esc((s.region||"GLOBAL").toUpperCase())}</span>
+        <span class="region-badge ${(s.region || "").toLowerCase()}">${esc((s.region || "GLOBAL").toUpperCase())}</span>
       </div>
 
       <h1 class="article-headline">${esc(s.headline)}</h1>
@@ -1947,22 +1975,22 @@ async function renderStory(date, id) {
 
       <nav class="story-bottom-nav">
         ${storyIdx > 0 ? `
-          <a class="story-nav-card prev" href="${BASE_PATH}/story/${date}/${stories[storyIdx-1].id}">
+          <a class="story-nav-card prev" href="${BASE_PATH}/story/${date}/${stories[storyIdx - 1].id}">
             <span class="story-nav-label">&larr; Previous Story</span>
-            <span class="story-nav-title">${esc(stories[storyIdx-1].headline)}</span>
+            <span class="story-nav-title">${esc(stories[storyIdx - 1].headline)}</span>
           </a>
         ` : `<div class="story-nav-empty"></div>`}
         
         ${storyIdx < stories.length - 1 ? `
-          <a class="story-nav-card next" href="${BASE_PATH}/story/${date}/${stories[storyIdx+1].id}">
+          <a class="story-nav-card next" href="${BASE_PATH}/story/${date}/${stories[storyIdx + 1].id}">
             <span class="story-nav-label">Next Story &rarr;</span>
-            <span class="story-nav-title">${esc(stories[storyIdx+1].headline)}</span>
+            <span class="story-nav-title">${esc(stories[storyIdx + 1].headline)}</span>
           </a>
         ` : `<div class="story-nav-empty"></div>`}
       </nav>
     </article>
   `;
-  
+
   app.appendChild(articleContainer);
 
   articleContainer.querySelectorAll(".story-nav-btn").forEach(btn => {
@@ -1995,7 +2023,7 @@ async function renderStory(date, id) {
     document.getElementById("article-hero-container").style.display = "none";
   }
 
-  window.scrollTo(0,0);
+  window.scrollTo(0, 0);
 }
 
 async function findFlashStoryDate(storyId) {
@@ -2006,8 +2034,8 @@ async function findFlashStoryDate(storyId) {
   try {
     const latestStories = await loadFlash(latestDate);
     if (latestStories.some(s => s.id === storyId)) return latestDate;
-  } catch(e) {}
-  
+  } catch (e) { }
+
   for (let i = 1; i < indexEntries.length; i++) {
     const d = indexEntries[i].date;
     try {
@@ -2018,7 +2046,7 @@ async function findFlashStoryDate(storyId) {
           return d;
         }
       }
-    } catch(e) {}
+    } catch (e) { }
   }
   return null;
 }
@@ -2055,7 +2083,7 @@ async function route() {
           selectedFlashStoryId = storyId;
         }
         await renderFlashView(storyDate);
-        
+
         // Scroll or highlight if desktop
         const isDesktop = window.innerWidth >= 992;
         if (isDesktop) {
@@ -2075,20 +2103,20 @@ async function route() {
     }
   }
 
-  app.innerHTML=`<div class="loading-screen"><div class="spinner"></div></div>`;
+  app.innerHTML = `<div class="loading-screen"><div class="spinner"></div></div>`;
   $("hero").classList.add("hidden");
   stopProgress();
   try {
     await loadIndex();
     if (flashStories.length === 0) {
-      try { await loadFlash(); } catch(e) { console.error("Preloading flash failed:", e); }
+      try { await loadFlash(); } catch (e) { console.error("Preloading flash failed:", e); }
     }
 
     const flashStoryMatch = p.match(/^\/flash\/story\/([^/]+)$/);
     const storyMatch = p.match(/^\/story\/([^/]+)\/(.+)$/);
     const briefingsDayMatch = p.match(/^\/briefings\/day\/([^/]+)$/);
     const flashDayMatch = p.match(/^\/flash\/day\/([^/]+)$/);
-    
+
     if (flashStoryMatch) {
       const storyId = decodeURIComponent(flashStoryMatch[1]);
       currentMode = "flash";
@@ -2102,7 +2130,7 @@ async function route() {
           selectedFlashStoryId = storyId;
         }
         await renderFlashView(storyDate);
-        
+
         // Scroll or highlight if desktop
         const isDesktop = window.innerWidth >= 992;
         if (isDesktop) {
@@ -2118,25 +2146,25 @@ async function route() {
         return;
       }
     }
-    
+
     if (storyMatch) {
       currentMode = "briefing";
       updateModeToggleUI();
       return await renderStory(decodeURIComponent(storyMatch[1]), decodeURIComponent(storyMatch[2]));
     }
-    
+
     if (briefingsDayMatch) {
       currentMode = "briefing";
       updateModeToggleUI();
       return await renderHome(decodeURIComponent(briefingsDayMatch[1]));
     }
-    
+
     if (flashDayMatch) {
       currentMode = "flash";
       updateModeToggleUI();
       return await renderFlashView(decodeURIComponent(flashDayMatch[1]));
     }
-    
+
     if (p === "/saved") {
       stopProgress();
       $("hero").classList.add("hidden");
@@ -2150,13 +2178,13 @@ async function route() {
       renderInstallPage();
       return;
     }
-    
+
     if (p === "/flash") {
       currentMode = "flash";
       updateModeToggleUI();
       return await renderFlashView(null);
     }
-    
+
     if (p === "/briefings") {
       currentMode = "briefing";
       updateModeToggleUI();
@@ -2170,7 +2198,7 @@ async function route() {
       }
       return await renderHome(null);
     }
-    
+
     // Compatibility fallback for old /day/YYYY-MM-DD route
     const oldDayMatch = p.match(/^\/day\/([^/]+)$/);
     if (oldDayMatch) {
@@ -2182,11 +2210,11 @@ async function route() {
       }
       return;
     }
-    
+
     navigate(`${BASE_PATH}/briefings`);
-  } catch(e) {
+  } catch (e) {
     stopProgress();
-    app.innerHTML=`<div class="error-state">Couldn't load · ${esc(e.message)}</div>`;
+    app.innerHTML = `<div class="error-state">Couldn't load · ${esc(e.message)}</div>`;
   }
 }
 
@@ -2194,37 +2222,37 @@ async function route() {
    ⚡ FLASH LAYOUT & INTERACTION ENGINE
    ══════════════════════════════════════════════════════════════ */
 const FLASH_COLORS = {
-  all:           '#FF5722',
-  india:         '#FF5722',
-  world:         '#3B82F6',
-  global:        '#3B82F6',
-  ai:            '#06B6D4',
-  'ai-tech':     '#06B6D4',
-  politics:      '#8B5CF6',
-  business:      '#22C55E',
-  economics:     '#22C55E',
-  sports:        '#F97316',
+  all: '#FF5722',
+  india: '#FF5722',
+  world: '#3B82F6',
+  global: '#3B82F6',
+  ai: '#06B6D4',
+  'ai-tech': '#06B6D4',
+  politics: '#8B5CF6',
+  business: '#22C55E',
+  economics: '#22C55E',
+  sports: '#F97316',
   entertainment: '#EC4899',
-  culture:       '#A78BFA',
-  science:       '#F59E0B',
-  health:        '#34D399'
+  culture: '#A78BFA',
+  science: '#F59E0B',
+  health: '#34D399'
 };
 
 const FLASH_LABELS = {
-  all:           'All',
-  india:         'India',
-  world:         'Global',
-  global:        'Global',
-  ai:            'AI & Tech',
-  'ai-tech':     'AI & Tech',
-  politics:      'Politics',
-  business:      'Economics',
-  economics:     'Economics',
-  sports:        'Sports',
+  all: 'All',
+  india: 'India',
+  world: 'Global',
+  global: 'Global',
+  ai: 'AI & Tech',
+  'ai-tech': 'AI & Tech',
+  politics: 'Politics',
+  business: 'Economics',
+  economics: 'Economics',
+  sports: 'Sports',
   entertainment: 'Entertainment',
-  culture:       'Culture',
-  science:       'Science',
-  health:        'Health'
+  culture: 'Culture',
+  science: 'Science',
+  health: 'Health'
 };
 
 function getCategoryColor(cat) {
@@ -2245,12 +2273,12 @@ function getCategoryColorRgb(cat) {
 
 function getBriefStoryCategory(s) {
   const text = ((s.headline || "") + " " + (s.tldr || "") + " " + (s.simple_explanation || "")).toLowerCase();
-  
+
   if (text.match(/ai|tech|software|google|meta|apple|microsoft|openai|silicon|computer|digital/)) return "ai";
   if (text.match(/space|science|satellite|isro|nasa|climate|heatwave|monsoon|temperate|medical|health|virus/)) return "science";
   if (text.match(/election|vote|parliament|minister|government|court|judge|law|policy|judgement|ruling/)) return "politics";
   if (text.match(/economy|market|rupee|dollar|billion|million|business|trade|tax|surplus|windfall|sensex|shares|stock/)) return "business";
-  
+
   if ((s.region || "").toLowerCase() === "india") return "india";
   return "world";
 }
@@ -2261,10 +2289,10 @@ function getFlashIllustration(cat, storyId, indexOverride = null) {
   if (c === "business") c = "economics";
   if (c === "ai") c = "ai-tech";
   if (c === "tech") c = "ai-tech";
-  
+
   const idx = indexOverride !== null ? indexOverride : Math.abs(hashStr(storyId || "default")) % 4;
   const common = 'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
-  
+
   const library = {
     india: [
       `<circle cx="100" cy="100" r="45" ${common} />
@@ -2461,7 +2489,7 @@ function getFlashIllustration(cat, storyId, indexOverride = null) {
        <path d="M 100 50 L 100 150 M 100 90 Q 75 80, 75 80 M 100 110 Q 125 100, 125 100" ${common} />`
     ]
   };
-  
+
   const icons = library[c] || library['global'];
   return `<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%;">
     ${icons[idx]}
@@ -2576,16 +2604,16 @@ async function loadFlash(date = null) {
 function getFlashCatPillSvg(catId) {
   const s = 'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
   const icons = {
-    'india':         `<circle cx="8" cy="8" r="6" ${s}/><circle cx="8" cy="8" r="2" fill="currentColor"/><path d="M8 2v2M8 14v2M2 8H0M16 8h-2" ${s}/>`,
-    'global':        `<circle cx="8" cy="8" r="6" ${s}/><ellipse cx="8" cy="8" rx="6" ry="3" ${s}/><line x1="2" y1="8" x2="14" y2="8" ${s}/>`,
-    'politics':      `<polygon points="8,2 2,6 14,6" ${s}/><rect x="4" y="6" width="2" height="6" ${s}/><rect x="7" y="6" width="2" height="6" ${s}/><rect x="10" y="6" width="2" height="6" ${s}/><line x1="2" y1="12" x2="14" y2="12" ${s}/>`,
-    'economics':     `<polyline points="2,12 5,7 8,9 11,4 14,2" ${s}/><polyline points="11,2 14,2 14,5" ${s}/>`,
-    'ai-tech':       `<rect x="3" y="3" width="10" height="10" rx="2" ${s}/><rect x="6" y="6" width="4" height="4" ${s}/><path d="M6 3V1M10 3V1M6 13v2M10 13v2M3 6H1M3 10H1M13 6h2M13 10h2" ${s}/>`,
-    'science':       `<circle cx="8" cy="8" r="2" fill="currentColor"/><ellipse cx="8" cy="8" rx="7" ry="3" ${s}/><ellipse cx="8" cy="8" rx="7" ry="3" transform="rotate(60 8 8)" ${s}/><ellipse cx="8" cy="8" rx="7" ry="3" transform="rotate(120 8 8)" ${s}/>`,
-    'sports':        `<circle cx="8" cy="8" r="6" ${s}/><polygon points="8,5 9.5,7.5 8,10 6.5,7.5" ${s}/>`,
+    'india': `<circle cx="8" cy="8" r="6" ${s}/><circle cx="8" cy="8" r="2" fill="currentColor"/><path d="M8 2v2M8 14v2M2 8H0M16 8h-2" ${s}/>`,
+    'global': `<circle cx="8" cy="8" r="6" ${s}/><ellipse cx="8" cy="8" rx="6" ry="3" ${s}/><line x1="2" y1="8" x2="14" y2="8" ${s}/>`,
+    'politics': `<polygon points="8,2 2,6 14,6" ${s}/><rect x="4" y="6" width="2" height="6" ${s}/><rect x="7" y="6" width="2" height="6" ${s}/><rect x="10" y="6" width="2" height="6" ${s}/><line x1="2" y1="12" x2="14" y2="12" ${s}/>`,
+    'economics': `<polyline points="2,12 5,7 8,9 11,4 14,2" ${s}/><polyline points="11,2 14,2 14,5" ${s}/>`,
+    'ai-tech': `<rect x="3" y="3" width="10" height="10" rx="2" ${s}/><rect x="6" y="6" width="4" height="4" ${s}/><path d="M6 3V1M10 3V1M6 13v2M10 13v2M3 6H1M3 10H1M13 6h2M13 10h2" ${s}/>`,
+    'science': `<circle cx="8" cy="8" r="2" fill="currentColor"/><ellipse cx="8" cy="8" rx="7" ry="3" ${s}/><ellipse cx="8" cy="8" rx="7" ry="3" transform="rotate(60 8 8)" ${s}/><ellipse cx="8" cy="8" rx="7" ry="3" transform="rotate(120 8 8)" ${s}/>`,
+    'sports': `<circle cx="8" cy="8" r="6" ${s}/><polygon points="8,5 9.5,7.5 8,10 6.5,7.5" ${s}/>`,
     'entertainment': `<rect x="2" y="5" width="12" height="9" rx="1" ${s}/><path d="M2 8h12" ${s}/><path d="M2 5L14 2l-.5-2L2 3z" ${s}/>`,
-    'culture':       `<path d="M8 2l-5 8h10z" ${s}/><line x1="8" y1="10" x2="8" y2="14" ${s}/><line x1="5" y1="14" x2="11" y2="14" ${s}/>`,
-    'health':        `<path d="M8 13C4 10 2 7 2 5a3 3 0 0 1 6 0 3 3 0 0 1 6 0c0 2-2 5-6 8z" ${s}/><polyline points="4,7 6,7 7,5 8,9 9,6 10,7 12,7" ${s}/>`
+    'culture': `<path d="M8 2l-5 8h10z" ${s}/><line x1="8" y1="10" x2="8" y2="14" ${s}/><line x1="5" y1="14" x2="11" y2="14" ${s}/>`,
+    'health': `<path d="M8 13C4 10 2 7 2 5a3 3 0 0 1 6 0 3 3 0 0 1 6 0c0 2-2 5-6 8z" ${s}/><polyline points="4,7 6,7 7,5 8,9 9,6 10,7 12,7" ${s}/>`
   };
   const paths = icons[catId] || icons['global'];
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" style="display:inline-block;vertical-align:text-bottom;margin-right:5px;stroke:currentColor;fill:none;flex-shrink:0;">${paths}</svg>`;
@@ -2605,19 +2633,19 @@ function renderFlashCategoryPills() {
     { id: "culture", label: "Culture" },
     { id: "health", label: "Health" }
   ];
-  
+
   return cats.map(c => {
     const active = c.id === activeFlashCategory;
     const col = getCategoryColor(c.id);
     const rgb = getCategoryColorRgb(c.id);
-    
+
     let style = "";
     if (active) {
       style = `style="--cat-color: ${col}; --cat-color-rgb: ${rgb};"`;
     }
-    
+
     const iconHtml = c.id !== "all" ? getFlashCatPillSvg(c.id) : "";
-    
+
     return `
       <button class="flash-cat-pill ${active ? 'active' : ''}" data-cat="${c.id}" ${style}>
         ${iconHtml}${esc(c.label)}
@@ -2658,7 +2686,7 @@ function wireFlashNavigation(filtered) {
 
   stage.addEventListener('click', e => {
     const bookmarkBtn = e.target.closest('.flash-bookmark-btn');
-    const shareBtn    = e.target.closest('.flash-share-btn');
+    const shareBtn = e.target.closest('.flash-share-btn');
 
     if (bookmarkBtn) {
       const storyId = bookmarkBtn.dataset.id;
@@ -2710,8 +2738,8 @@ function navigateFlash(direction, filtered) {
 
 function updateFlashProgressUI(filtered) {
   const total = filtered.length;
-  const fill    = document.querySelector('.flash-progress-fill');
-  if (fill)    fill.style.width    = `${Math.min(((currentFlashIndex + 1) / total) * 100, 100)}%`;
+  const fill = document.querySelector('.flash-progress-fill');
+  if (fill) fill.style.width = `${Math.min(((currentFlashIndex + 1) / total) * 100, 100)}%`;
   updateFlashCounter(currentFlashIndex, total);
 }
 
@@ -2728,7 +2756,7 @@ function attachPhysicalDrag(filtered) {
   let curCard = null, nxtCard = null, prvCard = null;
   let stageH = 0;
 
-  const EXIT_T  = '250ms cubic-bezier(0.16, 1, 0.3, 1)';
+  const EXIT_T = '250ms cubic-bezier(0.16, 1, 0.3, 1)';
   const SNAPB_T = '280ms cubic-bezier(0.16, 1, 0.3, 1)';
 
   function trans(el, t) { if (el) el.style.transition = t; }
@@ -2737,21 +2765,21 @@ function attachPhysicalDrag(filtered) {
     if (!el) return;
     el.style.transition = '';
     if (role === 'current') {
-      Object.assign(el.style, { zIndex:'20', transform:'translateY(0) scale(1)', opacity:'1', pointerEvents:'auto' });
+      Object.assign(el.style, { zIndex: '20', transform: 'translateY(0) scale(1)', opacity: '1', pointerEvents: 'auto' });
     } else if (role === 'next') {
-      Object.assign(el.style, { zIndex:'10', transform:'translateY(0) scale(0.94)', opacity:'0.85', pointerEvents:'none' });
+      Object.assign(el.style, { zIndex: '10', transform: 'translateY(0) scale(0.94)', opacity: '0.85', pointerEvents: 'none' });
     } else if (role === 'prev') {
-      Object.assign(el.style, { zIndex:'30', transform:'translateY(-100%) scale(1)', opacity:'0', pointerEvents:'none' });
+      Object.assign(el.style, { zIndex: '30', transform: 'translateY(-100%) scale(1)', opacity: '0', pointerEvents: 'none' });
     }
   }
 
   function mkStory(s, role) {
-    const col   = getCategoryColor(s.cat);
-    const rgb   = getCategoryColorRgb(s.cat);
+    const col = getCategoryColor(s.cat);
+    const rgb = getCategoryColorRgb(s.cat);
     const saved = getSavedStories().some(fs => fs.id === s.id);
     const el = document.createElement('div');
     el.className = 'flash-card';
-    el.dataset.id  = s.id;
+    el.dataset.id = s.id;
     el.dataset.idx = String(filtered.indexOf(s));
     el.style.cssText = `--cat-color:${col};--cat-color-rgb:${rgb};`;
     el.innerHTML = buildFlashCardInnerHTML(s, col, saved);
@@ -2843,7 +2871,7 @@ function attachPhysicalDrag(filtered) {
   function buildDeck() {
     stage.innerHTML = '';
     stageH = stage.clientHeight || 600;
-    const idx   = currentFlashIndex;
+    const idx = currentFlashIndex;
     const total = filtered.length;
 
     prvCard = idx > 0 ? mkStory(filtered[idx - 1], 'prev') : null;
@@ -2905,28 +2933,28 @@ function attachPhysicalDrag(filtered) {
     if (dy < 0 && !nxtCard) edy = dy * 0.25;
     if (dy > 0 && !prvCard) edy = dy * 0.25;
     const p = Math.min(Math.abs(edy) / stageH, 1);
-    
+
     if (edy < 0) {
       // Swiping UP (going forward): curCard slides up, nxtCard scales up
       curCard.style.transform = `translateY(${edy}px) scale(${1 - p * 0.02})`;
       if (nxtCard) {
         nxtCard.style.transform = `translateY(0) scale(${0.94 + p * 0.06})`;
-        nxtCard.style.opacity   = String(0.85 + p * 0.15);
+        nxtCard.style.opacity = String(0.85 + p * 0.15);
       }
       if (prvCard) {
         prvCard.style.transform = 'translateY(-100%) scale(1)';
-        prvCard.style.opacity   = '0';
+        prvCard.style.opacity = '0';
       }
     } else {
       // Swiping DOWN (going backward): curCard stays or scales down slightly to 0.94, prvCard slides down
       curCard.style.transform = `translateY(0) scale(${1 - p * 0.06})`;
       if (prvCard) {
         prvCard.style.transform = `translateY(${-stageH + edy}px) scale(1)`;
-        prvCard.style.opacity   = '1';
+        prvCard.style.opacity = '1';
       }
       if (nxtCard) {
         nxtCard.style.transform = 'translateY(0) scale(0.94)';
-        nxtCard.style.opacity   = String(0.85 * (1 - p));
+        nxtCard.style.opacity = String(0.85 * (1 - p));
       }
     }
   }
@@ -2935,8 +2963,8 @@ function attachPhysicalDrag(filtered) {
     if (!dragging) return; dragging = false;
     if (!isVert) return;
     const DIST = stageH * 0.28, VEL = 0.35;
-    if      ((deltaY < -DIST || velY < -VEL) && nxtCard) completeNav(1);
-    else if ((deltaY >  DIST || velY >  VEL) && prvCard)  completeNav(-1);
+    if ((deltaY < -DIST || velY < -VEL) && nxtCard) completeNav(1);
+    else if ((deltaY > DIST || velY > VEL) && prvCard) completeNav(-1);
     else snapBack();
   }
 
@@ -2963,7 +2991,7 @@ function attachPhysicalDrag(filtered) {
     }
 
     const newIdx = currentFlashIndex + dir;
-    const total  = filtered.length;
+    const total = filtered.length;
     const fill = document.querySelector('.flash-progress-fill');
     if (fill) { fill.style.transition = 'width 0.3s ease'; fill.style.width = `${Math.min(((newIdx + 1) / total) * 100, 100)}%`; }
     updateFlashCounter(newIdx, total);
@@ -3033,18 +3061,18 @@ async function trackViewCount(storyId) {
   if (isFirstView) {
     flashReadsSessionSet.add(storyId);
   }
-  
+
   // Fallback local storage count
   let localReads = {};
   try {
     localReads = JSON.parse(localStorage.getItem("flash_reads_fallback") || "{}");
-  } catch(e) {}
-  
+  } catch (e) { }
+
   if (isFirstView) {
     localReads[storyId] = (localReads[storyId] || 0) + 1;
     localStorage.setItem("flash_reads_fallback", JSON.stringify(localReads));
   }
-  
+
   let views = localReads[storyId] || 0;
 
   // Track page view and event in Google Analytics
@@ -3097,7 +3125,7 @@ function toggleBookmark(story) {
 function getSavedStories() {
   try {
     return JSON.parse(localStorage.getItem("flash_saved") || "[]");
-  } catch(e) {
+  } catch (e) {
     return [];
   }
 }
@@ -3114,7 +3142,7 @@ function renderSavedStoriesList() {
       </div>`;
     return;
   }
-  
+
   listEl.innerHTML = saved.map((s, index) => {
     const col = getCategoryColor(s.cat);
     const hl = s.headline || s.hl;
@@ -3129,12 +3157,12 @@ function renderSavedStoriesList() {
         </button>
         <div class="saved-item-top">
           <span class="saved-item-cat" style="color: ${col};">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
-          ${ source ? `<span class="saved-item-date">${esc(source)}</span>` : '' }
+          ${source ? `<span class="saved-item-date">${esc(source)}</span>` : ''}
         </div>
         <div class="saved-item-headline">${esc(hl)}</div>
       </div>`;
   }).join("");
-  
+
   // Wire click events on cards to open them
   listEl.querySelectorAll(".saved-item-card").forEach(card => {
     card.onclick = (e) => {
@@ -3146,7 +3174,7 @@ function renderSavedStoriesList() {
       openFlashStory(storyId);
     };
   });
-  
+
   // Wire remove buttons
   listEl.querySelectorAll(".saved-item-remove").forEach(btn => {
     btn.onclick = (e) => {
@@ -3166,12 +3194,12 @@ async function renderSavedPage() {
   updateModeToggleUI();
   $("hero").classList.add("hidden");
   app.innerHTML = "";
-  
+
   const savedContainer = document.createElement("div");
   savedContainer.className = "saved-page-container";
-  
+
   const saved = getSavedStories();
-  
+
   let contentHtml = "";
   if (saved.length === 0) {
     contentHtml = `
@@ -3185,11 +3213,11 @@ async function renderSavedPage() {
       <h1 class="saved-page-title">Saved Items</h1>
       <div class="saved-page-grid">
         ${saved.map((s, index) => {
-          const col = getCategoryColor(s.cat);
-          const hl = s.headline || s.hl;
-          const source = s.source || s.src;
-          const isDeepDive = s.sections !== undefined;
-          return `
+      const col = getCategoryColor(s.cat);
+      const hl = s.headline || s.hl;
+      const source = s.source || s.src;
+      const isDeepDive = s.sections !== undefined;
+      return `
             <div class="saved-page-card" data-id="${esc(s.id)}" data-type="${isDeepDive ? 'briefing' : 'flash'}" data-date="${esc(s.date || '')}">
               <div class="saved-page-card-header">
                 <span class="saved-page-cat" style="color: ${col};">${esc((FLASH_LABELS[s.cat] || s.cat || 'NEWS').toUpperCase())}</span>
@@ -3203,13 +3231,13 @@ async function renderSavedPage() {
                 </button>
               </div>
             </div>`;
-        }).join("")}
+    }).join("")}
       </div>`;
   }
-  
+
   savedContainer.innerHTML = contentHtml;
   app.appendChild(savedContainer);
-  
+
   // Wire click event on cards
   savedContainer.querySelectorAll(".saved-page-card").forEach(card => {
     card.onclick = (e) => {
@@ -3224,7 +3252,7 @@ async function renderSavedPage() {
       }
     };
   });
-  
+
   // Wire remove buttons
   savedContainer.querySelectorAll(".saved-page-remove-btn").forEach(btn => {
     btn.onclick = (e) => {
@@ -3238,7 +3266,7 @@ async function renderSavedPage() {
       }
     };
   });
-  
+
   trackPageView("/saved", "The Briefing | Saved Items");
   window.scrollTo(0, 0);
 }
@@ -3254,9 +3282,9 @@ function openFlashStory(storyId) {
 function renderRelatedFlashCards(s) {
   const briefCat = getBriefStoryCategory(s);
   const related = flashStories.filter(fs => fs.cat === briefCat).slice(0, 5);
-  
+
   if (related.length === 0) return "";
-  
+
   const cardsHtml = related.map(fs => {
     const col = getCategoryColor(fs.cat);
     const rgb = getCategoryColorRgb(fs.cat);
@@ -3267,7 +3295,7 @@ function renderRelatedFlashCards(s) {
       <div class="related-flash-item" data-id="${esc(fs.id)}">
         <div class="related-flash-item-top">
           <span class="related-flash-item-cat" style="background: rgba(${rgb}, 0.15); color: ${col};">${esc(FLASH_LABELS[fs.cat] || fs.cat)}</span>
-          ${ source ? `<span class="related-flash-item-time">${esc(source)}</span>` : '' }
+          ${source ? `<span class="related-flash-item-time">${esc(source)}</span>` : ''}
         </div>
         <div class="related-flash-item-headline">${esc(hl)}</div>
         <div class="related-flash-item-summary">${esc(body)}</div>
@@ -3286,13 +3314,13 @@ function renderRelatedFlashCards(s) {
 
 async function renderFlashView(date = null) {
   stopProgress();
-  
+
   updateModeToggleUI();
-  
+
   await loadIndex();
   const latestDate = indexEntries.length > 0 ? indexEntries[0].date : null;
   const targetDate = date || latestDate;
-  
+
   // Make sure the archive datepicker shows the selected date
   const sel = $("archive-select");
   if (sel && targetDate) {
@@ -3307,10 +3335,10 @@ async function renderFlashView(date = null) {
   if (flashStories.loadedDate !== targetDate) {
     currentFlashIndex = 0;
   }
-  
+
   try {
     await loadFlash(targetDate);
-    
+
     // Track page view for the Flash feed / daily archive
     const pageTitle = targetDate ? `The Briefing | Flash — ${fmtHeaderDate(targetDate)}` : "The Briefing | Flash";
     const pagePath = targetDate ? `/flash/day/${targetDate}` : "/flash";
@@ -3319,32 +3347,32 @@ async function renderFlashView(date = null) {
     app.innerHTML = `<div class="error-state">Couldn't load Flash stories for ${esc(targetDate || 'today')} · ${esc(err.message)}</div>`;
     return;
   }
-  
-  const filtered = activeFlashCategory === "all" 
-    ? flashStories 
+
+  const filtered = activeFlashCategory === "all"
+    ? flashStories
     : flashStories.filter(s => {
-        const cat = s.cat?.toLowerCase();
-        if (activeFlashCategory === "global" && (cat === "global" || cat === "world")) return true;
-        if (activeFlashCategory === "economics" && (cat === "economics" || cat === "business")) return true;
-        if (activeFlashCategory === "ai-tech" && (cat === "ai-tech" || cat === "ai")) return true;
-        return cat === activeFlashCategory;
-      });
-    
+      const cat = s.cat?.toLowerCase();
+      if (activeFlashCategory === "global" && (cat === "global" || cat === "world")) return true;
+      if (activeFlashCategory === "economics" && (cat === "economics" || cat === "business")) return true;
+      if (activeFlashCategory === "ai-tech" && (cat === "ai-tech" || cat === "ai")) return true;
+      return cat === activeFlashCategory;
+    });
+
   const total = filtered.length;
-  
+
   // Responsive branch check
   const isDesktop = window.innerWidth >= 992;
-  
+
   // Update Header Progress
   const progressText = $("flash-header-center");
   if (progressText) {
     const activeCats = new Set(filtered.map(fs => fs.cat));
     progressText.textContent = `Showing ${total} stories · ${activeCats.size} categories`;
   }
-  
+
   // Update bookmark badge
   updateSavedBadge();
-  
+
   if (isDesktop) {
     renderFlashDesktopLayout(filtered, targetDate);
   } else {
@@ -3355,13 +3383,13 @@ async function renderFlashView(date = null) {
 function cleanSourceUrl(raw) {
   if (!raw) return null;
   raw = raw.trim();
-  
+
   // Detect markdown link: [text](url)
   const mdMatch = raw.match(/^\[([\s\S]*?)\]\(([\s\S]*?)\)$/);
   if (mdMatch) {
     const text = mdMatch[1].trim();
     const url = mdMatch[2].trim();
-    
+
     // Helper to check if a string is a valid absolute HTTP/HTTPS URL
     const isValidUrl = (str) => {
       try {
@@ -3380,32 +3408,32 @@ function cleanSourceUrl(raw) {
         if (q && isValidUrl(q)) {
           return q;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
-    
+
     // If the destination URL is valid, return it
     if (isValidUrl(url)) {
       return url;
     }
-    
+
     // Otherwise, if the link text is a valid URL (not truncated), return that
     if (isValidUrl(text)) {
       return text;
     }
   }
-  
+
   // Fallback: if the whole raw string has a URL inside parentheses at the end
   const parenMatch = raw.match(/\((https?:\/\/[^\s)]+)\)/);
   if (parenMatch) {
     return parenMatch[1];
   }
-  
+
   // Fallback: if the whole raw string has a URL inside brackets at the start
   const bracketMatch = raw.match(/^\[(https?:\/\/[^\s\]]+)\]/);
   if (bracketMatch) {
     return bracketMatch[1];
   }
-  
+
   return raw;
 }
 
@@ -3544,7 +3572,7 @@ function renderFlashDesktopLayout(filtered, targetDate) {
       </div>
     </div>
   `;
-  
+
   wireFlashCategories();
   wireFlashDesktopEvents(filtered, targetDate);
   if (filtered.length > 0) {
@@ -3561,28 +3589,28 @@ function renderDesktopGrid(filtered, targetDate) {
         <div class="saved-empty-text" style="font-family: var(--sans); color: var(--ink-2); font-size: 14px; margin-top: 8px;">No stories available in this category.</div>
       </div>`;
   }
-  
+
   const heroStory = filtered[0];
   const gridStories = filtered.slice(1);
-  
+
   const heroCol = getCategoryColor(heroStory.cat);
   const heroRgb = getCategoryColorRgb(heroStory.cat);
   const heroSaved = getSavedStories().some(fs => fs.id === heroStory.id);
-  
+
   const heroBenefitsChips = (heroStory.who_benefits || []).map(b => `
     <span class="desktop-benefit-chip" style="border-color: rgba(${heroRgb}, 0.25); color: ${heroCol};">${esc(b)}</span>
   `).join("");
-  
+
   // Resolve views
   let localReads = {};
   try {
     localReads = JSON.parse(localStorage.getItem("flash_reads_fallback") || "{}");
-  } catch(e) {}
+  } catch (e) { }
   const heroViews = localReads[heroStory.id] || 1;
-  
+
   // Check if hero story has deep dive
   const heroGoDeeper = heroStory.hasDeepDive || dayCache[targetDate]?.stories.some(ts => ts.id === heroStory.id);
-  
+
   const heroHl = heroStory.headline || heroStory.hl;
   const heroBody = heroStory.summary || heroStory.body;
   const heroSource = heroStory.source || heroStory.src;
@@ -3652,27 +3680,27 @@ function renderDesktopGrid(filtered, targetDate) {
       </div>
     </div>
   `;
-  
+
   const gridHtml = gridStories.map(s => {
     const col = getCategoryColor(s.cat);
     const rgb = getCategoryColorRgb(s.cat);
     const isSaved = getSavedStories().some(fs => fs.id === s.id);
-    
+
     const benefitsChips = (s.who_benefits || []).map(b => `
       <span class="desktop-benefit-chip" style="border-color: rgba(${rgb}, 0.25); color: ${col};">${esc(b)}</span>
     `).join("");
-    
+
     const sViews = localReads[s.id] || 1;
     const sGoDeeper = s.hasDeepDive || dayCache[targetDate]?.stories.some(ts => ts.id === s.id);
     const sHl = s.headline || s.hl;
     const sBody = s.summary || s.body;
-    
+
     const sWhyHtml = s.why_it_matters
       ? `<div class="grid-why-box" style="border-left: 2px solid ${col}; padding-left: 8px; margin-top: 10px; font-family: var(--body); font-size: 14.5px; color: var(--ink-2); line-height: 1.5;">
            <strong style="color: var(--accent); font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; margin-right: 4px;">Why it matters:</strong> ${esc(s.why_it_matters)}
          </div>`
       : "";
-    
+
     return `
       <div class="desktop-grid-card" data-id="${esc(s.id)}" style="--cat-color: ${col}; --cat-color-rgb: ${rgb};">
         <div class="grid-card-header">
@@ -3731,7 +3759,7 @@ function renderDesktopGrid(filtered, targetDate) {
       </div>
     `;
   }).join("");
-  
+
   return `
     ${heroHtml}
     <div class="flash-grid">
@@ -3772,12 +3800,12 @@ function wireFlashDesktopEvents(filtered, targetDate) {
         if (svg) svg.setAttribute("fill", isSaved ? "currentColor" : "none");
         const span = btn.querySelector("span");
         if (span) span.textContent = isSaved ? "Saved" : "Save";
-        
+
         updateSavedBadge();
       }
     };
   });
-  
+
   // 3. Go Deeper buttons
   const goDeeperBtns = document.querySelectorAll(".desktop-go-deeper-btn");
   goDeeperBtns.forEach(btn => {
@@ -3837,7 +3865,7 @@ function checkAndShowNudge() {
     if (nudge) nudge.classList.remove("active");
     return;
   }
-  
+
   if (sessionStorage.getItem("nudgeDismissed") === "true") {
     const nudge = $("flash-nudge-card");
     if (nudge) nudge.classList.remove("active");
@@ -3846,7 +3874,7 @@ function checkAndShowNudge() {
 
   const viewedCount = window.flashSessionViewedIds ? window.flashSessionViewedIds.size : 0;
   const timeSpent = window.flashTimeSpentInFlash || 0;
-  
+
   if (viewedCount >= 10 || timeSpent >= 25) {
     let nudge = $("flash-nudge-card");
     if (!nudge) {
@@ -3871,7 +3899,7 @@ function checkAndShowNudge() {
         </button>
       `;
       document.body.appendChild(nudge);
-      
+
       const closeBtn = nudge.querySelector("#flash-nudge-close");
       if (closeBtn) {
         closeBtn.onclick = () => {
@@ -3879,7 +3907,7 @@ function checkAndShowNudge() {
           nudge.classList.remove("active");
         };
       }
-      
+
       const ctaBtn = nudge.querySelector("#flash-nudge-btn");
       if (ctaBtn) {
         ctaBtn.onclick = () => {
@@ -3895,7 +3923,7 @@ function checkAndShowNudge() {
         counterEl.textContent = `You've viewed ${viewedCount} stories`;
       }
     }
-    
+
     setTimeout(() => {
       nudge.classList.add("active");
     }, 50);
@@ -3909,7 +3937,7 @@ function updateModeToggleUI() {
   const bottomFlash = $("bottom-nav-flash");
   const bottomBriefing = $("bottom-nav-briefing");
   const bottomSaved = $("bottom-nav-saved");
-  
+
   if (bottomFlash) bottomFlash.classList.remove("active");
   if (bottomBriefing) bottomBriefing.classList.remove("active");
   if (bottomSaved) bottomSaved.classList.remove("active");
@@ -3920,11 +3948,11 @@ function updateModeToggleUI() {
   } else if (currentMode === "flash") {
     document.body.classList.add("mode-flash-active");
     document.documentElement.classList.add("mode-flash-active");
-    if (segFlash)    { segFlash.classList.add("active"); }
+    if (segFlash) { segFlash.classList.add("active"); }
     if (segBriefing) { segBriefing.classList.remove("active"); }
     if (wordmark) { wordmark.href = `${BASE_PATH}/flash`; }
     if (bottomFlash) bottomFlash.classList.add("active");
-    
+
     if (!window.flashTimer) {
       window.flashTimer = setInterval(() => {
         if (currentMode === "flash") {
@@ -3939,14 +3967,14 @@ function updateModeToggleUI() {
   } else {
     document.body.classList.remove("mode-flash-active");
     document.documentElement.classList.remove("mode-flash-active");
-    if (segFlash)    { segFlash.classList.remove("active"); }
+    if (segFlash) { segFlash.classList.remove("active"); }
     if (segBriefing) { segBriefing.classList.add("active"); }
     if (wordmark) { wordmark.href = `${BASE_PATH}/briefings`; }
     if (bottomFlash) bottomFlash.classList.remove("active");
     if (bottomBriefing) bottomBriefing.classList.add("active");
     const ctr = $("flash-header-counter");
     if (ctr) ctr.textContent = "";
-    
+
     const nudge = $("flash-nudge-card");
     if (nudge) {
       nudge.classList.remove("active");
@@ -3959,7 +3987,7 @@ function updateModeToggleUI() {
 }
 
 function initModeToggle() {
-  const segFlash    = $("seg-flash");
+  const segFlash = $("seg-flash");
   const segBriefing = $("seg-briefing");
 
   function handleModeSwitch(newMode) {
@@ -3974,9 +4002,9 @@ function initModeToggle() {
     if (BASE_PATH && p.startsWith(BASE_PATH)) p = p.slice(BASE_PATH.length) || "/";
     p = p.replace(/\/+$/, "") || "/";
 
-    const storyMatch       = p.match(/^\/story\/([^/]+)\/(.+)$/);
+    const storyMatch = p.match(/^\/story\/([^/]+)\/(.+)$/);
     const briefingsDayMatch = p.match(/^\/briefings\/day\/([^/]+)$/);
-    const flashDayMatch     = p.match(/^\/flash\/day\/([^/]+)$/);
+    const flashDayMatch = p.match(/^\/flash\/day\/([^/]+)$/);
 
     if (storyMatch) {
       if (currentMode === "flash") navigate(`${BASE_PATH}/flash/day/${storyMatch[1]}`);
@@ -3991,7 +4019,7 @@ function initModeToggle() {
     }
   }
 
-  if (segFlash)    segFlash.onclick    = () => handleModeSwitch("flash");
+  if (segFlash) segFlash.onclick = () => handleModeSwitch("flash");
   if (segBriefing) segBriefing.onclick = () => handleModeSwitch("briefing");
 
   updateModeToggleUI();
@@ -4001,7 +4029,7 @@ function initSavedStories() {
   const trigger = $("saved-trigger");
   const close = $("saved-close");
   const modal = $("saved-stories-modal");
-  
+
   if (trigger) {
     trigger.onclick = () => {
       if (modal) {
@@ -4024,7 +4052,7 @@ function initSavedStories() {
       }
     };
   }
-  
+
   // Wire related card clicks to jump to Flash card
   document.body.addEventListener("click", e => {
     const item = e.target.closest(".related-flash-item");
@@ -4128,7 +4156,7 @@ function initSlideMenu() {
   const close = $("menu-close");
   const overlay = $("menu-overlay");
   const menu = $("slide-menu");
-  
+
   if (!menu) return;
 
   function openMenu() {
@@ -4215,7 +4243,7 @@ function initSlideMenu() {
       grouped[date].push(s);
     });
     const dates = Object.keys(grouped).sort().reverse();
-    
+
     let html = "";
     dates.forEach(d => {
       html += `<div class="menu-saved-group">
@@ -4234,7 +4262,7 @@ function initSlideMenu() {
       html += `</div>`;
     });
     savedList.innerHTML = html;
-    
+
     savedList.querySelectorAll('.menu-saved-item').forEach(item => {
       item.addEventListener('click', e => {
         e.preventDefault();
@@ -4250,11 +4278,11 @@ function initSlideMenu() {
 window.addEventListener("keydown", e => {
   if (currentMode !== "flash") return;
   if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") return;
-  
-  const filtered = activeFlashCategory === "all" 
-    ? flashStories 
+
+  const filtered = activeFlashCategory === "all"
+    ? flashStories
     : flashStories.filter(s => s.cat === activeFlashCategory);
-    
+
   if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
     navigateFlash(-1, filtered);
   } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
@@ -4294,10 +4322,10 @@ window.addEventListener("resize", () => {
 
 // ── Search Engine ─────────────────────────────────────────────
 function initSearch() {
-  const trigger  = $("search-trigger");
-  const overlay  = $("search-overlay");
+  const trigger = $("search-trigger");
+  const overlay = $("search-overlay");
   const closeBtn = $("search-close");
-  const input    = $("search-input");
+  const input = $("search-input");
 
   if (!overlay) return;
 
@@ -4316,7 +4344,7 @@ function initSearch() {
     if (empty) empty.style.display = "flex";
   }
 
-  if (trigger)  trigger.onclick  = openSearch;
+  if (trigger) trigger.onclick = openSearch;
   const desktopSearchBtn = $("desktop-search-btn");
   if (desktopSearchBtn) desktopSearchBtn.onclick = openSearch;
   if (closeBtn) closeBtn.onclick = closeSearch;
@@ -4356,11 +4384,11 @@ function searchAll(query) {
   // ── Flash stories ──────────────────────────────────────────
   const allFlash = Array.isArray(flashStories) ? flashStories : [];
   for (const s of allFlash) {
-    const hl  = (s.headline || s.hl || "").toLowerCase();
-    const sum = (s.summary  || s.body || "").toLowerCase();
+    const hl = (s.headline || s.hl || "").toLowerCase();
+    const sum = (s.summary || s.body || "").toLowerCase();
     const cat = (FLASH_LABELS[s.cat] || s.cat || "").toLowerCase();
     const why = (s.why_it_matters || "").toLowerCase();
-    const hlScore  = hl.includes(q)  ? 3 : 0;
+    const hlScore = hl.includes(q) ? 3 : 0;
     const sumScore = sum.includes(q) ? 1 : 0;
     const catScore = cat.includes(q) ? 1 : 0;
     const whyScore = why.includes(q) ? 1 : 0;
@@ -4369,10 +4397,10 @@ function searchAll(query) {
       results.push({
         type: "flash",
         score,
-        id:       s.id,
-        cat:      s.cat,
+        id: s.id,
+        cat: s.cat,
         headline: s.headline || s.hl,
-        meta:     `${FLASH_LABELS[s.cat] || s.cat}${s.source ? " · " + s.source : ""}`,
+        meta: `${FLASH_LABELS[s.cat] || s.cat}${s.source ? " · " + s.source : ""}`,
       });
     }
   }
@@ -4382,19 +4410,19 @@ function searchAll(query) {
     const payload = dayCache[entry.date];
     if (!payload || !Array.isArray(payload.stories)) continue;
     for (const s of payload.stories) {
-      const hl   = (s.headline || "").toLowerCase();
+      const hl = (s.headline || "").toLowerCase();
       const tldr = (s.tldr || s.summary || "").toLowerCase();
-      const hlScore  = hl.includes(q)   ? 3 : 0;
-      const tlScore  = tldr.includes(q) ? 1 : 0;
+      const hlScore = hl.includes(q) ? 3 : 0;
+      const tlScore = tldr.includes(q) ? 1 : 0;
       const score = hlScore + tlScore;
       if (score > 0) {
         results.push({
           type: "briefing",
           score,
-          id:       s.id,
-          date:     entry.date,
+          id: s.id,
+          date: entry.date,
           headline: s.headline,
-          meta:     `Deep Dive · ${entry.date}`,
+          meta: `Deep Dive · ${entry.date}`,
         });
       }
     }
@@ -4415,7 +4443,7 @@ function renderSearchResults(results, query) {
     return;
   }
 
-  const flashItems    = results.filter(r => r.type === "flash");
+  const flashItems = results.filter(r => r.type === "flash");
   const briefingItems = results.filter(r => r.type === "briefing");
 
   function highlight(text, q) {
@@ -4459,10 +4487,10 @@ function renderSearchResults(results, query) {
   list.querySelectorAll(".search-result-item").forEach(item => {
     item.addEventListener("click", () => {
       const type = item.dataset.type;
-      const id   = item.dataset.id;
+      const id = item.dataset.id;
       trackEvent("click_search_result", "Engagement", `${type}:${id}`);
       const overlay = $("search-overlay");
-      const input   = $("search-input");
+      const input = $("search-input");
       if (overlay) overlay.classList.remove("open");
       document.body.style.overflow = "";
       if (input) input.value = "";
@@ -4496,7 +4524,7 @@ function initBottomNav() {
   const flashBtn = $("bottom-nav-flash");
   const savedBtn = $("bottom-nav-saved");
   const menuBtn = $("bottom-nav-menu");
-  
+
   if (briefingBtn) {
     briefingBtn.onclick = () => {
       currentMode = "briefing";
@@ -4537,7 +4565,7 @@ function initBottomNav() {
 initBottomNav();
 route();
 
-window.showPwaBanner = function() {
+window.showPwaBanner = function () {
   const dismissed = localStorage.getItem('pwa_install_dismissed');
   if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
 
@@ -4546,7 +4574,7 @@ window.showPwaBanner = function() {
   const banner = document.createElement('div');
   banner.id = 'pwa-banner';
   banner.className = 'pwa-install-banner';
-  
+
   const iconPath = window.location.pathname.includes('/flash') || window.location.pathname.includes('/story') ? '../icon-192.png' : './icon-192.png';
 
   banner.innerHTML = `
@@ -4834,7 +4862,7 @@ window.addEventListener("DOMContentLoaded", () => {
       e.stopPropagation();
       const today = new Date();
       const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-      
+
       // Check if today has data
       const availableDates = getAvailableDates();
       if (availableDates.has(todayStr)) {

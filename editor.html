@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The Briefing — Admin Portal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,650;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:wght@700&family=Roboto+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,550;8..60,700&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,650;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:wght@700&family=Roboto+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,550;8..60,700&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <style>
     /* Admin Portal extensions */
@@ -15,6 +18,7 @@
       margin: 0 auto;
       padding: 24px 16px 80px;
     }
+
     .admin-card {
       background: var(--bg-card);
       border: 1px solid var(--rule);
@@ -23,6 +27,7 @@
       box-shadow: var(--shadow-md);
       margin-bottom: 24px;
     }
+
     .admin-title {
       font-family: var(--serif);
       font-weight: 900;
@@ -30,18 +35,21 @@
       margin-bottom: 8px;
       color: var(--ink);
     }
+
     .admin-subtitle {
       font-family: var(--sans);
       font-size: 13px;
       color: var(--ink-3);
       margin-bottom: 20px;
     }
+
     .form-group {
       margin-bottom: 16px;
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
+
     .form-group label {
       font-family: var(--mono);
       font-size: 11px;
@@ -50,11 +58,13 @@
       color: var(--ink-2);
       font-weight: 600;
     }
+
     .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
     }
+
     .input-textarea {
       font-family: var(--mono);
       font-size: 13px;
@@ -70,7 +80,9 @@
       resize: vertical;
       line-height: 1.5;
     }
-    .input-text, .input-date {
+
+    .input-text,
+    .input-date {
       font-family: var(--sans);
       font-size: 14px;
       padding: 10px 12px;
@@ -80,14 +92,19 @@
       color: var(--ink);
       width: 100%;
     }
+
     .input-text-mono {
       font-family: var(--mono);
       font-size: 13px;
     }
-    .input-textarea:focus, .input-text:focus, .input-date:focus {
+
+    .input-textarea:focus,
+    .input-text:focus,
+    .input-date:focus {
       outline: none;
       border-color: var(--accent);
     }
+
     .btn {
       font-family: var(--mono);
       font-size: 12px;
@@ -106,22 +123,27 @@
       gap: 8px;
       transition: background .15s, transform .1s;
     }
+
     .btn:hover {
       background: var(--accent-2);
     }
+
     .btn:disabled {
       background: var(--rule);
       color: var(--ink-3);
       cursor: not-allowed;
     }
+
     .btn-secondary {
       background: var(--bg-2);
       color: var(--ink);
       border: 1px solid var(--rule);
     }
+
     .btn-secondary:hover {
       background: var(--rule);
     }
+
     /* Settings panel */
     .settings-panel {
       border: 1px solid var(--rule);
@@ -130,6 +152,7 @@
       margin-bottom: 20px;
       background: var(--bg-card-h);
     }
+
     .settings-header {
       font-family: var(--mono);
       font-size: 11px;
@@ -143,9 +166,11 @@
       justify-content: space-between;
       cursor: pointer;
     }
+
     .settings-header.active {
       margin-bottom: 14px;
     }
+
     /* Publish logging console */
     .console-log {
       background: #0f1216;
@@ -160,12 +185,15 @@
       border: 1px solid #303844;
       line-height: 1.5;
     }
+
     .console-line {
       margin-bottom: 4px;
     }
+
     .console-line.err {
       color: #ff3333;
     }
+
     .button-row {
       display: flex;
       gap: 12px;
@@ -178,48 +206,62 @@
         grid-template-columns: 1fr !important;
         gap: 12px !important;
       }
+
       .admin-card {
         padding: 16px;
       }
+
       .admin-title {
         font-size: 24px;
       }
+
       .btn {
         width: 100%;
       }
-      .button-group, .button-row {
+
+      .button-group,
+      .button-row {
         flex-direction: column;
         gap: 8px;
       }
-      .button-group .btn, .button-row .btn {
+
+      .button-group .btn,
+      .button-row .btn {
         width: 100%;
       }
+
       /* Mobile modal adjustments */
       .preview-modal {
         padding: 0;
       }
+
       .preview-modal-content {
         height: 100vh;
         max-height: 100vh;
         border-radius: 0;
         border: none;
       }
+
       .preview-modal-header {
         padding: 12px 16px;
         flex-wrap: wrap;
         gap: 12px;
       }
+
       .preview-modal-body {
         padding: 16px;
       }
+
       /* Prevent automatic zoom on iOS by forcing font-size >= 16px on inputs/textareas inside modal */
-      .preview-modal-body input, 
-      .preview-modal-body textarea, 
+      .preview-modal-body input,
+      .preview-modal-body textarea,
       .preview-modal-body select {
         font-size: 16px !important;
       }
+
       /* Style adjustment for source/chapter edit cards */
-      .chapter-edit-card, .source-edit-card {
+      .chapter-edit-card,
+      .source-edit-card {
         padding: 12px !important;
       }
     }
@@ -239,6 +281,7 @@
       justify-content: center;
       padding: 16px;
     }
+
     .preview-modal-content {
       background: var(--bg);
       color: var(--ink);
@@ -253,6 +296,7 @@
       overflow: hidden;
       animation: zoomIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .preview-modal-header {
       padding: 16px 24px;
       border-bottom: 1px solid var(--rule);
@@ -262,17 +306,27 @@
       background: var(--bg-card-h);
       flex-shrink: 0;
     }
+
     .preview-modal-body {
       padding: 24px;
       overflow-y: auto;
       flex: 1;
     }
+
     @keyframes zoomIn {
-      from { transform: scale(0.96); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
+      from {
+        transform: scale(0.96);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
   </style>
 </head>
+
 <body>
 
   <!-- ── Sticky nav ─────────────────────────────── -->
@@ -286,8 +340,20 @@
       <div class="header-right">
         <a href="index.html" class="back-link" style="margin-bottom: 0; font-size: 11px;">View Site</a>
         <button id="theme-toggle" aria-label="Toggle dark mode">
-          <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-          <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
+          <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
         </button>
       </div>
     </div>
@@ -297,7 +363,8 @@
   <main class="admin-container">
     <div class="admin-card">
       <h1 class="admin-title">Admin Briefing Portal</h1>
-      <p class="admin-subtitle">Paste the Gemini briefing or JSON to automatically commit updates to your GitHub repository.</p>
+      <p class="admin-subtitle">Paste the Gemini briefing or JSON to automatically commit updates to your GitHub
+        repository.</p>
 
       <!-- GitHub Configuration Panel -->
       <div class="settings-panel">
@@ -318,16 +385,22 @@
           </div>
           <div class="form-group">
             <label for="gh-token">Personal Access Token (fine-grained or classic with 'repo' scope)</label>
-            <input type="password" id="gh-token" class="input-text input-text-mono" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+            <input type="password" id="gh-token" class="input-text input-text-mono"
+              placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
           </div>
           <button class="btn btn-secondary" onclick="saveSettings()">Save Configuration</button>
         </div>
       </div>
 
       <!-- Tab Selector -->
-      <div class="tab-container" style="display: flex; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--rule); padding-bottom: 10px;">
-        <button class="tab-btn active" id="tab-btn-briefing" onclick="switchEditorTab('briefing')" style="background: none; border: none; font-family: var(--sans); font-size: 14px; font-weight: 700; color: var(--ink); padding: 8px 16px; cursor: pointer; border-bottom: 2px solid var(--accent); margin-bottom: -11px;">Briefing Editor</button>
-        <button class="tab-btn" id="tab-btn-flash" onclick="switchEditorTab('flash')" style="background: none; border: none; font-family: var(--sans); font-size: 14px; font-weight: 500; color: var(--ink-3); padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -11px;">⚡ Flash Editor</button>
+      <div class="tab-container"
+        style="display: flex; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--rule); padding-bottom: 10px;">
+        <button class="tab-btn active" id="tab-btn-briefing" onclick="switchEditorTab('briefing')"
+          style="background: none; border: none; font-family: var(--sans); font-size: 14px; font-weight: 700; color: var(--ink); padding: 8px 16px; cursor: pointer; border-bottom: 2px solid var(--accent); margin-bottom: -11px;">Briefing
+          Editor</button>
+        <button class="tab-btn" id="tab-btn-flash" onclick="switchEditorTab('flash')"
+          style="background: none; border: none; font-family: var(--sans); font-size: 14px; font-weight: 500; color: var(--ink-3); padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -11px;">⚡
+          Flash Editor</button>
       </div>
 
       <!-- Briefing Editor Fields -->
@@ -339,24 +412,32 @@
           </div>
           <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 20px;">
             <input type="checkbox" id="merge-stories" checked style="width: 18px; height: 18px; cursor: pointer;" />
-            <label for="merge-stories" style="cursor: pointer; user-select: none; font-size: 13px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); font-weight: 600;">Merge/append to existing stories</label>
+            <label for="merge-stories"
+              style="cursor: pointer; user-select: none; font-size: 13px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); font-weight: 600;">Merge/append
+              to existing stories</label>
           </div>
         </div>
 
         <div style="margin-bottom: 16px;">
-          <button class="btn btn-secondary" id="btn-load-existing" onclick="loadExistingDay()">📥 Load Existing Day (edit images)</button>
-          <p style="font-family: var(--sans); font-size: 12px; color: var(--ink-3); margin-top: 6px;">Pulls the already-published stories for the date above into the editor below, so you can open any story and set/replace its Hero Image, then publish to save just that change.</p>
+          <button class="btn btn-secondary" id="btn-load-existing" onclick="loadExistingDay()">📥 Load Existing Day
+            (edit images)</button>
+          <p style="font-family: var(--sans); font-size: 12px; color: var(--ink-3); margin-top: 6px;">Pulls the
+            already-published stories for the date above into the editor below, so you can open any story and
+            set/replace its Hero Image, then publish to save just that change.</p>
         </div>
 
         <div class="form-group">
           <label for="raw-json">Paste Briefing JSON</label>
-          <textarea id="raw-json" class="input-textarea" placeholder="Paste the daily briefing JSON payload directly..."></textarea>
+          <textarea id="raw-json" class="input-textarea"
+            placeholder="Paste the daily briefing JSON payload directly..."></textarea>
         </div>
 
         <div class="button-row">
           <button class="btn" id="btn-parse" onclick="runPipeline(false)">Parse & Preview</button>
-          <button class="btn" id="btn-publish" onclick="runPipeline(true)" style="background: var(--green);">Publish to GitHub</button>
-          <button class="btn" id="btn-notify" onclick="dispatchPushNotifications()" style="background: var(--accent);">🔔 Send Push Notifications</button>
+          <button class="btn" id="btn-publish" onclick="runPipeline(true)" style="background: var(--green);">Publish to
+            GitHub</button>
+          <button class="btn" id="btn-notify" onclick="dispatchPushNotifications()"
+            style="background: var(--accent);">🔔 Send Push Notifications</button>
         </div>
       </div>
 
@@ -368,34 +449,46 @@
             <input type="date" id="flash-date" class="input-date" />
           </div>
           <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 20px;">
-            <input type="checkbox" id="flash-merge-stories" checked style="width: 18px; height: 18px; cursor: pointer;" />
-            <label for="flash-merge-stories" style="cursor: pointer; user-select: none; font-size: 13px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); font-weight: 600;">Merge/append to existing flashes</label>
+            <input type="checkbox" id="flash-merge-stories" checked
+              style="width: 18px; height: 18px; cursor: pointer;" />
+            <label for="flash-merge-stories"
+              style="cursor: pointer; user-select: none; font-size: 13px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); font-weight: 600;">Merge/append
+              to existing flashes</label>
           </div>
         </div>
 
         <div style="margin-bottom: 16px;">
-          <button class="btn btn-secondary" id="btn-flash-load-existing" onclick="loadExistingFlashDay()">📥 Load Existing Day (edit/delete)</button>
-          <p style="font-family: var(--sans); font-size: 12px; color: var(--ink-3); margin-top: 6px;">Pulls the already-published Flash stories for the date above into the editor below, so you can delete any of them, then publish to save.</p>
+          <button class="btn btn-secondary" id="btn-flash-load-existing" onclick="loadExistingFlashDay()">📥 Load
+            Existing Day (edit/delete)</button>
+          <p style="font-family: var(--sans); font-size: 12px; color: var(--ink-3); margin-top: 6px;">Pulls the
+            already-published Flash stories for the date above into the editor below, so you can delete any of them,
+            then publish to save.</p>
         </div>
 
         <div class="form-group">
           <label for="flash-raw-json">Paste Flash JSON (25 Stories Array)</label>
-          <textarea id="flash-raw-json" class="input-textarea" placeholder="Paste the daily Flash JSON array directly..."></textarea>
+          <textarea id="flash-raw-json" class="input-textarea"
+            placeholder="Paste the daily Flash JSON array directly..."></textarea>
         </div>
 
-        <div id="flash-validation-panel" style="display: none; border-radius: var(--radius-sm); margin-bottom: 16px;"></div>
+        <div id="flash-validation-panel" style="display: none; border-radius: var(--radius-sm); margin-bottom: 16px;">
+        </div>
 
         <div class="button-row">
           <button class="btn" id="btn-flash-parse" onclick="runFlashPipeline(false)">Parse & Preview</button>
-          <button class="btn" id="btn-flash-publish" onclick="runFlashPipeline(true)" style="background: var(--green);">Publish to GitHub</button>
-          <button class="btn" id="btn-flash-notify" onclick="dispatchPushNotifications()" style="background: var(--accent);">🔔 Send Push Notifications</button>
+          <button class="btn" id="btn-flash-publish" onclick="runFlashPipeline(true)"
+            style="background: var(--green);">Publish to GitHub</button>
+          <button class="btn" id="btn-flash-notify" onclick="dispatchPushNotifications()"
+            style="background: var(--accent);">🔔 Send Push Notifications</button>
         </div>
       </div>
     </div>
 
     <!-- Logger Console -->
     <div id="logger-section" style="display: none;">
-      <h2 class="admin-title" style="font-size: 18px; margin-bottom: 12px; font-family: var(--mono); letter-spacing: 0.05em;">Console Output</h2>
+      <h2 class="admin-title"
+        style="font-size: 18px; margin-bottom: 12px; font-family: var(--mono); letter-spacing: 0.05em;">Console Output
+      </h2>
       <div class="console-log" id="console-log"></div>
     </div>
 
@@ -410,7 +503,9 @@
     <!-- Flash Preview Results -->
     <div id="flash-results-section" class="import-results" style="display: none;">
       <h2 class="admin-title" style="font-size: 20px; margin-bottom: 16px;">Flash Cards Preview</h2>
-      <div id="flash-preview-stories" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 30px;"></div>
+      <div id="flash-preview-stories"
+        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 30px;">
+      </div>
     </div>
   </main>
 
@@ -427,7 +522,7 @@
     const saved = localStorage.getItem("theme");
     if (saved) document.documentElement.setAttribute("data-theme", saved);
     document.getElementById("theme-toggle").onclick = () => {
-      const next = document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark";
+      const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
       document.documentElement.setAttribute("data-theme", next);
     };
 
@@ -537,7 +632,7 @@
         .replace(/^#+\s*/gm, "")
         .trim();
     }
-    
+
     function slugify(text) {
       return text.toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
@@ -545,7 +640,7 @@
         .replace(/^-|-$/g, "")
         .slice(0, 60) || "story";
     }
-    
+
     function detectRegionString(title = "", content = "") {
       const combined = (title + " " + content).toLowerCase();
       const indiaSignals = [
@@ -563,23 +658,23 @@
     function parseMarkdownBriefing(input) {
       const frontBlocks = input.split(/\n##\s+(?=Front\s+\d)/i).filter(b => b.trim());
       const parsedStories = [];
-      
+
       for (const block of frontBlocks) {
         if (!block.trim()) continue;
         const cleanBlock = block.replace(/^##\s+/, "");
         if (!cleanBlock.match(/^Front\s+\d/i)) continue;
-        
+
         try {
           const titleMatch = cleanBlock.match(/^Front\s+\d+[:.]\s*(.+)/i);
           const rawTitle = titleMatch ? titleMatch[1].trim() : "Story";
           const headline = stripMarkdown(rawTitle);
-          
+
           const parts = cleanBlock.split(/\n###\s+/);
           const sections = [];
           let overview = "";
           let inPlainEnglish = "";
           let sources = [];
-          
+
           for (let i = 1; i < parts.length; i++) {
             const part = parts[i];
             const nl = part.indexOf("\n");
@@ -588,7 +683,7 @@
             const content = part.slice(nl + 1).trim();
             const cleanTitle = stripMarkdown(title);
             const cleanContent = stripMarkdown(content);
-            
+
             const lowerTitle = cleanTitle.toLowerCase();
             if (lowerTitle === "overview") {
               overview = cleanContent;
@@ -611,7 +706,7 @@
               sections.push({ title: cleanTitle, content: cleanContent });
             }
           }
-          
+
           parsedStories.push({
             id: slugify(headline),
             headline,
@@ -704,7 +799,7 @@
           log("Error: Input text is empty.", true);
           return;
         }
-        
+
         if (rawJson.trim().startsWith("{") || rawJson.trim().startsWith("[")) {
           try {
             const cleanedJson = repairJson(rawJson);
@@ -723,7 +818,7 @@
           try {
             stories = parseMarkdownBriefing(rawJson);
             log(`Loaded ${stories.length} stories parsed from Markdown.`);
-            
+
             // Auto-serialize parsed Markdown to JSON in the textarea for easy interactive editing
             const payload = {
               date,
@@ -770,12 +865,12 @@
     function adaptStory(story) {
       if (!story) return null;
       if (story._adapted) return story;
-      
+
       const isNewSchema = Array.isArray(story.sections) && story.sections.length > 0;
-                           
+
       if (isNewSchema) {
         const sections = [];
-        
+
         if (story.sections && Array.isArray(story.sections)) {
           story.sections.forEach(sec => {
             if (sec.question && sec.answer) {
@@ -791,14 +886,14 @@
             }
           });
         }
-        
+
         if (story.strategic_assessment) {
           sections.push({
             title: "Strategic Assessment",
             content: story.strategic_assessment
           });
         }
-        
+
         if (story.facts_vs_claims) {
           let content = "";
           const fc = story.facts_vs_claims;
@@ -815,18 +910,18 @@
             });
           }
         }
-        
+
         if (story.confidence_note) {
           sections.push({
             title: "Confidence & Sourcing Notes",
             content: story.confidence_note
           });
         }
-        
+
         const sources = (story.sources || []).map(s => {
           let name = s.outlet || s.name || "Source";
           if (s.desk) name += ` / ${s.desk}`;
-          
+
           let description = s.title || "";
           const tags = [];
           if (s.lean) tags.push(s.lean);
@@ -835,14 +930,21 @@
             description += (description ? " " : "") + `(${tags.join(" · ")})`;
           }
           if (!description && s.description) description = s.description;
-          
+
+          const cleanedUrl = cleanSourceUrl(s.url) || s.url || "#";
+
           return {
             name: name,
             description: description || "Reference source",
-            url: s.url || "#"
+            url: cleanedUrl,
+            outlet: s.outlet || s.name || name,
+            title: s.title || s.description || description || "Reference source",
+            desk: s.desk || "",
+            lean: s.lean || "center",
+            region: s.region || "global"
           };
         });
-        
+
         return {
           id: story.id,
           headline: story.headline || story.title,
@@ -858,9 +960,9 @@
           _adapted: true
         };
       }
-      
+
       const sections = [];
-      
+
       if (story.situational_analysis) {
         let content = "";
         const sa = story.situational_analysis;
@@ -872,11 +974,11 @@
         if (sa.how) content += `**Mechanisms:** ${sa.how}\n\n`;
         if (content) sections.push({ title: "Situational Analysis", content: content.trim() });
       }
-      
+
       if (story.strategic_assessment) {
         sections.push({ title: "Strategic Assessment", content: story.strategic_assessment });
       }
-      
+
       if (story.perspective_matrix) {
         let content = "";
         const pm = story.perspective_matrix;
@@ -887,7 +989,7 @@
         if (pm.right_leaning) content += `**Right Leaning:** ${pm.right_leaning}\n\n`;
         if (content) sections.push({ title: "Perspective Matrix", content: content.trim() });
       }
-      
+
       if (story.facts_vs_claims) {
         let content = "";
         const fc = story.facts_vs_claims;
@@ -901,17 +1003,23 @@
           sections.push({ title: "Facts vs Claims", content: content.trim() });
         }
       }
-      
+
       const sources = (story.sources || []).map(s => {
-        let name = s.name || "Source";
-        let description = s.description || "Reference source";
+        const cleanedUrl = cleanSourceUrl(s.url) || s.url || "#";
+        const name = s.outlet || s.name || "Source";
+        const description = s.description || s.title || `${s.lean || "center"} · ${s.region || "global"}`;
         return {
           name: name,
           description: description,
-          url: s.url || "#"
+          url: cleanedUrl,
+          outlet: s.outlet || s.name || name,
+          title: s.title || s.description || description,
+          desk: s.desk || "",
+          lean: s.lean || "center",
+          region: s.region || "global"
         };
       });
-      
+
       return {
         id: story.id,
         headline: story.headline || story.title,
@@ -1294,12 +1402,12 @@
     function cleanSourceUrl(raw) {
       if (!raw) return null;
       raw = raw.trim();
-      
+
       const mdMatch = raw.match(/^\[([\s\S]*?)\]\(([\s\S]*?)\)$/);
       if (mdMatch) {
         const text = mdMatch[1].trim();
         const url = mdMatch[2].trim();
-        
+
         const isValidUrl = (str) => {
           try {
             const u = new URL(str);
@@ -1316,86 +1424,105 @@
             if (q && isValidUrl(q)) {
               return q;
             }
-          } catch (e) {}
+          } catch (e) { }
         }
-        
+
         if (isValidUrl(url)) {
           return url;
         }
-        
+
         if (isValidUrl(text)) {
           return text;
         }
       }
-      
+
       const parenMatch = raw.match(/\((https?:\/\/[^\s)]+)\)/);
       if (parenMatch) {
         return parenMatch[1];
       }
-      
+
       const bracketMatch = raw.match(/^\[(https?:\/\/[^\s\]]+)\]/);
       if (bracketMatch) {
         return bracketMatch[1];
       }
-      
+
       return raw;
     }
 
     async function getHeroImage(url) {
       if (!url) return null;
-      try {
-        log(`Dynamically resolving Hero Image from first source (${url})...`);
-        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-        if (!res.ok) return null;
-        const json = await res.json();
-        const html = json.contents;
-        if (!html) return null;
-        
-        const m =
-          html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
-          html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ||
-          html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i) ||
-          html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i);
-        if (m) {
-          let src = m[1].trim();
-          if (src && !src.startsWith("data:")) {
-            if (!src.startsWith("http")) {
-              try {
-                src = new URL(src, url).href;
-              } catch(e) {}
-            }
-            
-            // Filter out generic/publication logo/placeholder images
-            const lowerSrc = src.toLowerCase();
-            const blacklist = [
-              'placeholder', 'avatar', 'favicon', 'fallback',
-              'default-share', 'default_share', 'social-share', 'social_share',
-              'og-default', 'og_default', 'default-og', 'default_og',
-              'share-image', 'share_img', 'share-img', 'default-image',
-              'default_image', 'dummy-image', 'site-image', 'generic-banner',
-              'publication-logo', 'default.jpg', 'default.png', 'default.jpeg',
-              'og-image', 'og_image'
-            ];
-            
-            const isGeneric = blacklist.some(word => lowerSrc.includes(word)) ||
-                              lowerSrc.includes('/logo') ||
-                              lowerSrc.includes('_logo') ||
-                              lowerSrc.includes('-logo') ||
-                              lowerSrc.includes('/brand') ||
-                              lowerSrc.includes('/icon') ||
-                              /\b(logo|brand|icon|placeholder)\b/.test(lowerSrc);
-            
-            if (isGeneric) {
-              log(`Resolved image is generic/blacklisted, ignoring: ${src}`);
-              return null;
-            }
-            
-            log(`Successfully resolved Hero Image: ${src}`);
-            return src;
+
+      const proxies = [
+        (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+        (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`
+      ];
+
+      for (let i = 0; i < proxies.length; i++) {
+        const proxyUrl = proxies[i](url);
+        try {
+          log(`Dynamically resolving Hero Image from source via Proxy ${i + 1} (${url})...`);
+          const res = await fetch(proxyUrl, {
+            signal: AbortSignal.timeout(6000)
+          });
+          if (!res.ok) continue;
+
+          let html = "";
+          if (proxyUrl.includes("allorigins")) {
+            const json = await res.json();
+            html = json.contents;
+          } else {
+            html = await res.text();
           }
+
+          if (!html) continue;
+
+          const m =
+            html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+            html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ||
+            html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i) ||
+            html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i);
+
+          if (m) {
+            let src = m[1].trim();
+            if (src && !src.startsWith("data:")) {
+              if (!src.startsWith("http")) {
+                try {
+                  src = new URL(src, url).href;
+                } catch (e) { }
+              }
+
+              // Filter out generic/publication logo/placeholder images
+              const lowerSrc = src.toLowerCase();
+              const blacklist = [
+                'placeholder', 'avatar', 'favicon', 'fallback',
+                'default-share', 'default_share', 'social-share', 'social_share',
+                'og-default', 'og_default', 'default-og', 'default_og',
+                'share-image', 'share_img', 'share-img', 'default-image',
+                'default_image', 'dummy-image', 'site-image', 'generic-banner',
+                'publication-logo', 'default.jpg', 'default.png', 'default.jpeg',
+                'og-image', 'og_image'
+              ];
+
+              const isGeneric = blacklist.some(word => lowerSrc.includes(word)) ||
+                lowerSrc.includes('/logo') ||
+                lowerSrc.includes('_logo') ||
+                lowerSrc.includes('-logo') ||
+                lowerSrc.includes('/brand') ||
+                lowerSrc.includes('/icon') ||
+                /\b(logo|brand|icon|placeholder)\b/.test(lowerSrc);
+
+              if (isGeneric) {
+                log(`Resolved image is generic/blacklisted on proxy ${i + 1}, ignoring: ${src}`);
+                continue;
+              }
+
+              log(`Successfully resolved Hero Image: ${src}`);
+              return src;
+            }
+          }
+        } catch (err) {
+          log(`Failed resolving hero image via Proxy ${i + 1}: ${err.message}`, true);
         }
-      } catch (e) {
-        log(`Failed resolving hero image: ${e.message}`);
       }
       return null;
     }
@@ -1409,30 +1536,30 @@
     let currentEditingStoryIdx = -1;
     let storyTempEdit = null;
 
-    window.switchModalTab = function(tabName) {
+    window.switchModalTab = function (tabName) {
       const previewBtn = document.getElementById("modal-tab-preview");
       const editBtn = document.getElementById("modal-tab-edit");
       if (!previewBtn || !editBtn) return;
-      
+
       if (tabName === 'preview') {
         previewBtn.classList.add("active");
         previewBtn.style.background = "var(--bg-card)";
         previewBtn.style.color = "var(--ink)";
-        
+
         editBtn.classList.remove("active");
         editBtn.style.background = "none";
         editBtn.style.color = "var(--ink-3)";
-        
+
         renderModalPreview();
       } else {
         editBtn.classList.add("active");
         editBtn.style.background = "var(--bg-card)";
         editBtn.style.color = "var(--ink)";
-        
+
         previewBtn.classList.remove("active");
         previewBtn.style.background = "none";
         previewBtn.style.color = "var(--ink-3)";
-        
+
         if (!storyTempEdit && currentEditingStoryIdx >= 0) {
           const rawStory = currentParsedStories[currentEditingStoryIdx];
           storyTempEdit = JSON.parse(JSON.stringify(rawStory));
@@ -1441,16 +1568,16 @@
       }
     };
 
-    window.openDeepDive = function(idx) {
+    window.openDeepDive = function (idx) {
       currentEditingStoryIdx = idx;
       const rawStory = currentParsedStories[idx];
       storyTempEdit = JSON.parse(JSON.stringify(rawStory));
-      
+
       document.getElementById("preview-modal").style.display = "flex";
       switchModalTab('preview');
     };
 
-    window.closeDeepDive = function() {
+    window.closeDeepDive = function () {
       document.getElementById("preview-modal").style.display = "none";
       storyTempEdit = null;
       currentEditingStoryIdx = -1;
@@ -1463,7 +1590,7 @@
 
       const firstSourceUrl = story.heroImage || (story.sources?.[0]?.url);
       const modalBody = document.getElementById("preview-modal-body");
-      
+
       modalBody.innerHTML = `
         <div class="longform-article-container" style="background: transparent; min-height: auto;">
           <div class="longform-article" style="padding: 12px 0 40px;">
@@ -1474,7 +1601,7 @@
             <header class="article-header" style="margin-bottom: 28px;">
               <div class="article-kicker-row">
                 <span>PREVIEW MODE</span>
-                <span class="region-badge ${(story.region||"").toLowerCase()}">${(story.region||"GLOBAL").toUpperCase()}</span>
+                <span class="region-badge ${(story.region || "").toLowerCase()}">${(story.region || "GLOBAL").toUpperCase()}</span>
               </div>
               <h1 class="article-headline">${story.headline || story.title || ""}</h1>
               ${story.subtitle ? `<p class="article-subtitle">${story.subtitle}</p>` : ""}
@@ -1538,19 +1665,57 @@
 
       if (story.heroImage) {
         setPreviewHeroImage(story.heroImage);
-      } else if (firstSourceUrl && firstSourceUrl.startsWith("http")) {
-        getHeroImage(firstSourceUrl).then(imgUrl => {
-          if (imgUrl) {
-            story.heroImage = imgUrl;
-            setPreviewHeroImage(imgUrl);
-          } else {
-            const hCont = document.getElementById("preview-hero-container");
-            if (hCont) hCont.style.display = "none";
-          }
-        });
       } else {
-        const hCont = document.getElementById("preview-hero-container");
-        if (hCont) hCont.style.display = "none";
+        // Gather all source URLs
+        const candidateUrls = (story.sources || [])
+          .map(s => cleanSourceUrl(s.url))
+          .filter(u => u && u.startsWith("http"));
+
+        if (candidateUrls.length > 0) {
+          (async () => {
+            let resolvedImg = null;
+            for (const url of candidateUrls) {
+              try {
+                const img = await getHeroImage(url);
+                if (img) {
+                  resolvedImg = img;
+                  break;
+                }
+              } catch (e) {
+                console.warn(`Failed getting image for ${url}:`, e);
+              }
+            }
+            if (resolvedImg) {
+              story.heroImage = resolvedImg;
+              if (currentEditingStoryIdx >= 0 && currentParsedStories[currentEditingStoryIdx]) {
+                currentParsedStories[currentEditingStoryIdx].heroImage = resolvedImg;
+              }
+              setPreviewHeroImage(resolvedImg);
+            } else {
+              const hCont = document.getElementById("preview-hero-container");
+              if (hCont) {
+                hCont.innerHTML = `
+                  <div class="hero-image-placeholder-failed" onclick="switchModalTab('edit')" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: var(--bg-2); border: 2px dashed var(--rule); border-radius: var(--radius-sm); padding: 24px; text-align: center; cursor: pointer; color: var(--ink-3); transition: border-color 0.2s; box-sizing: border-box;">
+                    <span style="font-size: 24px; margin-bottom: 8px;">🖼️</span>
+                    <strong style="font-size: 13px; color: var(--ink);">No Cover Image Resolved</strong>
+                    <span style="font-size: 11px; margin-top: 4px; opacity: 0.85;">All source scrapers timed out. Click here to edit the story and paste an image URL manually.</span>
+                  </div>
+                `;
+              }
+            }
+          })();
+        } else {
+          const hCont = document.getElementById("preview-hero-container");
+          if (hCont) {
+            hCont.innerHTML = `
+              <div class="hero-image-placeholder-failed" onclick="switchModalTab('edit')" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: var(--bg-2); border: 2px dashed var(--rule); border-radius: var(--radius-sm); padding: 24px; text-align: center; cursor: pointer; color: var(--ink-3); transition: border-color 0.2s; box-sizing: border-box;">
+                <span style="font-size: 24px; margin-bottom: 8px;">🖼️</span>
+                <strong style="font-size: 13px; color: var(--ink);">No Sources Available</strong>
+                <span style="font-size: 11px; margin-top: 4px; opacity: 0.85;">Click here to edit the story and paste an image URL manually.</span>
+              </div>
+            `;
+          }
+        }
       }
     }
 
@@ -1560,7 +1725,7 @@
       if (!story) return;
 
       const modalBody = document.getElementById("preview-modal-body");
-      
+
       const chaptersHtml = (story.sections || []).map((sec, sIdx) => `
         <div class="chapter-edit-card" style="border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 16px; background: var(--bg-2); display: flex; flex-direction: column; gap: 8px; position: relative;">
           <button onclick="deleteEditorChapter(${sIdx})" title="Delete Chapter" style="position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--rule); background: var(--bg-card); color: var(--red, #c0392b); cursor: pointer; font-size: 12px; line-height: 1; display: flex; align-items: center; justify-content: center;">🗑️</button>
@@ -1633,7 +1798,10 @@
               </div>
               <div class="form-group">
                 <label style="font-family: var(--mono); font-size: 11px;">Hero Image URL</label>
-                <input type="text" id="edit-hero-image" class="input-text" value="${escapeHtml(story.heroImage || "")}" placeholder="https://example.com/image.jpg" />
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="edit-hero-image" class="input-text" style="flex: 1;" value="${escapeHtml(story.heroImage || "")}" placeholder="https://example.com/image.jpg" />
+                  <button type="button" class="btn btn-secondary" id="btn-fetch-image" onclick="autoFetchHeroImage()" style="width: auto; padding: 0 12px; font-size: 11px; white-space: nowrap;">Fetch from Sources</button>
+                </div>
               </div>
             </div>
           </div>
@@ -1686,21 +1854,21 @@
       `;
     }
 
-    window.scrapeModalEditorInputs = function() {
+    window.scrapeModalEditorInputs = function () {
       if (!storyTempEdit) return;
-      
+
       storyTempEdit.headline = document.getElementById("edit-headline").value.trim();
       storyTempEdit.title = storyTempEdit.headline;
       storyTempEdit.subtitle = document.getElementById("edit-subtitle").value.trim();
       storyTempEdit.region = document.getElementById("edit-region").value;
       storyTempEdit.heroImage = document.getElementById("edit-hero-image").value.trim() || null;
-      
+
       storyTempEdit.overview = document.getElementById("edit-overview").value.trim();
       storyTempEdit.tldr = storyTempEdit.overview;
       storyTempEdit.inPlainEnglish = document.getElementById("edit-plain-english").value.trim();
       storyTempEdit.simple_explanation = storyTempEdit.inPlainEnglish;
       storyTempEdit.conclusion = document.getElementById("edit-conclusion").value.trim() || null;
-      
+
       const chapterCards = document.querySelectorAll(".chapter-edit-card");
       storyTempEdit.sections = Array.from(chapterCards).map((card, idx) => {
         const title = card.querySelector(".edit-chapter-title").value.trim();
@@ -1714,7 +1882,7 @@
           table: table
         };
       });
-      
+
       const sourceCards = document.querySelectorAll(".source-edit-card");
       storyTempEdit.sources = Array.from(sourceCards).map((card, idx) => {
         const outlet = card.querySelector(".edit-source-outlet").value.trim();
@@ -1736,14 +1904,63 @@
       });
     };
 
-    window.addEditorChapter = function() {
+    window.autoFetchHeroImage = async function () {
+      const btn = document.getElementById("btn-fetch-image");
+      if (!btn) return;
+      const originalText = btn.innerText;
+
+      try {
+        // Synchronize edited states from form fields
+        scrapeModalEditorInputs();
+
+        if (!storyTempEdit || !storyTempEdit.sources || storyTempEdit.sources.length === 0) {
+          alert("No sources found to fetch an image from.");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Fetching...";
+        log("Searching source URLs for a cover image...");
+
+        let resolvedUrl = null;
+        for (const src of storyTempEdit.sources) {
+          const rawUrl = src.url;
+          if (rawUrl && rawUrl.startsWith("http")) {
+            const cleanUrl = cleanSourceUrl(rawUrl);
+            log(`Attempting to scrape image from: ${cleanUrl}`);
+            const img = await getHeroImage(cleanUrl);
+            if (img) {
+              resolvedUrl = img;
+              break;
+            }
+          }
+        }
+
+        if (resolvedUrl) {
+          document.getElementById("edit-hero-image").value = resolvedUrl;
+          log(`Successfully fetched and applied cover image: ${resolvedUrl}`);
+          alert(`Successfully resolved cover image:\n${resolvedUrl}`);
+        } else {
+          log("Could not find any suitable cover images in the story's source URLs.", true);
+          alert("Could not find a valid cover image in any of the source URLs.");
+        }
+      } catch (err) {
+        log(`Error fetching image: ${err.message}`, true);
+        alert(`Error: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
+      }
+    };
+
+    window.addEditorChapter = function () {
       scrapeModalEditorInputs();
       if (!storyTempEdit.sections) storyTempEdit.sections = [];
       storyTempEdit.sections.push({ title: "", question: "", content: "", answer: "", table: null });
       renderModalEditor();
     };
 
-    window.deleteEditorChapter = function(sIdx) {
+    window.deleteEditorChapter = function (sIdx) {
       scrapeModalEditorInputs();
       if (storyTempEdit.sections) {
         storyTempEdit.sections.splice(sIdx, 1);
@@ -1751,14 +1968,14 @@
       renderModalEditor();
     };
 
-    window.addEditorSource = function() {
+    window.addEditorSource = function () {
       scrapeModalEditorInputs();
       if (!storyTempEdit.sources) storyTempEdit.sources = [];
       storyTempEdit.sources.push({ outlet: "", name: "", desk: "", lean: "", region: "", title: "", description: "", url: "" });
       renderModalEditor();
     };
 
-    window.deleteEditorSource = function(srcIdx) {
+    window.deleteEditorSource = function (srcIdx) {
       scrapeModalEditorInputs();
       if (storyTempEdit.sources) {
         storyTempEdit.sources.splice(srcIdx, 1);
@@ -1766,12 +1983,12 @@
       renderModalEditor();
     };
 
-    window.saveStoryEdits = function(idx) {
+    window.saveStoryEdits = function (idx) {
       scrapeModalEditorInputs();
       currentParsedStories[idx] = storyTempEdit;
       syncStoriesToTextarea();
       displayPreviews(currentParsedStories);
-      
+
       log(`Locally saved changes to Story #${idx + 1}: "${storyTempEdit.headline}". Remember to click "Publish to GitHub" to save permanently.`);
       switchModalTab('preview');
     };
@@ -1779,17 +1996,17 @@
     function syncStoriesToTextarea() {
       const rawJsonEl = document.getElementById("raw-json");
       if (!rawJsonEl) return;
-      
+
       let payload = null;
       try {
         const parsed = JSON.parse(rawJsonEl.value);
         if (parsed && typeof parsed === 'object') {
           payload = parsed;
         }
-      } catch (e) {}
-      
+      } catch (e) { }
+
       const date = document.getElementById("briefing-date").value;
-      
+
       if (payload && payload.stories) {
         payload.stories = currentParsedStories;
       } else if (payload && Array.isArray(payload)) {
@@ -1803,7 +2020,7 @@
           stories: currentParsedStories
         };
       }
-      
+
       rawJsonEl.value = JSON.stringify(payload, null, 2);
       autoExpand(rawJsonEl);
     }
@@ -1819,25 +2036,25 @@
       const bResults = document.getElementById("results-section");
       const fResults = document.getElementById("flash-results-section");
       const loggerSection = document.getElementById("logger-section");
-      
+
       // Clear console
       document.getElementById("console-log").innerHTML = "";
       loggerSection.style.display = "none";
-      
+
       if (tab === 'briefing') {
         bFields.style.display = "block";
         fFields.style.display = "none";
         bTab.classList.add("active");
         fTab.classList.remove("active");
-        
+
         bTab.style.fontWeight = "700";
         bTab.style.color = "var(--ink)";
         bTab.style.borderBottomColor = "var(--accent)";
-        
+
         fTab.style.fontWeight = "500";
         fTab.style.color = "var(--ink-3)";
         fTab.style.borderBottomColor = "transparent";
-        
+
         bResults.style.display = "none";
         fResults.style.display = "none";
       } else {
@@ -1845,15 +2062,15 @@
         fFields.style.display = "block";
         fTab.classList.add("active");
         bTab.classList.remove("active");
-        
+
         fTab.style.fontWeight = "700";
         fTab.style.color = "var(--ink)";
         fTab.style.borderBottomColor = "var(--accent)";
-        
+
         bTab.style.fontWeight = "500";
         bTab.style.color = "var(--ink-3)";
         bTab.style.borderBottomColor = "transparent";
-        
+
         bResults.style.display = "none";
         fResults.style.display = "none";
       }
@@ -1960,7 +2177,7 @@
 
         // Clean source_url (strip markdown link syntax)
         let updatedAny = false;
-        
+
         log("Cleaning source URLs...");
         for (const s of stories) {
           if (s.source_url) {
@@ -1971,7 +2188,7 @@
               updatedAny = true;
             }
           }
-          
+
           if (!s.source_search) {
             const headlineText = s.headline || s.hl || '';
             const sourceText = s.source || s.src || '';
@@ -1985,13 +2202,13 @@
 
         // 2. Validate Stories
         const validation = validateFlashStories(stories);
-        
+
         const valPanel = document.getElementById("flash-validation-panel");
         valPanel.style.display = "block";
-        
+
         let valHtml = "";
         let hasErrors = false;
-        
+
         if (validation.errors.length > 0) {
           hasErrors = true;
           valHtml += `<div style="background: rgba(255, 80, 50, 0.15); border-left: 4px solid #ff5032; padding: 12px; color: #ff5032; margin-bottom: 12px; font-size: 13px;">`;
@@ -2002,7 +2219,7 @@
           });
           valHtml += `</ul></div>`;
         }
-        
+
         if (validation.warnings.length > 0) {
           valHtml += `<div style="background: rgba(245, 158, 11, 0.15); border-left: 4px solid #f59e0b; padding: 12px; color: #f59e0b; font-size: 13px;">`;
           valHtml += `<strong>Warnings (Publish allowed):</strong><ul style="margin: 6px 0 0 16px;">`;
@@ -2012,7 +2229,7 @@
           });
           valHtml += `</ul></div>`;
         }
-        
+
         if (validation.errors.length === 0 && validation.warnings.length === 0) {
           valHtml += `<div style="background: rgba(34, 197, 94, 0.15); border-left: 4px solid #22c55e; padding: 12px; color: #22c55e; font-size: 13px;">`;
           valHtml += `<strong>All validation checks passed!</strong> Ready to publish.</div>`;
@@ -2021,7 +2238,7 @@
           valHtml += `<div style="background: rgba(34, 197, 94, 0.15); border-left: 4px solid #22c55e; padding: 12px; color: #22c55e; font-size: 13px; margin-top: 12px;">`;
           valHtml += `<strong>Validation check ok.</strong> Pre-publishing allowed with warnings.</div>`;
         }
-        
+
         valPanel.innerHTML = valHtml;
 
         if (hasErrors) {
@@ -2034,7 +2251,7 @@
         }
 
         currentParsedFlashStories = stories;
-        
+
         // 3. Render Previews
         renderFlashPreviews(stories, validation.vagueKeywordsByStory);
         document.getElementById("flash-results-section").style.display = "block";
@@ -2062,11 +2279,11 @@
           }
           k++;
         }
-        
+
         if (nextChar === ':' || nextChar === '}' || nextChar === ']' || nextChar === '') {
           return true;
         }
-        
+
         if (nextChar === ',') {
           let m = k + 1;
           let afterCommaChar = '';
@@ -2078,21 +2295,21 @@
             }
             m++;
           }
-          
-          if (afterCommaChar === '"' || afterCommaChar === '{' || afterCommaChar === '[' || 
-              afterCommaChar === '}' || afterCommaChar === ']' || 
-              (afterCommaChar >= '0' && afterCommaChar <= '9') || afterCommaChar === '-') {
+
+          if (afterCommaChar === '"' || afterCommaChar === '{' || afterCommaChar === '[' ||
+            afterCommaChar === '}' || afterCommaChar === ']' ||
+            (afterCommaChar >= '0' && afterCommaChar <= '9') || afterCommaChar === '-') {
             return true;
           }
-          
+
           const remaining = str.slice(m);
           if (remaining.startsWith('true') || remaining.startsWith('false') || remaining.startsWith('null')) {
             return true;
           }
-          
+
           return false;
         }
-        
+
         return false;
       }
 
@@ -2146,35 +2363,35 @@
 
     function escapeHtml(s) {
       return String(s ?? "").replace(/[&<>"']/g, c =>
-        ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
     function validateFlashStories(stories) {
       const errors = [];
       const warnings = [];
       const vagueKeywordsByStory = {};
-      
+
       const count = stories.length;
       if (count !== 25) {
         warnings.push(`Story count is ${count} (expected exactly 25 stories for today).`);
       }
-      
+
       const validCats = new Set([
         'india', 'global', 'politics', 'economics', 'ai-tech', 'science', 'sports', 'entertainment', 'culture', 'health',
         'world', 'business', 'ai' // older aliases for backwards compatibility
       ]);
       const catCount = {};
-      
+
       stories.forEach((s, idx) => {
         const prefix = `Story #${idx + 1} ("${s.headline || s.hl || 'Untitled'}")`;
-        
+
         const id = s.id;
         const cat = s.cat;
         const ts = s.ts || s.time;
         const hl = s.headline || s.hl;
         const body = s.summary || s.body;
         const source = s.source || s.src;
-        
+
         if (!id) errors.push(`${prefix} is missing key 'id'.`);
         if (!cat) errors.push(`${prefix} is missing key 'cat'.`);
         if (!hl) errors.push(`${prefix} is missing key 'headline' or 'hl'.`);
@@ -2182,7 +2399,7 @@
         if (!source) errors.push(`${prefix} is missing key 'source' or 'src'.`);
         if (!s.why_it_matters) errors.push(`${prefix} is missing key 'why_it_matters'.`);
         if (!s.source_url) errors.push(`${prefix} is missing key 'source_url'.`);
-        
+
         if (cat) {
           const lowerCat = cat.trim().toLowerCase();
           if (!validCats.has(lowerCat)) {
@@ -2191,7 +2408,7 @@
             catCount[lowerCat] = (catCount[lowerCat] || 0) + 1;
           }
         }
-        
+
         if (Array.isArray(s.who_benefits)) {
           const vague = ['everyone', 'society', 'consumers', 'global', 'india', 'users', 'general public', 'public', 'people'];
           const foundVague = [];
@@ -2209,7 +2426,7 @@
           errors.push(`${prefix} has 'who_benefits' but it is not an array.`);
         }
       });
-      
+
       const catArray = Array.from(validCats);
       catArray.forEach(c => {
         const count = catCount[c] || 0;
@@ -2217,7 +2434,7 @@
           warnings.push(`Category '${c}' has 0 stories. Feed might feel imbalanced.`);
         }
       });
-      
+
       return { errors, warnings, vagueKeywordsByStory };
     }
 
@@ -2225,73 +2442,73 @@
       const container = document.getElementById("flash-preview-stories");
       if (!container) return;
       container.innerHTML = "";
-      
+
       const FLASH_COLORS = {
-        all:           '#FF5722',
-        india:         '#FF5722',
-        world:         '#3B82F6',
-        global:        '#3B82F6',
-        ai:            '#06B6D4',
-        'ai-tech':     '#06B6D4',
-        politics:      '#8B5CF6',
-        business:      '#22C55E',
-        economics:     '#22C55E',
-        sports:        '#F97316',
+        all: '#FF5722',
+        india: '#FF5722',
+        world: '#3B82F6',
+        global: '#3B82F6',
+        ai: '#06B6D4',
+        'ai-tech': '#06B6D4',
+        politics: '#8B5CF6',
+        business: '#22C55E',
+        economics: '#22C55E',
+        sports: '#F97316',
         entertainment: '#EC4899',
-        culture:       '#A78BFA',
-        science:       '#F59E0B',
-        health:        '#34D399'
+        culture: '#A78BFA',
+        science: '#F59E0B',
+        health: '#34D399'
       };
-      
+
       container.innerHTML = stories.map((s, idx) => {
         const cat = (s.cat || "india").toLowerCase();
         const col = FLASH_COLORS[cat] || '#3E3E50';
-        
+
         const hl = s.headline || s.hl;
         const body = s.summary || s.body;
         const source = s.source || s.src;
-        
+
         const vague = vagueKeywords[idx] || [];
         const vagueWarningHtml = vague.length > 0
           ? `<div style="background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #f59e0b; padding: 4px 8px; border-radius: 4px; font-size: 10px; margin-top: 8px;">
                ⚠️ Vague keywords: ${vague.join(', ')}
              </div>`
           : "";
-          
+
         const benefitsChips = (s.who_benefits || []).map(b => `
           <span style="border: 1px solid rgba(255,255,255,0.08); font-family: var(--sans); font-size: 10px; border-radius: 10px; padding: 2px 6px; color: var(--ink-2); background: var(--bg-card-h); white-space: nowrap;">${escapeHtml(b)}</span>
         `).join("");
-        
+
         const whyItMattersHtml = s.why_it_matters
           ? `<div style="border-left: 2px solid ${col}; padding-left: 8px; font-family: var(--sans); font-size: 11px; color: var(--ink-2); line-height: 1.4; margin-top: 4px;">
                <strong style="color: var(--ink); font-size: 8px; text-transform: uppercase; letter-spacing: 0.12em;">Why it matters:</strong> ${escapeHtml(s.why_it_matters)}
              </div>`
           : "";
-          
+
         const rememberHtml = s.remember
           ? `<div style="border-left: 2px solid #8B5CF6; padding-left: 8px; font-family: var(--sans); font-size: 11px; color: var(--ink-2); line-height: 1.4; margin-top: 4px;">
                <strong style="color: var(--ink); font-size: 8px; text-transform: uppercase; letter-spacing: 0.12em;">Remember:</strong> ${escapeHtml(s.remember)}
              </div>`
           : "";
-          
+
         return `
           <div style="position: relative; background: var(--bg-card); border: 1px solid var(--rule); border-top: 4px solid ${col}; border-radius: var(--radius-sm); padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow-sm); text-align: left;">
             <button onclick="confirmDeleteFlashStory(${idx})" title="Delete this Flash story" style="position: absolute; top: 10px; right: 10px; z-index: 2; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--rule); background: var(--bg-card); color: var(--red, #c0392b); cursor: pointer; font-size: 12px; line-height: 1;">🗑️</button>
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; padding-right: 28px;">
               <span style="color: ${col}; font-weight: 700; text-transform: uppercase;">${escapeHtml(s.cat)}</span>
               ${(() => {
-                if (!source) return '';
-                const text = escapeHtml(source);
-                const newspaperSvg = `<svg viewBox="0 0 24 24" width="10.5" height="10.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -1px; opacity: 0.8; display: inline-block;"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"></path></svg>`;
-                const label = `<span style="opacity: 0.65; font-weight: normal; margin-right: 3px;">Source:</span>`;
-                if (s.source_url) {
-                  return `<span style="color: var(--ink-3); font-family: var(--mono); display: inline-flex; align-items: center;">${newspaperSvg}${label}<a href="${escapeHtml(s.source_url)}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; cursor: pointer;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">${text}&nbsp;↗</a></span>`;
-                }
-                if (s.source_search) {
-                  return `<span style="color: var(--ink-3); font-family: var(--mono); display: inline-flex; align-items: center;">${newspaperSvg}${label}<a href="https://www.google.com/search?q=${encodeURIComponent(s.source_search)}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; cursor: pointer;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">${text}&nbsp;↗</a></span>`;
-                }
-                return `<span style="color: var(--ink-3); font-family: var(--mono); display: inline-flex; align-items: center;">${newspaperSvg}${label}<span>${text}</span></span>`;
-              })()}
+            if (!source) return '';
+            const text = escapeHtml(source);
+            const newspaperSvg = `<svg viewBox="0 0 24 24" width="10.5" height="10.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -1px; opacity: 0.8; display: inline-block;"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"></path></svg>`;
+            const label = `<span style="opacity: 0.65; font-weight: normal; margin-right: 3px;">Source:</span>`;
+            if (s.source_url) {
+              return `<span style="color: var(--ink-3); font-family: var(--mono); display: inline-flex; align-items: center;">${newspaperSvg}${label}<a href="${escapeHtml(s.source_url)}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; cursor: pointer;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">${text}&nbsp;↗</a></span>`;
+            }
+            if (s.source_search) {
+              return `<span style="color: var(--ink-3); font-family: var(--mono); display: inline-flex; align-items: center;">${newspaperSvg}${label}<a href="https://www.google.com/search?q=${encodeURIComponent(s.source_search)}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; cursor: pointer;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">${text}&nbsp;↗</a></span>`;
+            }
+            return `<span style="color: var(--ink-3); font-family: var(--mono); display: inline-flex; align-items: center;">${newspaperSvg}${label}<span>${text}</span></span>`;
+          })()}
             </div>
             <h3 style="font-family: var(--serif); font-size: 16px; font-weight: 700; color: var(--ink); margin: 0; line-height: 1.3;">${escapeHtml(hl)}</h3>
             <p style="font-family: var(--sans); font-size: 13px; color: var(--ink-2); line-height: 1.5; margin: 0;">${escapeHtml(body)}</p>
@@ -2637,15 +2854,21 @@
       <div class="preview-modal-header">
         <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
           <h3 class="admin-title" style="font-size: 18px; margin-bottom: 0; font-family: var(--sans);">Deep Dive</h3>
-          <div class="modal-tab-container" style="display: flex; gap: 4px; background: var(--bg-2); padding: 2px; border-radius: var(--radius-sm); border: 1px solid var(--rule);">
-            <button class="modal-tab-btn active" id="modal-tab-preview" onclick="switchModalTab('preview')" style="border: none; background: var(--bg-card); color: var(--ink); padding: 4px 12px; font-size: 11px; font-family: var(--mono); font-weight: bold; cursor: pointer; border-radius: var(--radius-sm); transition: background 0.1s; width: auto;">PREVIEW</button>
-            <button class="modal-tab-btn" id="modal-tab-edit" onclick="switchModalTab('edit')" style="border: none; background: none; color: var(--ink-3); padding: 4px 12px; font-size: 11px; font-family: var(--mono); font-weight: bold; cursor: pointer; border-radius: var(--radius-sm); transition: background 0.1s; width: auto;">EDIT STORY</button>
+          <div class="modal-tab-container"
+            style="display: flex; gap: 4px; background: var(--bg-2); padding: 2px; border-radius: var(--radius-sm); border: 1px solid var(--rule);">
+            <button class="modal-tab-btn active" id="modal-tab-preview" onclick="switchModalTab('preview')"
+              style="border: none; background: var(--bg-card); color: var(--ink); padding: 4px 12px; font-size: 11px; font-family: var(--mono); font-weight: bold; cursor: pointer; border-radius: var(--radius-sm); transition: background 0.1s; width: auto;">PREVIEW</button>
+            <button class="modal-tab-btn" id="modal-tab-edit" onclick="switchModalTab('edit')"
+              style="border: none; background: none; color: var(--ink-3); padding: 4px 12px; font-size: 11px; font-family: var(--mono); font-weight: bold; cursor: pointer; border-radius: var(--radius-sm); transition: background 0.1s; width: auto;">EDIT
+              STORY</button>
           </div>
         </div>
-        <button class="btn btn-secondary" style="padding: 6px 14px; font-size: 10px; width: auto;" onclick="closeDeepDive()">Close</button>
+        <button class="btn btn-secondary" style="padding: 6px 14px; font-size: 10px; width: auto;"
+          onclick="closeDeepDive()">Close</button>
       </div>
       <div class="preview-modal-body" id="preview-modal-body"></div>
     </div>
   </div>
 </body>
+
 </html>
