@@ -1030,6 +1030,10 @@ async function runSSG() {
   if (!fs.existsSync(installDir)) fs.mkdirSync(installDir, { recursive: true });
   fs.writeFileSync(path.join(installDir, 'index.html'), injectBaseHref(rootHtml, '../'));
 
+  const savedDir = path.join(process.cwd(), 'saved');
+  if (!fs.existsSync(savedDir)) fs.mkdirSync(savedDir, { recursive: true });
+  fs.writeFileSync(path.join(savedDir, 'index.html'), injectBaseHref(rootHtml, '../'));
+
   const dataDir = path.join(process.cwd(), 'data');
   const allFiles = fs.readdirSync(dataDir);
   const dates = new Set();

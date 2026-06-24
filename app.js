@@ -3,7 +3,7 @@
 const DATA = "data/";
 const BASE_PATH = (() => {
   const path = window.location.pathname;
-  const match = path.match(/^(.*?)\/(?:story|day|editor|briefings|flash|install)(?:\/|$)/);
+  const match = path.match(/^(.*?)\/(?:story|day|editor|briefings|flash|install|saved)(?:\/|$)/);
   if (match) return match[1];
   return path.replace(/\/+$/, "");
 })();
@@ -19,6 +19,8 @@ let currentFlashIndex = 0;
 const flashReadsSessionSet = new Set();
 let selectedFlashStoryId = null;
 let physDragCleanup = null;
+let deckItems = [];
+let isPreloadingNextDay = false;
 
 /* ── Analytics tracking helpers ──────────────────────────────── */
 function trackPageView(path, title) {
@@ -343,6 +345,15 @@ function stopProgress() {
   if (headerCenter) {
     headerCenter.style.display = "none";
   }
+}
+
+function getPreviousFlashDate(currentDate) {
+  if (!currentDate || !indexEntries.length) return null;
+  const idx = indexEntries.findIndex(e => e.date === currentDate);
+  if (idx >= 0 && idx < indexEntries.length - 1) {
+    return indexEntries[idx + 1].date;
+  }
+  return null;
 }
 
 /* ── Data loading ──────────────────────────────────────────── */
@@ -1878,19 +1889,78 @@ async function renderStory(date, id) {
 
   const firstSourceUrl = s.heroImage || (s.sources?.[0]?.url);
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const fromSaved = urlParams.get('from') === 'saved';
+
+  let backLink = `${BASE_PATH}/briefings`;
+  let backLabel = "Back to Today's Deep Dives";
+  let kickerLabel = `FRONT ${String(storyIdx + 1).padStart(2, "0")}`;
+  let prevStoryLink = `<div class="story-nav-empty"></div>`;
+  let nextStoryLink = `<div class="story-nav-empty"></div>`;
+
+  if (fromSaved) {
+    backLink = `${BASE_PATH}/saved`;
+    backLabel = "Back to Saved Items";
+
+    const savedList = getSavedStories().filter(x => x.sections !== undefined);
+    const savedIdx = savedList.findIndex(x => x.id === id);
+    kickerLabel = `SAVED DEEP DIVE`;
+
+    if (savedIdx >= 0) {
+      if (savedIdx > 0) {
+        const prevS = savedList[savedIdx - 1];
+        prevStoryLink = `
+          <a class="story-nav-card prev" href="${BASE_PATH}/story/${prevS.date}/${prevS.id}?from=saved">
+            <span class="story-nav-label">&larr; Previous Saved</span>
+            <span class="story-nav-title">${esc(prevS.headline)}</span>
+          </a>
+        `;
+      }
+      if (savedIdx < savedList.length - 1) {
+        const nextS = savedList[savedIdx + 1];
+        nextStoryLink = `
+          <a class="story-nav-card next" href="${BASE_PATH}/story/${nextS.date}/${nextS.id}?from=saved">
+            <span class="story-nav-label">Next Saved &rarr;</span>
+            <span class="story-nav-title">${esc(nextS.headline)}</span>
+          </a>
+        `;
+      }
+    }
+  } else {
+    if (storyIdx > 0) {
+      prevStoryLink = `
+        <a class="story-nav-card prev" href="${BASE_PATH}/story/${date}/${stories[storyIdx - 1].id}">
+          <span class="story-nav-label">&larr; Previous Story</span>
+          <span class="story-nav-title">${esc(stories[storyIdx - 1].headline)}</span>
+        </a>
+      `;
+    }
+    if (storyIdx < stories.length - 1) {
+      nextStoryLink = `
+        <a class="story-nav-card next" href="${BASE_PATH}/story/${date}/${stories[storyIdx + 1].id}">
+          <span class="story-nav-label">Next Story &rarr;</span>
+          <span class="story-nav-title">${esc(stories[storyIdx + 1].headline)}</span>
+        </a>
+      `;
+    }
+  }
+
+  s.date = date;
+  const isBookmarked = getSavedStories().some(x => x.id === id);
+
   const totalWords = (s.headline + " " + s.overview + " " + s.inPlainEnglish + " " + s.sections.map(sec => sec.title + " " + sec.content).join(" ")).split(/\s+/).length;
   const totalReadingTime = Math.max(1, Math.round(totalWords / 200));
 
   articleContainer.innerHTML = `
     <article class="longform-article">
       <div class="article-back-row">
-        <a href="${BASE_PATH}/briefings" class="article-back-btn">
+        <a href="${backLink}" class="article-back-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12" style="vertical-align: -1px; margin-right: 4px;"><polyline points="15 18 9 12 15 6"/></svg>
-          Back to Today's Deep Dives
+          ${esc(backLabel)}
         </a>
       </div>
       <div class="article-kicker-row">
-        <span>FRONT ${String(storyIdx + 1).padStart(2, "0")}</span>
+        <span>${esc(kickerLabel)}</span>
       </div>
 
       <h1 class="article-headline">${esc(s.headline)}</h1>
@@ -1900,16 +1970,24 @@ async function renderStory(date, id) {
         <span>${fmtHeaderDate(date)}</span>
         <span>&middot;</span>
         <span>${totalReadingTime} min read</span>
-        <button class="article-share-btn" id="article-share-btn" aria-label="Share this story">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="18" cy="5" r="3"></circle>
-            <circle cx="6" cy="12" r="3"></circle>
-            <circle cx="18" cy="19" r="3"></circle>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-          </svg>
-          <span>Share</span>
-        </button>
+        <div class="article-meta-actions" style="margin-left: auto; display: flex; align-items: center; gap: 16px;">
+          <button class="article-bookmark-btn ${isBookmarked ? 'saved' : ''}" id="article-bookmark-btn" aria-label="Save this story">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="${isBookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>${isBookmarked ? 'Saved' : 'Save'}</span>
+          </button>
+          <button class="article-share-btn" id="article-share-btn" aria-label="Share this story" style="margin-left: 0;">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="18" cy="5" r="3"></circle>
+              <circle cx="6" cy="12" r="3"></circle>
+              <circle cx="18" cy="19" r="3"></circle>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+            </svg>
+            <span>Share</span>
+          </button>
+        </div>
       </div>
 
       <div id="article-hero-container">
@@ -1965,19 +2043,8 @@ async function renderStory(date, id) {
       </div>
 
       <nav class="story-bottom-nav">
-        ${storyIdx > 0 ? `
-          <a class="story-nav-card prev" href="${BASE_PATH}/story/${date}/${stories[storyIdx - 1].id}">
-            <span class="story-nav-label">&larr; Previous Story</span>
-            <span class="story-nav-title">${esc(stories[storyIdx - 1].headline)}</span>
-          </a>
-        ` : `<div class="story-nav-empty"></div>`}
-        
-        ${storyIdx < stories.length - 1 ? `
-          <a class="story-nav-card next" href="${BASE_PATH}/story/${date}/${stories[storyIdx + 1].id}">
-            <span class="story-nav-label">Next Story &rarr;</span>
-            <span class="story-nav-title">${esc(stories[storyIdx + 1].headline)}</span>
-          </a>
-        ` : `<div class="story-nav-empty"></div>`}
+        ${prevStoryLink}
+        ${nextStoryLink}
       </nav>
     </article>
   `;
@@ -1995,6 +2062,18 @@ async function renderStory(date, id) {
     const url = `${window.location.origin}${BASE_PATH}${pagePath}`;
     trackEvent("share_action", "Engagement", "Open Share Sheet", s.headline);
     openShareSheet(url, s.headline, "deep dive");
+  });
+
+  articleContainer.querySelector("#article-bookmark-btn")?.addEventListener("click", () => {
+    const isSaved = toggleBookmark(s);
+    const btn = articleContainer.querySelector("#article-bookmark-btn");
+    if (btn) {
+      btn.classList.toggle("saved", isSaved);
+      const svg = btn.querySelector("svg");
+      if (svg) svg.setAttribute("fill", isSaved ? "currentColor" : "none");
+      const span = btn.querySelector("span");
+      if (span) span.textContent = isSaved ? "Saved" : "Save";
+    }
   });
 
   startScrollProgress(totalReadingTime);
@@ -2044,6 +2123,7 @@ async function findFlashStoryDate(storyId) {
 
 /* ── Router ────────────────────────────────────────────────── */
 async function route() {
+  window.isViewingSavedFlashes = false;
   let p = location.pathname;
   if (p.endsWith("/index.html")) {
     p = p.slice(0, -11);
@@ -2112,6 +2192,25 @@ async function route() {
       const storyId = decodeURIComponent(flashStoryMatch[1]);
       currentMode = "flash";
       updateModeToggleUI();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromSaved = urlParams.get('from') === 'saved';
+
+      if (fromSaved) {
+        window.isViewingSavedFlashes = true;
+        const savedFlashes = getSavedStories().filter(s => s.sections === undefined);
+        flashStories = savedFlashes;
+        flashStories.loadedDate = null;
+
+        const index = flashStories.findIndex(fs => fs.id === storyId);
+        if (index >= 0) {
+          currentFlashIndex = index;
+          selectedFlashStoryId = storyId;
+        }
+        await renderFlashView(null);
+        return;
+      }
+
       const storyDate = await findFlashStoryDate(storyId);
       if (storyDate) {
         await loadFlash(storyDate);
@@ -2671,7 +2770,7 @@ function wireFlashCategories() {
   });
 }
 
-function wireFlashNavigation(filtered) {
+function wireFlashNavigation() {
   const stage = $('flash-card-stage');
   if (!stage) return;
 
@@ -2679,9 +2778,14 @@ function wireFlashNavigation(filtered) {
     const bookmarkBtn = e.target.closest('.flash-bookmark-btn');
     const shareBtn = e.target.closest('.flash-share-btn');
 
+    const getStory = (id) => {
+      const found = deckItems.find(item => item.type === 'story' && item.data.id === id);
+      return found ? found.data : null;
+    };
+
     if (bookmarkBtn) {
       const storyId = bookmarkBtn.dataset.id;
-      const story = filtered.find(s => s.id === storyId);
+      const story = getStory(storyId);
       if (!story) return;
       const active = toggleBookmark(story);
       const col = getCategoryColor(story.cat);
@@ -2699,7 +2803,7 @@ function wireFlashNavigation(filtered) {
 
     if (shareBtn) {
       const storyId = shareBtn.dataset.id;
-      const story = filtered.find(s => s.id === storyId);
+      const story = getStory(storyId);
       if (!story) return;
       const url = `${window.location.origin}${BASE_PATH}/flash/story/${storyId}`;
       openShareSheet(url, story.headline || story.hl);
@@ -2720,22 +2824,174 @@ function updateFlashCounter(index, total) {
 
 }
 
-function navigateFlash(direction, filtered) {
-  const newIdx = currentFlashIndex + direction;
-  if (newIdx < 0 || newIdx > filtered.length) return;
-  currentFlashIndex = newIdx;
-  renderFlashView();
+function buildInitialDeckItems(stories, date) {
+  deckItems = stories.map(s => ({
+    type: "story",
+    date: s.date || date || flashStories.loadedDate || (indexEntries[0] && indexEntries[0].date) || new Date().toISOString().split("T")[0],
+    data: s
+  }));
+  if (deckItems.length > 0) {
+    deckItems.push({
+      type: "alldone",
+      date: date || deckItems[0].date
+    });
+  }
 }
 
-function updateFlashProgressUI(filtered) {
-  const total = filtered.length;
-  const fill = document.querySelector('.flash-progress-fill');
-  if (fill) fill.style.width = `${Math.min(((currentFlashIndex + 1) / total) * 100, 100)}%`;
-  updateFlashCounter(currentFlashIndex, total);
+async function fetchFlashStoriesForDate(targetDate) {
+  const latestDate = indexEntries.length > 0 ? indexEntries[0].date : null;
+  let url = "";
+  if (!targetDate || targetDate === latestDate) {
+    url = `${BASE_PATH ? BASE_PATH : ""}/flash.json`;
+  } else {
+    url = `${BASE_PATH ? BASE_PATH + "/" : ""}data/flash-${targetDate}.json`;
+  }
+  const r = await fetch(url, { cache: "no-store" });
+  if (!r.ok) throw new Error(`No Flash data available for ${targetDate}`);
+  return await r.json();
+}
+
+async function triggerNextDayPreload() {
+  if (window.isViewingSavedFlashes || isPreloadingNextDay) return;
+
+  if (deckItems.length === 0) return;
+  const lastItem = deckItems[deckItems.length - 1];
+  const lastDate = lastItem.date;
+
+  const prevDate = getPreviousFlashDate(lastDate);
+  if (!prevDate) return;
+
+  isPreloadingNextDay = true;
+  try {
+    const newStories = await fetchFlashStoriesForDate(prevDate);
+    const filteredNew = activeFlashCategory === "all"
+      ? newStories
+      : newStories.filter(s => {
+        const cat = s.cat?.toLowerCase();
+        if (activeFlashCategory === "global" && (cat === "global" || cat === "world")) return true;
+        if (activeFlashCategory === "economics" && (cat === "economics" || cat === "business")) return true;
+        if (activeFlashCategory === "ai-tech" && (cat === "ai-tech" || cat === "ai")) return true;
+        return cat === activeFlashCategory;
+      });
+
+    const mapped = filteredNew.map(s => ({
+      type: "story",
+      date: prevDate,
+      data: s
+    }));
+
+    deckItems.push(...mapped);
+    deckItems.push({
+      type: "alldone",
+      date: prevDate
+    });
+  } catch (e) {
+    console.error("Failed to preload next day flashes:", e);
+  } finally {
+    isPreloadingNextDay = false;
+  }
+}
+
+function updateFlashUrlAndHeader(item) {
+  if (!item) return;
+  const targetDate = item.date;
+
+  const sel = $("archive-select");
+  if (sel && targetDate) {
+    sel.value = targetDate;
+  }
+
+  const headerDateEl = $("header-date");
+  if (window.isViewingSavedFlashes) {
+    if (headerDateEl) headerDateEl.textContent = "SAVED ITEMS";
+  } else {
+    if (headerDateEl && targetDate) {
+      headerDateEl.textContent = fmtHeaderDate(targetDate).toUpperCase();
+    }
+  }
+
+  if (!window.isViewingSavedFlashes) {
+    const latestDate = indexEntries.length > 0 ? indexEntries[0].date : null;
+    let newPath = "";
+    if (targetDate === latestDate) {
+      newPath = `${BASE_PATH}/flash`;
+    } else {
+      newPath = `${BASE_PATH}/flash/day/${targetDate}`;
+    }
+    if (location.pathname !== newPath) {
+      history.replaceState(null, "", newPath);
+    }
+
+    const pageTitle = targetDate ? `The Briefing | Flash — ${fmtHeaderDate(targetDate)}` : "The Briefing | Flash";
+    document.title = pageTitle;
+  }
+}
+
+function updateJumpToTodayButton(item) {
+  const btn = $("jump-to-today-btn");
+  if (!btn) return;
+
+  if (currentMode === "flash" && !window.isViewingSavedFlashes && item && indexEntries.length > 0) {
+    const latestDate = indexEntries[0].date;
+    if (item.date !== latestDate) {
+      btn.classList.remove("hidden");
+      return;
+    }
+  }
+  btn.classList.add("hidden");
+}
+
+function navigateFlash(direction, filtered) {
+  const newIdx = currentFlashIndex + direction;
+  const total = deckItems.length;
+
+  if (newIdx < 0 || newIdx >= total) return;
+  currentFlashIndex = newIdx;
+
+  const isDesktop = window.innerWidth >= 992;
+  if (isDesktop) {
+    const item = deckItems[newIdx];
+    if (item && item.type === "story") {
+      const card = document.querySelector(`[data-id="${item.data.id}"]`);
+      if (card) {
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+        card.classList.add("highlighted");
+        setTimeout(() => card.classList.remove("highlighted"), 2000);
+      }
+    }
+  } else {
+    renderFlashView(deckItems[currentFlashIndex]?.date);
+  }
+}
+
+function updateFlashProgressUI() {
+  if (deckItems.length === 0) return;
+  const currentItem = deckItems[currentFlashIndex];
+  if (!currentItem) return;
+
+  updateFlashUrlAndHeader(currentItem);
+  updateJumpToTodayButton(currentItem);
+
+  const currentDayStories = deckItems.filter(item => item.date === currentItem.date && item.type === "story");
+  const totalStoriesForDay = currentDayStories.length;
+
+  const fill = document.querySelector(".flash-progress-fill");
+  const ctr = $("flash-header-counter");
+
+  if (currentItem.type === "story") {
+    const storyIdx = currentDayStories.findIndex(item => item.data.id === currentItem.data.id);
+    const progressPct = totalStoriesForDay > 0 ? ((storyIdx + 1) / totalStoriesForDay) * 100 : 0;
+
+    if (fill) fill.style.width = `${Math.min(progressPct, 100)}%`;
+    if (ctr) ctr.textContent = `${storyIdx + 1} / ${totalStoriesForDay}`;
+  } else if (currentItem.type === "alldone") {
+    if (fill) fill.style.width = "100%";
+    if (ctr) ctr.textContent = "Completed";
+  }
 }
 
 /* ── Physical card drag — 1:1 finger tracking with spring physics ── */
-function attachPhysicalDrag(filtered) {
+function attachPhysicalDrag() {
   const stage = $('flash-card-stage');
   if (!stage) return;
 
@@ -2764,24 +3020,35 @@ function attachPhysicalDrag(filtered) {
     }
   }
 
-  function mkStory(s, role) {
+  function mkStory(s, role, idxInDeck) {
     const col = getCategoryColor(s.cat);
     const rgb = getCategoryColorRgb(s.cat);
     const saved = getSavedStories().some(fs => fs.id === s.id);
     const el = document.createElement('div');
     el.className = 'flash-card';
     el.dataset.id = s.id;
-    el.dataset.idx = String(filtered.indexOf(s));
+    el.dataset.idx = String(idxInDeck);
     el.style.cssText = `--cat-color:${col};--cat-color-rgb:${rgb};`;
     el.innerHTML = buildFlashCardInnerHTML(s, col, saved);
     setRole(el, role);
     return el;
   }
 
-  function mkAllDone(role) {
+  function mkAllDone(role, idxInDeck, date) {
     const el = document.createElement('div');
     el.className = 'flash-card all-done-card';
-    el.dataset.idx = String(filtered.length);
+    el.dataset.idx = String(idxInDeck);
+    
+    const isSaved = window.isViewingSavedFlashes;
+    const title = isSaved ? "All Saved Flashes Read" : "You're All Caught Up!";
+    const description = isSaved 
+      ? "You've read all of your bookmarked flash updates.<br>Go back to the saved list or check out new briefings."
+      : "You've read all of today's speed news updates.<br>Check back later for more quick updates.";
+    const buttonLabel = isSaved ? "Back to Saved Items" : "Explore Deep Dives";
+    const buttonSvg = isSaved
+      ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>`
+      : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"/></svg>`;
+
     el.innerHTML = `
       <div style="display:flex; flex-direction:column; align-items:center; text-align:center; height: 100%; justify-content: space-between; width:100%; padding: 10px 0 6px 0; box-sizing: border-box; position: relative;">
         <!-- Checkmark SVG badge container -->
@@ -2803,35 +3070,29 @@ function attachPhysicalDrag(filtered) {
             <path d="M66 74l6 6 12-12" stroke="#0f9b8e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
             
             <!-- Colorful sparkles -->
-            <!-- Orange circle left -->
             <circle cx="28" cy="70" r="3" fill="#f59e0b" />
-            <!-- Purple circle right -->
             <circle cx="122" cy="72" r="3" fill="#a855f7" />
-            <!-- Yellow diamond top-left -->
             <polygon points="56,36 58,40 56,44 54,40" fill="#f59e0b" transform="rotate(15 56 40)" />
-            <!-- Blue diamond top-left -->
             <polygon points="38,54 41,56 38,58 35,56" fill="#06b6d4" />
-            <!-- Purple diamond top-right -->
             <polygon points="108,36 110,40 108,44 106,40" fill="#a855f7" />
-            <!-- Green diamond bottom-right -->
             <polygon points="118,103 121,105 118,107 115,105" fill="#22c55e" />
           </svg>
         </div>
         
         <!-- Text Section -->
         <div style="margin-bottom: 20px; padding: 0 10px;">
-          <h2 class="flash-headline" style="font-size: 23px; font-weight: 700; color: var(--ink); margin: 0 0 10px 0; font-family: 'Manrope', var(--sans); letter-spacing: -0.01em;">You're All Caught Up!</h2>
+          <h2 class="flash-headline" style="font-size: 23px; font-weight: 700; color: var(--ink); margin: 0 0 10px 0; font-family: 'Manrope', var(--sans); letter-spacing: -0.01em;">${title}</h2>
           <p style="font-family: var(--sans); font-weight: 400; font-size: 13px; color: var(--ink-2); line-height: 1.55; margin: 0;">
-            You've read all of today's speed news updates.<br>Check back later for more quick updates.
+            ${description}
           </p>
         </div>
         
         <!-- Action Buttons -->
         <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width: 280px; margin-bottom: auto; padding: 0 10px; box-sizing: border-box;">
-          <!-- Explore Deep Dives -->
+          <!-- Explore / Saved Button -->
           <button class="desktop-action-btn" id="all-done-briefings-btn" style="width: 100%; height: 42px; border-radius: 8px; border: none; background: var(--ink); color: var(--bg); font-family: var(--sans); font-weight: 500; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"/></svg>
-            Explore Deep Dives
+            ${buttonSvg}
+            ${buttonLabel}
           </button>
           <!-- Back to First Card -->
           <button class="desktop-action-btn" id="all-done-restart-btn" style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid var(--rule); background: var(--bg-card); color: var(--ink); font-family: var(--sans); font-weight: 500; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--bg-card-h)'" onmouseout="this.style.backgroundColor='var(--bg-card)'">
@@ -2856,39 +3117,51 @@ function attachPhysicalDrag(filtered) {
     const r = stage.querySelector('#all-done-restart-btn');
     const b = stage.querySelector('#all-done-briefings-btn');
     if (r) r.onclick = () => { currentFlashIndex = 0; renderFlashView(); };
-    if (b) b.onclick = () => { switchToBriefingMode(); navigate(`${BASE_PATH}/briefings`); };
+    if (b) b.onclick = () => {
+      if (window.isViewingSavedFlashes) {
+        navigate(`${BASE_PATH}/saved`);
+      } else {
+        switchToBriefingMode();
+        navigate(`${BASE_PATH}/briefings`);
+      }
+    };
+  }
+
+  function createCard(idx, role) {
+    const item = deckItems[idx];
+    if (item.type === 'story') {
+      return mkStory(item.data, role, idx);
+    } else {
+      return mkAllDone(role, idx, item.date);
+    }
   }
 
   function buildDeck() {
     stage.innerHTML = '';
     stageH = stage.clientHeight || 600;
     const idx = currentFlashIndex;
-    const total = filtered.length;
+    const total = deckItems.length;
 
-    prvCard = idx > 0 ? mkStory(filtered[idx - 1], 'prev') : null;
+    prvCard = idx > 0 ? createCard(idx - 1, 'prev') : null;
     if (prvCard) stage.appendChild(prvCard);
 
-    if (idx < total) {
-      const ni = idx + 1;
-      nxtCard = ni < total ? mkStory(filtered[ni], 'next') : mkAllDone('next');
-    } else {
-      nxtCard = null;
-    }
+    nxtCard = idx + 1 < total ? createCard(idx + 1, 'next') : null;
     if (nxtCard) stage.appendChild(nxtCard);
 
-    curCard = idx < total ? mkStory(filtered[idx], 'current') : mkAllDone('current');
-    stage.appendChild(curCard);
+    curCard = idx < total ? createCard(idx, 'current') : null;
+    if (curCard) stage.appendChild(curCard);
 
-    if (idx >= total) wireAllDone();
-    else {
-      trackViewCount(filtered[idx].id);
-      window.flashSessionViewedIds.add(filtered[idx].id);
+    if (curCard && deckItems[idx].type === 'alldone') {
+      wireAllDone();
+    } else if (curCard) {
+      trackViewCount(deckItems[idx].data.id);
+      window.flashSessionViewedIds.add(deckItems[idx].data.id);
       checkAndShowNudge();
     }
   }
 
   buildDeck();
-  wireFlashNavigation(filtered);
+  wireFlashNavigation();
 
   function onStart(e) {
     if (e.touches.length !== 1 || animating) return;
@@ -2926,7 +3199,6 @@ function attachPhysicalDrag(filtered) {
     const p = Math.min(Math.abs(edy) / stageH, 1);
 
     if (edy < 0) {
-      // Swiping UP (going forward): curCard slides up, nxtCard scales up
       curCard.style.transform = `translateY(${edy}px) scale(${1 - p * 0.02})`;
       if (nxtCard) {
         nxtCard.style.transform = `translateY(0) scale(${0.94 + p * 0.06})`;
@@ -2937,7 +3209,6 @@ function attachPhysicalDrag(filtered) {
         prvCard.style.opacity = '0';
       }
     } else {
-      // Swiping DOWN (going backward): curCard stays or scales down slightly to 0.94, prvCard slides down
       curCard.style.transform = `translateY(0) scale(${1 - p * 0.06})`;
       if (prvCard) {
         prvCard.style.transform = `translateY(${-stageH + edy}px) scale(1)`;
@@ -2982,46 +3253,43 @@ function attachPhysicalDrag(filtered) {
     }
 
     const newIdx = currentFlashIndex + dir;
-    const total = filtered.length;
-    const fill = document.querySelector('.flash-progress-fill');
-    if (fill) { fill.style.transition = 'width 0.3s ease'; fill.style.width = `${Math.min(((newIdx + 1) / total) * 100, 100)}%`; }
-    updateFlashCounter(newIdx, total);
+    currentFlashIndex = newIdx;
+
+    updateFlashProgressUI();
 
     let done = false;
     function finalize() {
       if (done) return; done = true;
       animating = false;
-      // Sweep all cards except incoming — removes outgoing + any direction-reversal ghosts
       Array.from(stage.children).forEach(c => { if (c !== incoming) stage.removeChild(c); });
-      currentFlashIndex = newIdx;
       curCard = incoming;
       if (curCard) { curCard.style.zIndex = '20'; trans(curCard, ''); curCard.style.pointerEvents = 'auto'; }
 
-      if (newIdx >= total) {
+      const total = deckItems.length;
+      if (newIdx + 1 < total) {
+        nxtCard = createCard(newIdx + 1, 'next');
+        if (nxtCard) stage.insertBefore(nxtCard, curCard);
+      } else {
         nxtCard = null;
-        prvCard = newIdx > 0 ? mkStory(filtered[newIdx - 1], 'prev') : null;
-        if (prvCard) stage.insertBefore(prvCard, curCard);
-        wireAllDone();
-        return;
       }
 
-      trackViewCount(filtered[newIdx].id);
-      window.flashSessionViewedIds.add(filtered[newIdx].id);
-      checkAndShowNudge();
-
-      if (dir > 0) {
-        const ni = newIdx + 1;
-        nxtCard = ni < total ? mkStory(filtered[ni], 'next') : ni === total ? mkAllDone('next') : null;
-        if (nxtCard) stage.insertBefore(nxtCard, curCard);
-        prvCard = newIdx > 0 ? mkStory(filtered[newIdx - 1], 'prev') : null;
+      if (newIdx > 0) {
+        prvCard = createCard(newIdx - 1, 'prev');
         if (prvCard) stage.insertBefore(prvCard, nxtCard || curCard);
       } else {
-        const pi = newIdx - 1;
-        prvCard = pi >= 0 ? mkStory(filtered[pi], 'prev') : null;
-        if (prvCard) stage.insertBefore(prvCard, curCard);
-        const ni = newIdx + 1;
-        nxtCard = ni < total ? mkStory(filtered[ni], 'next') : ni === total ? mkAllDone('next') : null;
-        if (nxtCard) stage.insertBefore(nxtCard, curCard);
+        prvCard = null;
+      }
+
+      if (curCard && deckItems[newIdx].type === 'alldone') {
+        wireAllDone();
+      } else if (curCard) {
+        trackViewCount(deckItems[newIdx].data.id);
+        window.flashSessionViewedIds.add(deckItems[newIdx].data.id);
+        checkAndShowNudge();
+      }
+
+      if (newIdx >= total - 2) {
+        triggerNextDayPreload();
       }
     }
     if (outgoing) outgoing.addEventListener('transitionend', finalize, { once: true });
@@ -3190,6 +3458,8 @@ async function renderSavedPage() {
   savedContainer.className = "saved-page-container";
 
   const saved = getSavedStories();
+  const deepDives = saved.filter(s => s.sections !== undefined);
+  const flashes = saved.filter(s => s.sections === undefined);
 
   let contentHtml = "";
   if (saved.length === 0) {
@@ -3202,27 +3472,72 @@ async function renderSavedPage() {
   } else {
     contentHtml = `
       <h1 class="saved-page-title">Saved Items</h1>
-      <div class="saved-page-grid">
-        ${saved.map((s, index) => {
-      const col = getCategoryColor(s.cat);
-      const hl = s.headline || s.hl;
-      const source = s.source || s.src;
-      const isDeepDive = s.sections !== undefined;
-      return `
-            <div class="saved-page-card" data-id="${esc(s.id)}" data-type="${isDeepDive ? 'briefing' : 'flash'}" data-date="${esc(s.date || '')}">
-              <div class="saved-page-card-header">
-                <span class="saved-page-cat" style="color: ${col};">${esc((FLASH_LABELS[s.cat] || s.cat || 'NEWS').toUpperCase())}</span>
-                ${source ? `<span class="saved-page-source">${esc(source)}</span>` : ""}
-              </div>
-              <h3 class="saved-page-headline">${esc(hl)}</h3>
-              <div class="saved-page-actions">
-                <span class="saved-page-type-badge">${isDeepDive ? 'Deep Dive' : 'Flash'}</span>
-                <button class="saved-page-remove-btn" data-id="${esc(s.id)}" aria-label="Remove bookmark">
-                  Remove
-                </button>
-              </div>
-            </div>`;
-    }).join("")}
+      <div class="saved-page-sections">
+        
+        <!-- Deep Dives Section -->
+        <section class="saved-section">
+          <h2 class="saved-section-title">📰 Deep Dives</h2>
+          ${deepDives.length === 0 ? `
+            <div class="saved-section-empty">
+              <p>No saved deep dives yet.</p>
+            </div>
+          ` : `
+            <div class="saved-page-grid">
+              ${deepDives.map(s => {
+                const col = getCategoryColor(s.cat);
+                const hl = s.headline || s.hl;
+                const source = s.source || s.src;
+                return `
+                  <div class="saved-page-card" data-id="${esc(s.id)}" data-type="briefing" data-date="${esc(s.date || '')}">
+                    <div class="saved-page-card-header">
+                      <span class="saved-page-cat" style="color: ${col};">${esc((FLASH_LABELS[s.cat] || s.cat || 'NEWS').toUpperCase())}</span>
+                      ${source ? `<span class="saved-page-source">${esc(source)}</span>` : ""}
+                    </div>
+                    <h3 class="saved-page-headline">${esc(hl)}</h3>
+                    <div class="saved-page-actions">
+                      <span class="saved-page-type-badge">Deep Dive</span>
+                      <button class="saved-page-remove-btn" data-id="${esc(s.id)}" aria-label="Remove bookmark">
+                        Remove
+                      </button>
+                    </div>
+                  </div>`;
+              }).join("")}
+            </div>
+          `}
+        </section>
+
+        <!-- Flash News Section -->
+        <section class="saved-section" style="margin-top: 40px;">
+          <h2 class="saved-section-title">⚡ Flash News</h2>
+          ${flashes.length === 0 ? `
+            <div class="saved-section-empty">
+              <p>No saved flash news yet.</p>
+            </div>
+          ` : `
+            <div class="saved-page-grid">
+              ${flashes.map(s => {
+                const col = getCategoryColor(s.cat);
+                const hl = s.headline || s.hl;
+                const source = s.source || s.src;
+                return `
+                  <div class="saved-page-card" data-id="${esc(s.id)}" data-type="flash" data-date="${esc(s.date || '')}">
+                    <div class="saved-page-card-header">
+                      <span class="saved-page-cat" style="color: ${col};">${esc((FLASH_LABELS[s.cat] || s.cat || 'NEWS').toUpperCase())}</span>
+                      ${source ? `<span class="saved-page-source">${esc(source)}</span>` : ""}
+                    </div>
+                    <h3 class="saved-page-headline">${esc(hl)}</h3>
+                    <div class="saved-page-actions">
+                      <span class="saved-page-type-badge">Flash</span>
+                      <button class="saved-page-remove-btn" data-id="${esc(s.id)}" aria-label="Remove bookmark">
+                        Remove
+                      </button>
+                    </div>
+                  </div>`;
+              }).join("")}
+            </div>
+          `}
+        </section>
+
       </div>`;
   }
 
@@ -3237,9 +3552,9 @@ async function renderSavedPage() {
       const type = card.dataset.type;
       const date = card.dataset.date;
       if (type === "briefing") {
-        navigate(`${BASE_PATH}/story/${date}/${id}`);
+        navigate(`${BASE_PATH}/story/${date}/${id}?from=saved`);
       } else {
-        openFlashStory(id);
+        navigate(`${BASE_PATH}/flash/story/${id}?from=saved`);
       }
     };
   });
@@ -3318,25 +3633,33 @@ async function renderFlashView(date = null) {
     sel.value = targetDate;
   }
   const headerDateEl = $("header-date");
-  if (headerDateEl && targetDate) {
-    headerDateEl.textContent = fmtHeaderDate(targetDate).toUpperCase();
+  if (window.isViewingSavedFlashes) {
+    if (headerDateEl) headerDateEl.textContent = "SAVED ITEMS";
+  } else {
+    if (headerDateEl && targetDate) {
+      headerDateEl.textContent = fmtHeaderDate(targetDate).toUpperCase();
+    }
   }
 
   // Reset category starting index on date change
-  if (flashStories.loadedDate !== targetDate) {
+  if (!window.isViewingSavedFlashes && flashStories.loadedDate !== targetDate) {
     currentFlashIndex = 0;
   }
 
-  try {
-    await loadFlash(targetDate);
+  if (!window.isViewingSavedFlashes) {
+    try {
+      await loadFlash(targetDate);
 
-    // Track page view for the Flash feed / daily archive
-    const pageTitle = targetDate ? `The Briefing | Flash — ${fmtHeaderDate(targetDate)}` : "The Briefing | Flash";
-    const pagePath = targetDate ? `/flash/day/${targetDate}` : "/flash";
-    trackPageView(pagePath, pageTitle);
-  } catch (err) {
-    app.innerHTML = `<div class="error-state">Couldn't load Flash stories for ${esc(targetDate || 'today')} · ${esc(err.message)}</div>`;
-    return;
+      // Track page view for the Flash feed / daily archive
+      const pageTitle = targetDate ? `The Briefing | Flash — ${fmtHeaderDate(targetDate)}` : "The Briefing | Flash";
+      const pagePath = targetDate ? `/flash/day/${targetDate}` : "/flash";
+      trackPageView(pagePath, pageTitle);
+    } catch (err) {
+      app.innerHTML = `<div class="error-state">Couldn't load Flash stories for ${esc(targetDate || 'today')} · ${esc(err.message)}</div>`;
+      return;
+    }
+  } else {
+    trackPageView("/saved/flash", "The Briefing | Saved Flash News");
   }
 
   const filtered = activeFlashCategory === "all"
@@ -3350,6 +3673,18 @@ async function renderFlashView(date = null) {
     });
 
   const total = filtered.length;
+
+  // Build the initial deck items for both mobile and desktop
+  buildInitialDeckItems(filtered, window.isViewingSavedFlashes ? null : targetDate);
+
+  // If a specific story ID was targeted (from deep link), find its index in the deck
+  if (selectedFlashStoryId) {
+    const idx = deckItems.findIndex(item => item.type === 'story' && item.data.id === selectedFlashStoryId);
+    if (idx >= 0) {
+      currentFlashIndex = idx;
+    }
+    selectedFlashStoryId = null; // consume
+  }
 
   // Responsive branch check
   const isDesktop = window.innerWidth >= 992;
@@ -3367,7 +3702,7 @@ async function renderFlashView(date = null) {
   if (isDesktop) {
     renderFlashDesktopLayout(filtered, targetDate);
   } else {
-    renderFlashMobileLayout(filtered, targetDate);
+    renderFlashMobileLayout(targetDate);
   }
 }
 
@@ -3498,9 +3833,9 @@ function buildFlashCardInnerHTML(s, col, isSaved) {
     </div>`;
 }
 
-function renderFlashMobileLayout(filtered, targetDate) {
-  const total = filtered.length;
-  currentFlashIndex = Math.max(0, Math.min(total, currentFlashIndex));
+function renderFlashMobileLayout(targetDate) {
+  const total = deckItems.length;
+  currentFlashIndex = Math.max(0, Math.min(total - 1, currentFlashIndex));
 
   if (total === 0) {
     app.innerHTML = `
@@ -3523,9 +3858,9 @@ function renderFlashMobileLayout(filtered, targetDate) {
     return;
   }
 
-  const firstCol = getCategoryColor(filtered[0].cat);
-  const firstRgb = getCategoryColorRgb(filtered[0].cat);
-  const progressPct = Math.min(((currentFlashIndex + 1) / total) * 100, 100);
+  const firstStory = deckItems.find(item => item.type === 'story');
+  const firstCol = firstStory ? getCategoryColor(firstStory.data.cat) : '#3E3E50';
+  const firstRgb = firstStory ? getCategoryColorRgb(firstStory.data.cat) : '62,62,80';
 
   app.innerHTML = `
     <div class="flash-container" style="--cat-color:${firstCol};--cat-color-rgb:${firstRgb}; position: relative;">
@@ -3534,13 +3869,17 @@ function renderFlashMobileLayout(filtered, targetDate) {
       </div>
       <div class="flash-card-stage" id="flash-card-stage"></div>
       <div class="flash-progress-track">
-        <div class="flash-progress-fill" style="width:${progressPct}%;transition:width 0.3s ease;"></div>
+        <div class="flash-progress-fill" style="width:0%;"></div>
       </div>
     </div>`;
 
-  updateFlashCounter(currentFlashIndex, total);
   wireFlashCategories();
-  attachPhysicalDrag(filtered);
+  attachPhysicalDrag();
+  updateFlashProgressUI();
+
+  if (currentFlashIndex >= total - 2) {
+    triggerNextDayPreload();
+  }
 }
 
 /* ── Desktop Layout Renderer ── */
@@ -3928,14 +4267,34 @@ function updateModeToggleUI() {
   const bottomFlash = $("bottom-nav-flash");
   const bottomBriefing = $("bottom-nav-briefing");
   const bottomSaved = $("bottom-nav-saved");
+  const jumpTodayBtn = $("jump-to-today-btn");
+
+  if (jumpTodayBtn) {
+    jumpTodayBtn.classList.add("hidden");
+  }
 
   if (bottomFlash) bottomFlash.classList.remove("active");
   if (bottomBriefing) bottomBriefing.classList.remove("active");
   if (bottomSaved) bottomSaved.classList.remove("active");
 
-  const path = window.location.pathname;
-  if (path.endsWith("/saved")) {
-    if (bottomSaved) bottomSaved.classList.add("active");
+  let path = window.location.pathname;
+  if (path.endsWith("/index.html")) {
+    path = path.slice(0, -11);
+  }
+  path = path.replace(/\/+$/, "") || "/";
+  if (BASE_PATH && path.startsWith(BASE_PATH)) {
+    path = path.slice(BASE_PATH.length) || "/";
+  }
+  path = path.replace(/\/+$/, "") || "/";
+
+  if (path === "/saved" || path === "/install") {
+    if (path === "/saved" && bottomSaved) bottomSaved.classList.add("active");
+    document.body.classList.remove("mode-flash-active");
+    document.documentElement.classList.remove("mode-flash-active");
+    if (segFlash) segFlash.classList.remove("active");
+    if (segBriefing) segBriefing.classList.remove("active");
+    if (bottomFlash) bottomFlash.classList.remove("active");
+    if (bottomBriefing) bottomBriefing.classList.remove("active");
   } else if (currentMode === "flash") {
     document.body.classList.add("mode-flash-active");
     document.documentElement.classList.add("mode-flash-active");
@@ -4518,6 +4877,7 @@ function initBottomNav() {
   const flashBtn = $("bottom-nav-flash");
   const savedBtn = $("bottom-nav-saved");
   const menuBtn = $("bottom-nav-menu");
+  const jumpTodayBtn = $("jump-to-today-btn");
 
   if (briefingBtn) {
     briefingBtn.onclick = () => {
@@ -4533,6 +4893,16 @@ function initBottomNav() {
       currentMode = "flash";
       localStorage.setItem("currentMode", "flash");
       updateModeToggleUI();
+      currentFlashIndex = 0;
+      window.isViewingSavedFlashes = false;
+      navigate(`${BASE_PATH}/flash`);
+    };
+  }
+
+  if (jumpTodayBtn) {
+    jumpTodayBtn.onclick = () => {
+      currentFlashIndex = 0;
+      window.isViewingSavedFlashes = false;
       navigate(`${BASE_PATH}/flash`);
     };
   }
@@ -4622,7 +4992,7 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 /* ── Calendar Date Picker ── */
-(function initCalendarDatePicker() {
+function initCalendarDatePicker() {
   let wrapper = $("header-date-wrapper");
   let trigger = $("header-date-trigger");
   let dropdown = $("calendar-dropdown");
@@ -4799,7 +5169,7 @@ window.addEventListener("DOMContentLoaded", () => {
       backdropEl.className = "calendar-backdrop";
       backdropEl.addEventListener("click", closeCalendar);
     }
-    document.body.appendChild(backdropEl);
+    wrapper.appendChild(backdropEl);
   }
 
   function closeCalendar() {
@@ -4879,5 +5249,11 @@ window.addEventListener("DOMContentLoaded", () => {
   // Expose for external use
   window.openCalendarPicker = openCalendar;
   window.closeCalendarPicker = closeCalendar;
-})();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initCalendarDatePicker);
+} else {
+  initCalendarDatePicker();
+}
 
