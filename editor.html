@@ -429,8 +429,17 @@
     document.getElementById("theme-toggle").onclick = () => {
       const next = document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark";
       document.documentElement.setAttribute("data-theme", next);
-      localStorage.setItem("theme", next);
     };
+
+    function safeAtob(str) {
+      if (!str) return "";
+      const cleaned = str.replace(/\s/g, '');
+      try {
+        return decodeURIComponent(escape(atob(cleaned)));
+      } catch (e) {
+        return atob(cleaned);
+      }
+    }
 
     // Set today's date as default (local timezone)
     const today = new Date();
@@ -655,7 +664,7 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const json = await res.json();
-        const decoded = atob(json.content.replace(/\s/g, ''));
+        const decoded = safeAtob(json.content);
         const payload = JSON.parse(decoded);
         const stories = payload.stories || [];
 
@@ -981,7 +990,7 @@
         if (indexRes.ok) {
           const indexJson = await indexRes.json();
           indexSha = indexJson.sha;
-          const decodedIndex = atob(indexJson.content.replace(/\s/g, ''));
+          const decodedIndex = safeAtob(indexJson.content);
           indexData = JSON.parse(decodedIndex);
           log(`Loaded remote index with ${indexData.length} records.`);
         } else if (indexRes.status === 404) {
@@ -1005,7 +1014,7 @@
           if (shouldMerge) {
             log("Merging new story/stories into existing daily list...");
             try {
-              const decodedContent = atob(dailyFileJson.content.replace(/\s/g, ''));
+              const decodedContent = safeAtob(dailyFileJson.content);
               const existingPayload = JSON.parse(decodedContent);
               const mergedStories = existingPayload.stories || [];
               let addedCount = 0;
@@ -1176,7 +1185,7 @@
         if (!dailyRes.ok) throw new Error(`Could not load data/${date}.json (HTTP ${dailyRes.status})`);
 
         const dailyJson = await dailyRes.json();
-        const decoded = atob(dailyJson.content.replace(/\s/g, ''));
+        const decoded = safeAtob(dailyJson.content);
         const payload = JSON.parse(decoded);
         const before = (payload.stories || []).length;
         payload.stories = (payload.stories || []).filter(s => s.id !== storyId);
@@ -1204,7 +1213,7 @@
         const indexRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data/index.json`, { headers });
         if (indexRes.ok) {
           const indexJson = await indexRes.json();
-          let indexData = JSON.parse(atob(indexJson.content.replace(/\s/g, '')));
+          let indexData = JSON.parse(safeAtob(indexJson.content));
           if (payload.stories.length === 0) {
             indexData = indexData.filter(e => e.date !== date);
           } else {
@@ -1887,7 +1896,7 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const json = await res.json();
-        const decoded = atob(json.content.replace(/\s/g, ''));
+        const decoded = safeAtob(json.content);
         const stories = JSON.parse(decoded);
 
         log(`Loaded ${stories.length} existing Flash stories for ${date}.`);
@@ -2326,7 +2335,7 @@
         if (indexRes.ok) {
           const indexJson = await indexRes.json();
           indexSha = indexJson.sha;
-          const decodedIndex = atob(indexJson.content.replace(/\s/g, ''));
+          const decodedIndex = safeAtob(indexJson.content);
           indexData = JSON.parse(decodedIndex);
           log(`Loaded remote index with ${indexData.length} records.`);
         } else if (indexRes.status === 404) {
@@ -2352,7 +2361,7 @@
           if (shouldMerge) {
             log("Merging new Flash stories into existing daily list...");
             try {
-              const decodedContent = atob(dailyFileJson.content.replace(/\s/g, ''));
+              const decodedContent = safeAtob(dailyFileJson.content);
               const existingStories = JSON.parse(decodedContent);
               if (Array.isArray(existingStories)) {
                 const mergedStories = [...existingStories];
@@ -2533,7 +2542,7 @@
         if (!dailyRes.ok) throw new Error(`Could not load data/flash-${date}.json (HTTP ${dailyRes.status})`);
 
         const dailyJson = await dailyRes.json();
-        const decoded = atob(dailyJson.content.replace(/\s/g, ''));
+        const decoded = safeAtob(dailyJson.content);
         let stories = JSON.parse(decoded);
         const before = stories.length;
         stories = stories.filter(s => s.id !== storyId);
@@ -2564,14 +2573,14 @@
           let isLatest = false;
           if (indexRes.ok) {
             const indexJson = await indexRes.json();
-            const indexData = JSON.parse(atob(indexJson.content.replace(/\s/g, '')));
+            const indexData = JSON.parse(safeAtob(indexJson.content));
             isLatest = indexData.length > 0 && date >= indexData[0].date;
           }
           if (isLatest) {
             const rootRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/flash.json`, { headers });
             if (rootRes.ok) {
               const rootJson = await rootRes.json();
-              let rootStories = JSON.parse(atob(rootJson.content.replace(/\s/g, '')));
+              let rootStories = JSON.parse(safeAtob(rootJson.content));
               rootStories = rootStories.filter(s => s.id !== storyId);
               const rootBody = {
                 message: `update: remove Flash story ${storyId} from root flash.json`,

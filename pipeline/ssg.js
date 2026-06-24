@@ -1040,8 +1040,8 @@ async function runSSG() {
         const storyDir = path.join(process.cwd(), 'story', date, story.id);
         if (!fs.existsSync(storyDir)) fs.mkdirSync(storyDir, { recursive: true });
 
-        const ogTitle = story.headline.replace(/"/g, '&quot;');
-        const ogDesc = story.tldr.replace(/"/g, '&quot;');
+        const ogTitle = (story.headline || story.title || "").replace(/"/g, '&quot;');
+        const ogDesc = (story.tldr || story.overview || "").replace(/"/g, '&quot;');
         const domain = process.env.HOST || "https://thebriefings.netlify.app";
         // Prefer the real hero image for link previews; fall back to the generated illustration card
         const ogImage = (story.heroImage && story.heroImage.startsWith("http"))
