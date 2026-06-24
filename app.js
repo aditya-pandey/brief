@@ -34,6 +34,12 @@ function trackPageView(path, title) {
       page_location: window.location.origin + (BASE_PATH || "") + path
     });
   }
+  if (typeof posthog !== "undefined" && posthog.capture) {
+    posthog.capture("$pageview", {
+      $current_url: window.location.origin + (BASE_PATH || "") + path,
+      $title: document.title || "The Briefing"
+    });
+  }
 }
 
 function trackEvent(action, category, label, value = null) {
@@ -44,6 +50,14 @@ function trackEvent(action, category, label, value = null) {
     };
     if (value !== null) params.value = value;
     gtag("event", action, params);
+  }
+  if (typeof posthog !== "undefined" && posthog.capture) {
+    const props = {
+      category: category,
+      label: label
+    };
+    if (value !== null) props.value = value;
+    posthog.capture(action, props);
   }
 }
 
