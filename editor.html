@@ -166,11 +166,17 @@
     .console-line.err {
       color: #ff3333;
     }
+    .button-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
 
     @media (max-width: 600px) {
       .form-row {
-        grid-template-columns: 1fr;
-        gap: 12px;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
       }
       .admin-card {
         padding: 16px;
@@ -181,8 +187,40 @@
       .btn {
         width: 100%;
       }
-      .button-group {
+      .button-group, .button-row {
         flex-direction: column;
+        gap: 8px;
+      }
+      .button-group .btn, .button-row .btn {
+        width: 100%;
+      }
+      /* Mobile modal adjustments */
+      .preview-modal {
+        padding: 0;
+      }
+      .preview-modal-content {
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        border: none;
+      }
+      .preview-modal-header {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .preview-modal-body {
+        padding: 16px;
+      }
+      /* Prevent automatic zoom on iOS by forcing font-size >= 16px on inputs/textareas inside modal */
+      .preview-modal-body input, 
+      .preview-modal-body textarea, 
+      .preview-modal-body select {
+        font-size: 16px !important;
+      }
+      /* Style adjustment for source/chapter edit cards */
+      .chapter-edit-card, .source-edit-card {
+        padding: 12px !important;
       }
     }
 
@@ -315,7 +353,7 @@
           <textarea id="raw-json" class="input-textarea" placeholder="Paste the daily briefing JSON payload directly..."></textarea>
         </div>
 
-        <div style="display: flex; gap: 12px; margin-top: 12px;">
+        <div class="button-row">
           <button class="btn" id="btn-parse" onclick="runPipeline(false)">Parse & Preview</button>
           <button class="btn" id="btn-publish" onclick="runPipeline(true)" style="background: var(--green);">Publish to GitHub</button>
           <button class="btn" id="btn-notify" onclick="dispatchPushNotifications()" style="background: var(--accent);">🔔 Send Push Notifications</button>
@@ -347,7 +385,7 @@
 
         <div id="flash-validation-panel" style="display: none; border-radius: var(--radius-sm); margin-bottom: 16px;"></div>
 
-        <div style="display: flex; gap: 12px; margin-top: 12px;">
+        <div class="button-row">
           <button class="btn" id="btn-flash-parse" onclick="runFlashPipeline(false)">Parse & Preview</button>
           <button class="btn" id="btn-flash-publish" onclick="runFlashPipeline(true)" style="background: var(--green);">Publish to GitHub</button>
           <button class="btn" id="btn-flash-notify" onclick="dispatchPushNotifications()" style="background: var(--accent);">🔔 Send Push Notifications</button>
@@ -676,6 +714,18 @@
           try {
             stories = parseMarkdownBriefing(rawJson);
             log(`Loaded ${stories.length} stories parsed from Markdown.`);
+            
+            // Auto-serialize parsed Markdown to JSON in the textarea for easy interactive editing
+            const payload = {
+              date,
+              generated_at: new Date().toISOString(),
+              source: "gemini-app",
+              recap,
+              stories,
+            };
+            document.getElementById("raw-json").value = JSON.stringify(payload, null, 2);
+            autoExpand(document.getElementById("raw-json"));
+            log("Automatically converted pasted Markdown into JSON for interactive editing.");
           } catch (err) {
             log(`Error parsing Markdown: ${err.message}`, true);
             return;
@@ -1347,8 +1397,59 @@
       container.innerHTML = `<img src="${url}" alt="Hero Image" />`;
     }
 
-    function openDeepDive(idx) {
-      const story = adaptStory(currentParsedStories[idx]);
+    let currentEditingStoryIdx = -1;
+    let storyTempEdit = null;
+
+    window.switchModalTab = function(tabName) {
+      const previewBtn = document.getElementById("modal-tab-preview");
+      const editBtn = document.getElementById("modal-tab-edit");
+      if (!previewBtn || !editBtn) return;
+      
+      if (tabName === 'preview') {
+        previewBtn.classList.add("active");
+        previewBtn.style.background = "var(--bg-card)";
+        previewBtn.style.color = "var(--ink)";
+        
+        editBtn.classList.remove("active");
+        editBtn.style.background = "none";
+        editBtn.style.color = "var(--ink-3)";
+        
+        renderModalPreview();
+      } else {
+        editBtn.classList.add("active");
+        editBtn.style.background = "var(--bg-card)";
+        editBtn.style.color = "var(--ink)";
+        
+        previewBtn.classList.remove("active");
+        previewBtn.style.background = "none";
+        previewBtn.style.color = "var(--ink-3)";
+        
+        if (!storyTempEdit && currentEditingStoryIdx >= 0) {
+          const rawStory = currentParsedStories[currentEditingStoryIdx];
+          storyTempEdit = JSON.parse(JSON.stringify(rawStory));
+        }
+        renderModalEditor();
+      }
+    };
+
+    window.openDeepDive = function(idx) {
+      currentEditingStoryIdx = idx;
+      const rawStory = currentParsedStories[idx];
+      storyTempEdit = JSON.parse(JSON.stringify(rawStory));
+      
+      document.getElementById("preview-modal").style.display = "flex";
+      switchModalTab('preview');
+    };
+
+    window.closeDeepDive = function() {
+      document.getElementById("preview-modal").style.display = "none";
+      storyTempEdit = null;
+      currentEditingStoryIdx = -1;
+    };
+
+    function renderModalPreview() {
+      const idx = currentEditingStoryIdx;
+      const story = adaptStory(storyTempEdit || currentParsedStories[idx]) || storyTempEdit || currentParsedStories[idx];
       if (!story) return;
 
       const firstSourceUrl = story.heroImage || (story.sources?.[0]?.url);
@@ -1357,15 +1458,9 @@
       modalBody.innerHTML = `
         <div class="longform-article-container" style="background: transparent; min-height: auto;">
           <div class="longform-article" style="padding: 12px 0 40px;">
-            <div class="manual-image-override" style="margin-bottom: 24px; padding: 12px; background: var(--bg-card); border: 1px solid var(--rule); border-radius: 8px; display: flex; flex-direction: column; gap: 8px;">
-              <label for="override-hero-image" style="font-family: var(--sans); font-size: 12px; font-weight: 600; color: var(--ink-3); text-align: left;">Manual Hero Image Override URL</label>
-              <div style="display: flex; gap: 8px;">
-                <input type="text" id="override-hero-image" class="input-text" style="flex: 1; padding: 6px 10px; font-size: 12px; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg); color: var(--ink);" value="${story.heroImage || ""}" placeholder="https://example.com/image.jpg" />
-                <button onclick="updateHeroImageOverride(${idx})" class="editor-btn" style="padding: 6px 12px; font-size: 12px; border-radius: 4px; border: none; background: var(--ink); color: var(--bg); font-family: var(--sans); font-weight: 500; cursor: pointer;">Apply</button>
-              </div>
-            </div>
-            <div style="margin-bottom: 24px;">
-              <button onclick="confirmDeleteStory(${idx})" class="editor-btn" style="padding: 6px 12px; font-size: 12px; border-radius: 4px; border: 1px solid var(--red, #c0392b); background: none; color: var(--red, #c0392b); font-family: var(--sans); font-weight: 600; cursor: pointer;">🗑️ Delete This Deep Dive</button>
+            <div style="margin-bottom: 24px; display: flex; gap: 12px; flex-wrap: wrap;">
+              <button onclick="switchModalTab('edit')" class="btn" style="padding: 6px 12px; font-size: 11px; width: auto;">✏️ Edit This Story</button>
+              <button onclick="confirmDeleteStory(${idx})" class="btn btn-secondary" style="padding: 6px 12px; font-size: 11px; border-color: var(--red, #c0392b); color: var(--red, #c0392b); width: auto;">🗑️ Delete Deep Dive</button>
             </div>
             <header class="article-header" style="margin-bottom: 28px;">
               <div class="article-kicker-row">
@@ -1396,9 +1491,9 @@
             <div class="article-chapters">
               ${(story.sections || []).map(sec => `
                 <section class="article-chapter">
-                  <h2 class="chapter-title">${sec.title}</h2>
+                  <h2 class="chapter-title">${sec.title || sec.question || ""}</h2>
                   <div class="chapter-content">
-                    ${(sec.content || "").split("\n\n").map(p => `<p>${p}</p>`).join("")}
+                    ${(sec.content || sec.answer || "").split("\n\n").map(p => `<p>${p}</p>`).join("")}
                   </div>
                 </section>
               `).join("")}
@@ -1419,8 +1514,8 @@
                 ${(story.sources || []).map(src => `
                   <div class="source-card">
                     <div class="source-card-info">
-                      <h4 class="source-card-name">${src.outlet || ""}</h4>
-                      <p class="source-card-desc">${src.title || ""}</p>
+                      <h4 class="source-card-name">${src.outlet || src.name || ""}</h4>
+                      <p class="source-card-desc">${src.title || src.description || ""}</p>
                     </div>
                     ${src.url ? `<a href="${src.url}" target="_blank" rel="noopener noreferrer" class="source-card-link">Open Link &rarr;</a>` : ""}
                   </div>
@@ -1431,9 +1526,7 @@
           </div>
         </div>
       `;
-      document.getElementById("preview-modal").style.display = "flex";
 
-      // Resolve and load hero image
       if (story.heroImage) {
         setPreviewHeroImage(story.heroImage);
       } else if (firstSourceUrl && firstSourceUrl.startsWith("http")) {
@@ -1442,37 +1535,269 @@
             story.heroImage = imgUrl;
             setPreviewHeroImage(imgUrl);
           } else {
-            document.getElementById("preview-hero-container").style.display = "none";
+            const hCont = document.getElementById("preview-hero-container");
+            if (hCont) hCont.style.display = "none";
           }
         });
       } else {
-        document.getElementById("preview-hero-container").style.display = "none";
+        const hCont = document.getElementById("preview-hero-container");
+        if (hCont) hCont.style.display = "none";
       }
     }
 
-    function closeDeepDive() {
-      document.getElementById("preview-modal").style.display = "none";
+    function renderModalEditor() {
+      const idx = currentEditingStoryIdx;
+      const story = storyTempEdit;
+      if (!story) return;
+
+      const modalBody = document.getElementById("preview-modal-body");
+      
+      const chaptersHtml = (story.sections || []).map((sec, sIdx) => `
+        <div class="chapter-edit-card" style="border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 16px; background: var(--bg-2); display: flex; flex-direction: column; gap: 8px; position: relative;">
+          <button onclick="deleteEditorChapter(${sIdx})" title="Delete Chapter" style="position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--rule); background: var(--bg-card); color: var(--red, #c0392b); cursor: pointer; font-size: 12px; line-height: 1; display: flex; align-items: center; justify-content: center;">🗑️</button>
+          <div class="form-group" style="padding-right: 28px;">
+            <label style="font-size: 10px; font-family: var(--mono); text-transform: uppercase;">Chapter ${sIdx + 1} Title / Question</label>
+            <input type="text" class="input-text edit-chapter-title" value="${escapeHtml(sec.title || sec.question || "")}" />
+          </div>
+          <div class="form-group">
+            <label style="font-size: 10px; font-family: var(--mono); text-transform: uppercase;">Chapter Content / Answer</label>
+            <textarea class="input-textarea edit-chapter-content" style="min-height: 80px; max-height: 150px;">${escapeHtml(sec.content || sec.answer || "")}</textarea>
+          </div>
+        </div>
+      `).join("");
+
+      const sourcesHtml = (story.sources || []).map((src, srcIdx) => `
+        <div class="source-edit-card" style="border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 16px; background: var(--bg-2); display: flex; flex-direction: column; gap: 8px; position: relative;">
+          <button onclick="deleteEditorSource(${srcIdx})" title="Delete Source" style="position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--rule); background: var(--bg-card); color: var(--red, #c0392b); cursor: pointer; font-size: 12px; line-height: 1; display: flex; align-items: center; justify-content: center;">🗑️</button>
+          <div class="form-row" style="padding-right: 28px;">
+            <div class="form-group">
+              <label style="font-size: 10px; font-family: var(--mono); text-transform: uppercase;">Outlet Name</label>
+              <input type="text" class="input-text edit-source-outlet" value="${escapeHtml(src.outlet || src.name || "")}" />
+            </div>
+            <div class="form-group">
+              <label style="font-size: 10px; font-family: var(--mono); text-transform: uppercase;">Desk / Author</label>
+              <input type="text" class="input-text edit-source-desk" value="${escapeHtml(src.desk || "")}" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label style="font-size: 10px; font-family: var(--mono); text-transform: uppercase;">Lean (e.g. left, center, right)</label>
+              <input type="text" class="input-text edit-source-lean" value="${escapeHtml(src.lean || "")}" />
+            </div>
+            <div class="form-group">
+              <label style="font-size: 10px; font-family: var(--mono); text-transform: uppercase;">Region (e.g. global, india)</label>
+              <input type="text" class="input-text edit-source-region" value="${escapeHtml(src.region || "")}" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label style="font-size: 10px; font-family: var(--mono); text-transform: uppercase;">Article Title / Description</label>
+            <input type="text" class="input-text edit-source-title" value="${escapeHtml(src.title || src.description || "")}" />
+          </div>
+          <div class="form-group">
+            <label style="font-size: 10px; font-family: var(--mono); text-transform: uppercase;">URL</label>
+            <input type="text" class="input-text edit-source-url" value="${escapeHtml(src.url || "")}" placeholder="https://example.com/article-url" />
+          </div>
+        </div>
+      `).join("");
+
+      modalBody.innerHTML = `
+        <div class="editor-form-container" style="display: flex; flex-direction: column; gap: 20px; padding: 12px 0 40px; text-align: left;">
+          
+          <!-- Section 1: Meta -->
+          <div style="border: 1px solid var(--rule); border-radius: var(--radius); padding: 16px; background: var(--bg-card);">
+            <h4 style="font-family: var(--mono); font-size: 12px; color: var(--accent); margin-bottom: 12px; text-transform: uppercase; margin-top: 0;">Meta Details</h4>
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label style="font-family: var(--mono); font-size: 11px;">Headline / Title</label>
+              <input type="text" id="edit-headline" class="input-text" value="${escapeHtml(story.headline || story.title || "")}" />
+            </div>
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label style="font-family: var(--mono); font-size: 11px;">Subtitle</label>
+              <input type="text" id="edit-subtitle" class="input-text" value="${escapeHtml(story.subtitle || "")}" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label style="font-family: var(--mono); font-size: 11px;">Region</label>
+                <select id="edit-region" class="input-text" style="padding: 9px 12px; background: var(--bg); color: var(--ink);">
+                  <option value="global" ${(story.region || "").toLowerCase() === 'global' ? 'selected' : ''}>Global</option>
+                  <option value="india" ${(story.region || "").toLowerCase() === 'india' ? 'selected' : ''}>India</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label style="font-family: var(--mono); font-size: 11px;">Hero Image URL</label>
+                <input type="text" id="edit-hero-image" class="input-text" value="${escapeHtml(story.heroImage || "")}" placeholder="https://example.com/image.jpg" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Body Content -->
+          <div style="border: 1px solid var(--rule); border-radius: var(--radius); padding: 16px; background: var(--bg-card);">
+            <h4 style="font-family: var(--mono); font-size: 12px; color: var(--accent); margin-bottom: 12px; text-transform: uppercase; margin-top: 0;">Body Content</h4>
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label style="font-family: var(--mono); font-size: 11px;">TL;DR / Overview</label>
+              <textarea id="edit-overview" class="input-textarea" style="min-height: 100px; max-height: 200px;">${escapeHtml(story.overview || story.tldr || "")}</textarea>
+            </div>
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label style="font-family: var(--mono); font-size: 11px;">In Plain English / Simple Explanation</label>
+              <textarea id="edit-plain-english" class="input-textarea" style="min-height: 100px; max-height: 200px;">${escapeHtml(story.inPlainEnglish || story.simple_explanation || "")}</textarea>
+            </div>
+            <div class="form-group">
+              <label style="font-family: var(--mono); font-size: 11px;">Conclusion</label>
+              <textarea id="edit-conclusion" class="input-textarea" style="min-height: 80px; max-height: 150px;">${escapeHtml(story.conclusion || "")}</textarea>
+            </div>
+          </div>
+
+          <!-- Section 3: Chapters -->
+          <div style="border: 1px solid var(--rule); border-radius: var(--radius); padding: 16px; background: var(--bg-card);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h4 style="font-family: var(--mono); font-size: 12px; color: var(--accent); text-transform: uppercase; margin: 0;">Chapters / Sections</h4>
+              <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 10px; width: auto;" onclick="addEditorChapter()">➕ Add Chapter</button>
+            </div>
+            <div id="editor-chapters-list" style="display: flex; flex-direction: column; gap: 12px;">
+              ${chaptersHtml || '<p style="font-family: var(--sans); font-size: 12px; color: var(--ink-3); margin: 0;">No chapters added yet.</p>'}
+            </div>
+          </div>
+
+          <!-- Section 4: Sources -->
+          <div style="border: 1px solid var(--rule); border-radius: var(--radius); padding: 16px; background: var(--bg-card);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h4 style="font-family: var(--mono); font-size: 12px; color: var(--accent); text-transform: uppercase; margin: 0;">Sources</h4>
+              <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 10px; width: auto;" onclick="addEditorSource()">➕ Add Source</button>
+            </div>
+            <div id="editor-sources-list" style="display: flex; flex-direction: column; gap: 12px;">
+              ${sourcesHtml || '<p style="font-family: var(--sans); font-size: 12px; color: var(--ink-3); margin: 0;">No sources added yet.</p>'}
+            </div>
+          </div>
+
+          <!-- Save & Actions -->
+          <div style="display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap;">
+            <button class="btn btn-secondary" style="width: auto;" onclick="switchModalTab('preview')">Cancel</button>
+            <button class="btn" style="background: var(--green); width: auto;" onclick="saveStoryEdits(${idx})">💾 Save Changes</button>
+          </div>
+        </div>
+      `;
     }
 
-    window.updateHeroImageOverride = function(idx) {
-      const val = document.getElementById("override-hero-image").value.trim() || null;
-      const rawJsonEl = document.getElementById("raw-json");
-      try {
-        const payload = JSON.parse(rawJsonEl.value);
-        if (payload.stories && payload.stories[idx]) {
-          payload.stories[idx].heroImage = val;
-        } else if (Array.isArray(payload) && payload[idx]) {
-          payload[idx].heroImage = val;
-        }
-        rawJsonEl.value = JSON.stringify(payload, null, 2);
-        if (currentParsedStories && currentParsedStories[idx]) {
-          currentParsedStories[idx].heroImage = val;
-        }
-        openDeepDive(idx);
-      } catch (e) {
-        alert("Failed to update JSON: Make sure raw JSON in the textarea is valid.");
-      }
+    window.scrapeModalEditorInputs = function() {
+      if (!storyTempEdit) return;
+      
+      storyTempEdit.headline = document.getElementById("edit-headline").value.trim();
+      storyTempEdit.title = storyTempEdit.headline;
+      storyTempEdit.subtitle = document.getElementById("edit-subtitle").value.trim();
+      storyTempEdit.region = document.getElementById("edit-region").value;
+      storyTempEdit.heroImage = document.getElementById("edit-hero-image").value.trim() || null;
+      
+      storyTempEdit.overview = document.getElementById("edit-overview").value.trim();
+      storyTempEdit.tldr = storyTempEdit.overview;
+      storyTempEdit.inPlainEnglish = document.getElementById("edit-plain-english").value.trim();
+      storyTempEdit.simple_explanation = storyTempEdit.inPlainEnglish;
+      storyTempEdit.conclusion = document.getElementById("edit-conclusion").value.trim() || null;
+      
+      const chapterCards = document.querySelectorAll(".chapter-edit-card");
+      storyTempEdit.sections = Array.from(chapterCards).map((card, idx) => {
+        const title = card.querySelector(".edit-chapter-title").value.trim();
+        const content = card.querySelector(".edit-chapter-content").value.trim();
+        const table = (storyTempEdit.sections && storyTempEdit.sections[idx]) ? storyTempEdit.sections[idx].table : null;
+        return {
+          title: title,
+          question: title,
+          content: content,
+          answer: content,
+          table: table
+        };
+      });
+      
+      const sourceCards = document.querySelectorAll(".source-edit-card");
+      storyTempEdit.sources = Array.from(sourceCards).map((card, idx) => {
+        const outlet = card.querySelector(".edit-source-outlet").value.trim();
+        const desk = card.querySelector(".edit-source-desk").value.trim();
+        const lean = card.querySelector(".edit-source-lean").value.trim();
+        const region = card.querySelector(".edit-source-region").value.trim();
+        const title = card.querySelector(".edit-source-title").value.trim();
+        const url = card.querySelector(".edit-source-url").value.trim();
+        return {
+          outlet,
+          name: outlet,
+          desk,
+          lean,
+          region,
+          title,
+          description: title,
+          url
+        };
+      });
     };
+
+    window.addEditorChapter = function() {
+      scrapeModalEditorInputs();
+      if (!storyTempEdit.sections) storyTempEdit.sections = [];
+      storyTempEdit.sections.push({ title: "", question: "", content: "", answer: "", table: null });
+      renderModalEditor();
+    };
+
+    window.deleteEditorChapter = function(sIdx) {
+      scrapeModalEditorInputs();
+      if (storyTempEdit.sections) {
+        storyTempEdit.sections.splice(sIdx, 1);
+      }
+      renderModalEditor();
+    };
+
+    window.addEditorSource = function() {
+      scrapeModalEditorInputs();
+      if (!storyTempEdit.sources) storyTempEdit.sources = [];
+      storyTempEdit.sources.push({ outlet: "", name: "", desk: "", lean: "", region: "", title: "", description: "", url: "" });
+      renderModalEditor();
+    };
+
+    window.deleteEditorSource = function(srcIdx) {
+      scrapeModalEditorInputs();
+      if (storyTempEdit.sources) {
+        storyTempEdit.sources.splice(srcIdx, 1);
+      }
+      renderModalEditor();
+    };
+
+    window.saveStoryEdits = function(idx) {
+      scrapeModalEditorInputs();
+      currentParsedStories[idx] = storyTempEdit;
+      syncStoriesToTextarea();
+      displayPreviews(currentParsedStories);
+      
+      log(`Locally saved changes to Story #${idx + 1}: "${storyTempEdit.headline}". Remember to click "Publish to GitHub" to save permanently.`);
+      switchModalTab('preview');
+    };
+
+    function syncStoriesToTextarea() {
+      const rawJsonEl = document.getElementById("raw-json");
+      if (!rawJsonEl) return;
+      
+      let payload = null;
+      try {
+        const parsed = JSON.parse(rawJsonEl.value);
+        if (parsed && typeof parsed === 'object') {
+          payload = parsed;
+        }
+      } catch (e) {}
+      
+      const date = document.getElementById("briefing-date").value;
+      
+      if (payload && payload.stories) {
+        payload.stories = currentParsedStories;
+      } else if (payload && Array.isArray(payload)) {
+        payload = currentParsedStories;
+      } else {
+        payload = {
+          date: date || new Date().toISOString().split('T')[0],
+          generated_at: new Date().toISOString(),
+          source: "gemini-app",
+          recap: [],
+          stories: currentParsedStories
+        };
+      }
+      
+      rawJsonEl.value = JSON.stringify(payload, null, 2);
+      autoExpand(rawJsonEl);
+    }
 
     /* ══════════════════════════════════════════════════════════════
        ⚡ FLASH EDITOR CONTROLLERS & VALIDATION
@@ -2294,17 +2619,21 @@
       renderFlashPreviews(currentParsedFlashStories, {});
     }
 
-    function closeDeepDive() {
-      document.getElementById("preview-modal").style.display = "none";
-    }
+
   </script>
 
   <!-- Preview Modal Overlay -->
   <div id="preview-modal" class="preview-modal">
     <div class="preview-modal-content">
       <div class="preview-modal-header">
-        <h3 class="admin-title" style="font-size: 18px; margin-bottom: 0; font-family: var(--sans);">Deep Dive Preview</h3>
-        <button class="btn btn-secondary" style="padding: 6px 14px; font-size: 10px;" onclick="closeDeepDive()">Close Preview</button>
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+          <h3 class="admin-title" style="font-size: 18px; margin-bottom: 0; font-family: var(--sans);">Deep Dive</h3>
+          <div class="modal-tab-container" style="display: flex; gap: 4px; background: var(--bg-2); padding: 2px; border-radius: var(--radius-sm); border: 1px solid var(--rule);">
+            <button class="modal-tab-btn active" id="modal-tab-preview" onclick="switchModalTab('preview')" style="border: none; background: var(--bg-card); color: var(--ink); padding: 4px 12px; font-size: 11px; font-family: var(--mono); font-weight: bold; cursor: pointer; border-radius: var(--radius-sm); transition: background 0.1s; width: auto;">PREVIEW</button>
+            <button class="modal-tab-btn" id="modal-tab-edit" onclick="switchModalTab('edit')" style="border: none; background: none; color: var(--ink-3); padding: 4px 12px; font-size: 11px; font-family: var(--mono); font-weight: bold; cursor: pointer; border-radius: var(--radius-sm); transition: background 0.1s; width: auto;">EDIT STORY</button>
+          </div>
+        </div>
+        <button class="btn btn-secondary" style="padding: 6px 14px; font-size: 10px; width: auto;" onclick="closeDeepDive()">Close</button>
       </div>
       <div class="preview-modal-body" id="preview-modal-body"></div>
     </div>
