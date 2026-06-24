@@ -959,11 +959,9 @@ function miniSourceBar(sources) {
 }
 
 function storyVisual(story, idx = 0) {
-  const region = (story.region || "global").toLowerCase();
-
   if (story.heroImage) {
     return `
-      <div class="story-viz ${region}" aria-hidden="true" style="overflow:hidden; position:relative; width: 100%; height: 180px; min-height: 180px; border-bottom: 1px solid var(--rule); display: flex; align-items: center; justify-content: center; background: var(--bg-card-h);">
+      <div class="story-viz" aria-hidden="true" style="overflow:hidden; position:relative; width: 100%; height: 180px; min-height: 180px; border-bottom: 1px solid var(--rule); display: flex; align-items: center; justify-content: center; background: var(--bg-card-h);">
         <img src="${story.heroImage}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
         <div style="position:absolute; bottom:12px; right:12px; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); color:#fff; padding:4px 8px; border-radius:4px; font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.05em;">
           STORY ${String(idx + 1).padStart(2, "0")}
@@ -972,8 +970,7 @@ function storyVisual(story, idx = 0) {
   }
 
   return `
-    <div class="story-viz ${region}" aria-hidden="true" style="overflow:hidden; position:relative; width: 100%; height: 180px; min-height: 180px; border-bottom: 1px solid var(--rule);">
-      ${semanticGraphic(story, idx)}
+    <div class="story-viz" aria-hidden="true" style="overflow:hidden; position:relative; width: 100%; height: 180px; min-height: 180px; border-bottom: 1px solid var(--rule); background: var(--bg-card-h);">
       <div style="position:absolute; bottom:12px; right:12px; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); color:#fff; padding:4px 8px; border-radius:4px; font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.05em;">
         STORY ${String(idx + 1).padStart(2, "0")}
       </div>
@@ -1177,16 +1174,15 @@ function buildSlides(s, date) {
   const readMin = readMinutes(s);
 
   // 1 · Cover
+  const coverVisualHtml = s.heroImage
+    ? `<div class="slide-cover-visual"><img src="${s.heroImage}" alt="" style="width: 100%; height: 100%; object-fit: cover;" /></div>`
+    : "";
+
   slides.push({
     id: "cover", label: "Overview", icon: "◉", html: `
     <div class="slide-cover">
-      <div class="slide-cover-visual" style="background-color: ${semanticGraphicBg(s)};">
-        ${semanticGraphic(s, 0)}
-      </div>
+      ${coverVisualHtml}
       <div class="slide-cover-content">
-        <div class="slide-cover-top">
-          <span class="detail-region ${region}">${esc(region.toUpperCase())}</span>
-        </div>
         <h1 class="slide-headline">${esc(s.headline)}</h1>
         <div class="cover-meta">
           <span class="cover-meta-item">${ICON.clock}<span>${readMin} min read</span></span>
@@ -1702,11 +1698,8 @@ function renderDesktopLayout(slides, s, date, storyIdx, stories) {
         </div>
 
         <section class="story-dossier">
-          <div class="desktop-cover-visual" style="background-color: ${semanticGraphicBg(s)}; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-            ${semanticGraphic(s, 0)}
-          </div>
+          ${s.heroImage ? `<div class="desktop-cover-visual" style="border-radius: 12px; overflow: hidden; height: 320px; margin-bottom: 24px; display: block;"><img src="${s.heroImage}" alt="" style="width: 100%; height: 100%; object-fit: cover;" /></div>` : ""}
           <div class="dossier-copy">
-            <span class="detail-region ${(s.region || "").toLowerCase()}">${esc((s.region || "").toUpperCase())}</span>
             <h1 class="detail-headline">${esc(s.headline)}</h1>
             <p class="detail-tldr">${esc(s.tldr)}</p>
             ${s.simple_explanation ? `
@@ -1811,7 +1804,6 @@ async function renderHome(date) {
         <div class="card-body">
           <div class="card-top">
             <span class="card-num">${String(i + 1).padStart(2, "0")}</span>
-            <span class="card-region">${esc(region.toUpperCase())}</span>
           </div>
           <h2 class="card-headline">${esc(s.headline)}</h2>
           ${s.tldr ? `<p class="card-tldr">${esc(s.tldr)}</p>` : ""}
@@ -1899,7 +1891,6 @@ async function renderStory(date, id) {
       </div>
       <div class="article-kicker-row">
         <span>FRONT ${String(storyIdx + 1).padStart(2, "0")}</span>
-        <span class="region-badge ${(s.region || "").toLowerCase()}">${esc((s.region || "GLOBAL").toUpperCase())}</span>
       </div>
 
       <h1 class="article-headline">${esc(s.headline)}</h1>
@@ -4173,6 +4164,7 @@ function initSlideMenu() {
     document.body.style.overflow = "";
   }
   window.closeSlideMenu = closeMenu;
+  window.openSlideMenu = openMenu;
 
   if (trigger) trigger.onclick = openMenu;
   if (close) close.onclick = closeMenu;
@@ -4272,6 +4264,8 @@ function initSlideMenu() {
       });
     });
   }
+
+  updateMenuThemeUI();
 }
 
 // Global keydown listner for desktop arrow keys
@@ -4551,12 +4545,16 @@ function initBottomNav() {
 
   if (menuBtn) {
     menuBtn.onclick = () => {
-      const menu = $("slide-menu");
-      const overlay = $("menu-overlay");
-      if (menu && overlay) {
-        menu.classList.add("open");
-        overlay.classList.add("open");
-        document.body.style.overflow = "hidden";
+      if (typeof window.openSlideMenu === "function") {
+        window.openSlideMenu();
+      } else {
+        const menu = $("slide-menu");
+        const overlay = $("menu-overlay");
+        if (menu && overlay) {
+          menu.classList.add("open");
+          overlay.classList.add("open");
+          document.body.style.overflow = "hidden";
+        }
       }
     };
   }
@@ -4641,12 +4639,14 @@ window.addEventListener("DOMContentLoaded", () => {
 
     wrapper.innerHTML = `
       <button class="header-date-trigger" id="header-date-trigger" aria-label="Open date picker">
-        <svg class="header-date-cal-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-          <line x1="16" y1="2" x2="16" y2="6"></line>
-          <line x1="8" y1="2" x2="8" y2="6"></line>
-          <line x1="3" y1="10" x2="21" y2="10"></line>
-        </svg>
+        <span class="header-date-cal-icon">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+        </span>
         <span id="header-date" class="header-top-date">${hdrDate.innerHTML}</span>
         <svg class="header-date-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="6 9 12 15 18 9"></polyline>
@@ -4793,11 +4793,6 @@ window.addEventListener("DOMContentLoaded", () => {
     wrapper.classList.add("open");
     dropdown.classList.add("open");
 
-    // If mobile, move dropdown to body so it isn't trapped by header stacking context/overflow
-    if (window.innerWidth <= 600) {
-      document.body.appendChild(dropdown);
-    }
-
     // Create backdrop
     if (!backdropEl) {
       backdropEl = document.createElement("div");
@@ -4812,10 +4807,6 @@ window.addEventListener("DOMContentLoaded", () => {
     dropdown.classList.remove("open");
     if (backdropEl && backdropEl.parentNode) {
       backdropEl.parentNode.removeChild(backdropEl);
-    }
-    // Move dropdown back to wrapper if it was moved to body
-    if (dropdown && dropdown.parentNode === document.body) {
-      wrapper.appendChild(dropdown);
     }
   }
 

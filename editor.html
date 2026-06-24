@@ -1054,7 +1054,6 @@
           <div class="card-body">
             <div class="card-top">
               <span class="card-num">FRONT ${String(idx + 1).padStart(2, "0")}</span>
-              <span class="card-region">${region}</span>
             </div>
             <h3 class="card-headline">${story.headline || story.title || ""}</h3>
             <p class="card-tldr" style="-webkit-line-clamp: none; display: block; overflow: visible;">${story.subtitle || (story.tldr || story.overview ? (story.tldr || story.overview).slice(0, 180) + "..." : "")}</p>
@@ -1601,7 +1600,6 @@
             <header class="article-header" style="margin-bottom: 28px;">
               <div class="article-kicker-row">
                 <span>PREVIEW MODE</span>
-                <span class="region-badge ${(story.region || "").toLowerCase()}">${(story.region || "GLOBAL").toUpperCase()}</span>
               </div>
               <h1 class="article-headline">${story.headline || story.title || ""}</h1>
               ${story.subtitle ? `<p class="article-subtitle">${story.subtitle}</p>` : ""}
