@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.netlify.thebriefings.twa",
+        "sha256_cert_fingerprints": ["E9:6A:E1:D4:CF:AB:69:58:52:8F:B8:2D:F9:47:BF:1D:36:CB:22:97:40:6E:34:6F:58:FF:16:29:9C:9C:A9:7E"]
+      }
+    }]
