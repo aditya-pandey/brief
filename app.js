@@ -2050,7 +2050,7 @@ async function renderStory(date, id) {
                 <h4 class="source-card-name">${esc(src.outlet)}</h4>
                 <p class="source-card-desc">${esc(src.title)}</p>
               </div>
-              ${src.url ? `<a href="${esc(src.url)}" target="_blank" rel="noopener noreferrer" class="source-card-link">Link &rarr;</a>` : ''}
+              ${src.url ? `<a href="${esc(cleanSourceUrl(src.url) || src.url)}" target="_blank" rel="noopener noreferrer" class="source-card-link">Link &rarr;</a>` : ''}
             </div>
           `).join("")}
         </div>

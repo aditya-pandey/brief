@@ -861,6 +861,17 @@
           return;
         }
 
+        // Clean source URLs (strip markdown link syntax) — needed for the
+        // direct-JSON-paste path, which skips parseMarkdownBriefing's own parsing.
+        for (const story of stories) {
+          for (const s of (story.sources || [])) {
+            if (s?.url) {
+              const cleaned = cleanSourceUrl(s.url);
+              if (cleaned) s.url = cleaned;
+            }
+          }
+        }
+
         const payload = {
           date,
           generated_at: new Date().toISOString(),
@@ -1717,6 +1728,7 @@
                     <span style="font-size: 24px; margin-bottom: 8px;">🖼️</span>
                     <strong style="font-size: 13px; color: var(--ink);">No Cover Image Resolved</strong>
                     <span style="font-size: 11px; margin-top: 4px; opacity: 0.85;">All source scrapers timed out. Click here to edit the story and paste an image URL manually.</span>
+                    <a href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent(story.headline || '')}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" style="font-size: 11px; margin-top: 10px; color: var(--accent); text-decoration: underline;">Search Google Images for this story &rarr;</a>
                   </div>
                 `;
               }
@@ -1730,6 +1742,7 @@
                 <span style="font-size: 24px; margin-bottom: 8px;">🖼️</span>
                 <strong style="font-size: 13px; color: var(--ink);">No Sources Available</strong>
                 <span style="font-size: 11px; margin-top: 4px; opacity: 0.85;">Click here to edit the story and paste an image URL manually.</span>
+                <a href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent(story.headline || '')}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" style="font-size: 11px; margin-top: 10px; color: var(--accent); text-decoration: underline;">Search Google Images for this story &rarr;</a>
               </div>
             `;
           }

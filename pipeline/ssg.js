@@ -357,7 +357,7 @@ async function scrapeHeroImage(url) {
   if (!url || !url.startsWith("http")) return null;
   try {
     const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; NewsBriefingBot/1.0)" },
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" },
       signal: AbortSignal.timeout(10000)
     });
     if (!res.ok) return null;
@@ -392,6 +392,18 @@ async function backfillBriefingImages(dataPath, date) {
     const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
     let modified = false;
     for (const story of (data.stories || [])) {
+      // Persist cleaned source URLs back to storage so readers' "read source"
+      // links aren't left with raw, unstripped Markdown link syntax.
+      for (const s of (story.sources || [])) {
+        if (s?.url) {
+          const cleaned = cleanSourceUrl(s.url);
+          if (cleaned && cleaned !== s.url) {
+            s.url = cleaned;
+            modified = true;
+          }
+        }
+      }
+
       if (!story.heroImage) {
         const candidateUrls = (story.sources || [])
           .map(s => cleanSourceUrl(s?.url))
