@@ -5188,6 +5188,13 @@ body.mode-flash-active #progress-bar {
   color: var(--ink-3);
   margin-left: 8px;
 }
+#notification-trigger.menu-clickable-row.active {
+  border: none;
+  background: none;
+}
+#notification-trigger.menu-clickable-row.active .menu-section-icon {
+  color: var(--accent);
+}
 
 /* Theme segmented capsule */
 .menu-theme-capsule {
