@@ -2,9 +2,8 @@
 
 Copy everything below the line and paste it into the Gemini app.
 Gemini will research today's news using its built-in web grounding.
-Once it responds, copy the full output and run:
-
-    pbpaste | node pipeline/import.js
+Once it responds, copy the full output and paste it into `editor.html`
+to convert it into JSON and publish it.
 
 ---
 

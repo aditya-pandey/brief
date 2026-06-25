@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Briefing — Architecture</title>
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f4f6f9; --bg-soft2:#eef1f6;
+    --ink:#101f38; --body:#3c4654; --muted:#79828f;
+    --line:#e3e7ee;
+    --navy:#0d2b4e; --navy-soft:#e7edf5;
+    --amber:#e08a2c; --amber-soft:#fbedda;
+    --blue:#2f6fed; --blue-soft:#e6edfd;
+    --slate:#54607a; --slate-soft:#eaedf3;
+    --purple:#7c4fe0; --purple-soft:#f0e9fc;
+    --teal:#0f8b8d; --teal-soft:#e2f3f3;
+    --green:#1f9d6c; --green-soft:#e3f6ec;
+    --shadow:0 1px 2px rgba(16,31,56,.04), 0 4px 14px rgba(16,31,56,.07);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--bg-soft);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+  #deck{height:100vh;overflow:hidden;position:relative;}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;
+    padding:48px 72px 36px;background:var(--bg);}
+  .slide.active{display:flex;}
+  .kicker{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:2.2px;
+    font-weight:700;margin-bottom:8px;}
+  .slide h1{font-size:30px;margin:0 0 4px;color:var(--ink);letter-spacing:-.3px;font-weight:750;}
+  .slide .deck-sub{color:var(--muted);font-size:14px;margin:0 0 18px;}
+  .slide .body{flex:1;overflow:auto;padding-bottom:6px;}
+  .rule{height:1px;background:var(--line);margin:0 0 20px;}
+
+  /* generic grid/cards */
+  .grid{display:grid;gap:16px;}
+  .cols2{grid-template-columns:1fr 1fr;}
+  .cols3{grid-template-columns:1fr 1fr 1fr;}
+  .cols4{grid-template-columns:1fr 1fr 1fr 1fr;}
+  .card{background:var(--bg);border:1px solid var(--line);border-radius:12px;
+    padding:16px 18px;box-shadow:var(--shadow);}
+  .card h3{margin:0 0 6px;font-size:13.5px;color:var(--navy);font-weight:700;}
+  .card p,.card li{font-size:12.8px;color:var(--body);line-height:1.55;margin:0;}
+  .card ul{margin:4px 0 0;padding-left:16px;}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    background:var(--bg-soft2);border:1px solid var(--line);border-radius:5px;
+    padding:1px 5px;font-size:11.8px;color:#a8470d;}
+
+  /* chip */
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg-soft2);
+    border:1px solid var(--line);border-radius:20px;padding:4px 12px;font-size:11.5px;
+    color:var(--slate);font-weight:600;}
+  .chip .dot{width:7px;height:7px;border-radius:50%;}
+
+  /* ===== title slide ===== */
+  .title-slide{justify-content:center;}
+  .title-slide .eyebrow{color:var(--teal);font-weight:700;font-size:12.5px;
+    letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+  .title-slide h1{font-size:46px;line-height:1.05;margin-bottom:10px;}
+  .title-slide .lede{font-size:16px;color:var(--body);max-width:640px;margin-bottom:34px;}
+  .kpi-row{display:flex;gap:16px;flex-wrap:wrap;}
+  .kpi{flex:1;min-width:210px;background:var(--bg-soft);border:1px solid var(--line);
+    border-radius:14px;padding:18px 20px;}
+  .kpi .num{font-size:30px;font-weight:800;color:var(--navy);line-height:1;}
+  .kpi .lbl{font-size:12.2px;color:var(--muted);margin-top:6px;line-height:1.4;}
+
+  /* ===== vertical flow / swimlane diagram ===== */
+  .flow{position:relative;padding-left:6px;}
+  .flow-track{position:absolute;left:27px;top:26px;bottom:26px;width:2px;background:var(--line);}
+  .flow-row{position:relative;display:flex;gap:18px;align-items:flex-start;padding:10px 0;}
+  .flow-badge{flex:0 0 auto;width:56px;height:56px;border-radius:50%;display:flex;
+    align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff;
+    box-shadow:0 2px 6px rgba(16,31,56,.18);z-index:1;}
+  .flow-content{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:12px;
+    padding:13px 16px;box-shadow:var(--shadow);}
+  .flow-content .lane-tag{display:inline-block;font-size:10.5px;font-weight:800;
+    letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:6px;margin-bottom:5px;}
+  .flow-content h4{margin:0 0 4px;font-size:14px;color:var(--ink);}
+  .flow-content p{margin:0;font-size:12.5px;color:var(--body);line-height:1.5;}
+  .flow-caption{margin:2px 0 2px 74px;font-size:11px;color:var(--muted);display:flex;
+    align-items:center;gap:6px;}
+  .flow-caption .arrow{color:var(--muted);font-size:13px;}
+  .flow-caption .pill{background:var(--bg-soft2);border:1px solid var(--line);
+    border-radius:10px;padding:1px 9px;font-family:ui-monospace,Menlo,monospace;font-size:10.6px;color:var(--slate);}
+
+  /* lane colors */
+  .c-amber{background:var(--amber);} .t-amber{background:var(--amber-soft);color:#9a5b13;}
+  .c-blue{background:var(--blue);} .t-blue{background:var(--blue-soft);color:#1d4ed8;}
+  .c-slate{background:var(--slate);} .t-slate{background:var(--slate-soft);color:#3c4760;}
+  .c-purple{background:var(--purple);} .t-purple{background:var(--purple-soft);color:#5b2bb0;}
+  .c-teal{background:var(--teal);} .t-teal{background:var(--teal-soft);color:#0b6669;}
+  .c-green{background:var(--green);} .t-green{background:var(--green-soft);color:#137a4d;}
+
+  /* ===== timeline bar (gap visual) ===== */
+  .timebar-wrap{margin-top:6px;}
+  .timebar{position:relative;height:46px;border-radius:10px;background:var(--bg-soft2);
+    overflow:hidden;display:flex;}
+  .timebar .seg{height:100%;display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;color:#fff;}
+  .timebar .t0{flex:0 0 8%;background:var(--green);}
+  .timebar .gap{flex:0 0 42%;background:repeating-linear-gradient(45deg,var(--amber),var(--amber) 8px,#f3a94f 8px,#f3a94f 16px);}
+  .timebar .t1{flex:1;background:var(--teal);}
+  .timebar-labels{display:flex;font-size:11px;color:var(--muted);margin-top:6px;}
+  .timebar-labels .t0{flex:0 0 8%;} .timebar-labels .gap{flex:0 0 42%;text-align:center;}
+  .timebar-labels .t1{flex:1;text-align:right;}
+
+  /* ===== org chart (data model) ===== */
+  .orgchart{display:flex;flex-direction:column;align-items:center;margin-top:10px;}
+  .org-root{background:var(--navy);color:#fff;border-radius:12px;padding:14px 26px;
+    font-weight:700;font-size:14px;box-shadow:var(--shadow);text-align:center;}
+  .org-root span{display:block;font-size:11px;font-weight:500;opacity:.8;margin-top:3px;}
+  .org-stem{width:2px;height:26px;background:var(--line);}
+  .org-bar{height:2px;background:var(--line);align-self:stretch;margin:0 12%;}
+  .org-children{display:flex;justify-content:space-between;width:100%;margin-top:0;}
+  .org-child-wrap{display:flex;flex-direction:column;align-items:center;flex:1;}
+  .org-child-stem{width:2px;height:22px;background:var(--line);}
+  .org-child{background:var(--bg-soft);border:1px solid var(--line);border-radius:10px;
+    padding:10px 14px;text-align:center;font-size:12px;color:var(--ink);font-weight:700;
+    box-shadow:var(--shadow);}
+  .org-child span{display:block;font-size:10.5px;color:var(--muted);font-weight:500;margin-top:3px;}
+
+  /* ===== bar chart (cleanup before/after) ===== */
+  .barrow{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+  .barrow .blabel{flex:0 0 170px;font-size:12.5px;color:var(--ink);font-weight:600;text-align:right;}
+  .barrow .btrack{flex:1;background:var(--bg-soft2);border-radius:8px;height:26px;position:relative;}
+  .barrow .bfill{height:100%;border-radius:8px;display:flex;align-items:center;
+    justify-content:flex-end;padding-right:8px;color:#fff;font-size:11px;font-weight:700;}
+  .barrow.before .bfill{background:#c9433a;}
+  .barrow.after .bfill{background:var(--green);}
+  .bargroup{margin-bottom:22px;}
+  .bargroup .bg-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;
+    text-transform:uppercase;letter-spacing:1px;}
+
+  /* file tree */
+  .file-tree{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+    line-height:1.85;color:var(--ink);background:var(--bg-soft);border:1px solid var(--line);
+    border-radius:10px;padding:14px 18px;}
+  .file-tree .dir{color:var(--blue);font-weight:600;}
+  .file-tree .gen{color:var(--green);font-weight:600;}
+  .file-tree .cm{color:var(--muted);}
+
+  /* nav */
+  .footer-nav{position:absolute;bottom:0;left:0;right:0;height:58px;display:flex;
+    align-items:center;justify-content:space-between;padding:0 36px;
+    border-top:1px solid var(--line);background:rgba(255,255,255,.96);}
+  .progress{display:flex;gap:6px;}
+  .ddot{width:7px;height:7px;border-radius:50%;background:var(--line);cursor:pointer;transition:.2s;}
+  .ddot.active{background:var(--navy);width:20px;border-radius:4px;}
+  .nav-btn{background:var(--bg);border:1px solid var(--line);color:var(--ink);
+    padding:7px 16px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:600;}
+  .nav-btn:hover{border-color:var(--navy);}
+  .nav-btn:disabled{opacity:.3;cursor:default;}
+  .slide-counter{color:var(--muted);font-size:12px;font-weight:600;}
+</style>
+</head>
+<body>
+<div id="deck">
+
+  <!-- 1: TITLE -->
+  <section class="slide active title-slide">
+    <div class="eyebrow">System Architecture</div>
+    <h1>The Briefing</h1>
+    <p class="lede">A static-first news deep-dive site, written by hand through a Gemini Gem and a browser-based publishing tool — built and pre-rendered without a server, an LLM API, or a cron job.</p>
+    <div class="kpi-row">
+      <div class="kpi"><div class="num">6</div><div class="lbl">stages, end to end — 2 manual (you), 4 automated</div></div>
+      <div class="kpi"><div class="num">23</div><div class="lbl">dead files removed in the latest cleanup (old auto-pipeline + Python prototype)</div></div>
+      <div class="kpi"><div class="num">1</div><div class="lbl">GitHub Action left in the repo — the one that actually matters</div></div>
+      <div class="kpi"><div class="num">0</div><div class="lbl">servers, LLM API keys, or cron jobs running in production</div></div>
+    </div>
+  </section>
+
+  <!-- 2: MAIN ARCHITECTURE DIAGRAM -->
+  <section class="slide">
+    <div class="kicker">End-to-End Architecture</div>
+    <h1>From a Gemini prompt to a published page</h1>
+    <p class="deck-sub">Six stages, six different actors — the diagram below is the entire system.</p>
+    <div class="body">
+      <div class="flow">
+        <div class="flow-track"></div>
+
+        <div class="flow-row">
+          <div class="flow-badge c-amber">1</div>
+          <div class="flow-content">
+            <span class="lane-tag t-amber">You — outside the repo</span>
+            <h4>Run the Gemini Gem</h4>
+            <p>A fixed research prompt (<code>GEMINI_PROMPT.md</code>) is run by hand in the Gemini app. No API key, no code, no automation — entirely manual.</p>
+          </div>
+        </div>
+        <div class="flow-caption"><span class="arrow">↓</span><span class="pill">copy output</span></div>
+
+        <div class="flow-row">
+          <div class="flow-badge c-blue">2</div>
+          <div class="flow-content">
+            <span class="lane-tag t-blue">editor.html — your browser</span>
+            <h4>Paste &amp; publish</h4>
+            <p>A single self-contained HTML admin tool. Parses the pasted Markdown/JSON (<code>source: "gemini-app"</code>) into the story schema for Briefing or Flash, then calls the GitHub REST API directly.</p>
+          </div>
+        </div>
+        <div class="flow-caption"><span class="arrow">↓</span><span class="pill">PUT /repos/.../contents/data/&lt;date&gt;.json</span></div>
+
+        <div class="flow-row">
+          <div class="flow-badge c-slate">3</div>
+          <div class="flow-content">
+            <span class="lane-tag t-slate">GitHub repo — main branch</span>
+            <h4>Data lands on <code>main</code></h4>
+            <p><code>data/&lt;date&gt;.json</code>, <code>data/flash-&lt;date&gt;.json</code>, and <code>data/index.json</code> are committed straight to <code>main</code> — SHA-checked, no merge step.</p>
+          </div>
+        </div>
+        <div class="flow-caption"><span class="arrow">↓</span><span class="pill">push event triggers workflow</span></div>
+
+        <div class="flow-row">
+          <div class="flow-badge c-purple">4</div>
+          <div class="flow-content">
+            <span class="lane-tag t-purple">GitHub Actions — ssg.yml</span>
+            <h4>Static pages get built</h4>
+            <p>Runs <code>npm run ssg</code> (<code>pipeline/ssg.js</code>) — renders <code>day/</code>, <code>story/</code>, <code>flash/</code>, and OG share-image PNGs, then commits them back as <i>"Auto-generate SSG assets [skip ci]"</i>.</p>
+          </div>
+        </div>
+        <div class="flow-caption"><span class="arrow">↓</span><span class="pill">git push (bot commit) → auto-deploy</span></div>
+
+        <div class="flow-row">
+          <div class="flow-badge c-teal">5</div>
+          <div class="flow-content">
+            <span class="lane-tag t-teal">Netlify</span>
+            <h4>Site redeploys</h4>
+            <p>Every push to <code>main</code> redeploys automatically — static files plus two serverless functions (<code>subscribe.js</code>, <code>notify.js</code>). <code>netlify.toml</code> adds an SPA-fallback redirect for the brief window before step 4 finishes.</p>
+          </div>
+        </div>
+        <div class="flow-caption"><span class="arrow">↓</span><span class="pill">HTTPS request</span></div>
+
+        <div class="flow-row">
+          <div class="flow-badge c-green">6</div>
+          <div class="flow-content">
+            <span class="lane-tag t-green">Reader's browser</span>
+            <h4>Page renders</h4>
+            <p><code>app.js</code> (the SPA) takes over: serves the pre-rendered HTML when it exists, or boots client-side and fetches live JSON during the gap. Either way, the reader sees the story.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3: ZOOM - CONTENT CREATION -->
+  <section class="slide">
+    <div class="kicker">Zoom In — Stages 1 &amp; 2</div>
+    <h1>How content actually gets written</h1>
+    <div class="body">
+      <div class="grid cols2">
+        <div class="card">
+          <h3>① The Gemini Gem</h3>
+          <p>Lives entirely outside this repo. <code>GEMINI_PROMPT.md</code> is the prompt you paste into the Gemini app — it instructs Gemini to research that day's stories using web grounding and return a fixed Markdown structure: TL;DR, 5W1H, multi-perspective coverage, facts vs. claims, blind spots, editorial insight, impact analysis, context, and a simple explanation.</p>
+        </div>
+        <div class="card">
+          <h3>② editor.html — what it parses</h3>
+          <p>Accepts either the raw Gemini Markdown or a hand-edited JSON payload, tags it <code>source: "gemini-app"</code>, and converts it client-side into the story schema used by both products: <b>Briefing</b> (deep dives) and <b>Flash</b> (fast-scroll feed).</p>
+        </div>
+        <div class="card">
+          <h3>③ Publishing — no backend involved</h3>
+          <p>editor.html talks <b>directly</b> to <code>api.github.com</code> using a personal access token you supply in the browser. It fetches the current file's SHA first (to avoid clobbering concurrent edits), then writes:</p>
+          <ul>
+            <li><code>data/&lt;date&gt;.json</code> — Briefing stories</li>
+            <li><code>data/flash-&lt;date&gt;.json</code> — Flash items</li>
+            <li><code>data/index.json</code> — refreshed list of available dates</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>④ Side path — push notifications</h3>
+          <p>editor.html can also call <code>/.netlify/functions/notify</code> directly to send a web-push alert to subscribers when a briefing goes live. This is a separate Netlify Function — unrelated to the SSG/data pipeline above.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4: ZOOM - THE GAP -->
+  <section class="slide">
+    <div class="kicker">Zoom In — Stages 3 &amp; 4</div>
+    <h1>The gap between "published" and "live"</h1>
+    <div class="body">
+      <p class="deck-sub" style="margin-top:-4px;">Publishing data and building the static page are two separate commits, seconds to minutes apart.</p>
+      <div class="timebar-wrap">
+        <div class="timebar">
+          <div class="seg t0">DATA LIVE</div>
+          <div class="seg gap">~30s – 2min GAP</div>
+          <div class="seg t1">PAGE LIVE</div>
+        </div>
+        <div class="timebar-labels">
+          <div class="t0">editor.html commits<br><code>data/&lt;date&gt;.json</code></div>
+          <div class="gap">ssg.yml: checkout → npm ci → build → commit back</div>
+          <div class="t1"><code>day/</code> / <code>story/</code> / OG images exist</div>
+        </div>
+      </div>
+      <div class="grid cols2" style="margin-top:24px;">
+        <div class="card">
+          <h3>What happens if a reader hits the page mid-gap</h3>
+          <p>Refreshing <code>/day/&lt;date&gt;</code> or sharing the link in WhatsApp/Twitter during the gap used to 404, or show a generic preview — Netlify had no static file to serve and no fallback rule.</p>
+        </div>
+        <div class="card">
+          <h3>The fix already shipped</h3>
+          <p><code>netlify.toml</code> adds a catch-all <code>/* → /index.html (200)</code> redirect. It only applies when no real file exists yet, so it masks exactly this gap — the SPA boots and renders from the already-published JSON instead of 404ing.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5: ZOOM - HOSTING -->
+  <section class="slide">
+    <div class="kicker">Zoom In — Stage 5</div>
+    <h1>Two ways a request gets served</h1>
+    <div class="body">
+      <div class="grid cols2">
+        <div class="card" style="border-color:var(--green);">
+          <h3 style="color:var(--green);">Path A — static page exists</h3>
+          <p><b>Reader requests</b> <code>/story/&lt;date&gt;/&lt;id&gt;</code></p>
+          <p>→ Netlify finds the real <code>story/&lt;date&gt;/&lt;id&gt;/index.html</code> on disk</p>
+          <p>→ Served directly, full per-article <code>og:image</code> / <code>og:title</code> meta tags included</p>
+          <p>→ Crawlers (Twitter, WhatsApp, LinkedIn) see the correct share preview</p>
+        </div>
+        <div class="card" style="border-color:var(--amber);">
+          <h3 style="color:#9a5b13;">Path B — mid-gap (page not built yet)</h3>
+          <p><b>Reader requests</b> the same URL</p>
+          <p>→ No static file matches → <code>netlify.toml</code> catch-all fires → serves <code>index.html</code></p>
+          <p>→ SPA (<code>app.js</code>) boots, fetches <code>data/&lt;date&gt;.json</code>, renders client-side</p>
+          <p>→ Human readers see the story fine; crawlers still see the generic homepage preview until SSG lands</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <h3>Also on Netlify</h3>
+        <p>Two serverless functions, unrelated to the redirect rule: <code>subscribe.js</code> (stores push subscriptions in Netlify Blobs) and <code>notify.js</code> (sends the web-push). Both live under <code>/.netlify/functions/</code>, a reserved path the catch-all redirect never touches.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6: DATA MODEL -->
+  <section class="slide">
+    <div class="kicker">Data Model</div>
+    <h1>Data is truth. Everything else is a cache.</h1>
+    <div class="body">
+      <div class="orgchart">
+        <div class="org-root">data/*.json<span>source of truth — hand-published via editor.html</span></div>
+        <div class="org-stem"></div>
+        <div class="org-bar"></div>
+        <div class="org-children">
+          <div class="org-child-wrap"><div class="org-child-stem"></div>
+            <div class="org-child">day/&lt;date&gt;/<span>Briefing page</span></div></div>
+          <div class="org-child-wrap"><div class="org-child-stem"></div>
+            <div class="org-child">story/&lt;date&gt;/&lt;id&gt;/<span>per-article + OG meta</span></div></div>
+          <div class="org-child-wrap"><div class="org-child-stem"></div>
+            <div class="org-child">flash/day/&lt;date&gt;/<span>Flash page</span></div></div>
+          <div class="org-child-wrap"><div class="org-child-stem"></div>
+            <div class="org-child">og-images/<span>share preview PNGs</span></div></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:30px;">
+        <h3>Why this matters</h3>
+        <p>Every box below the line is generated by <code>pipeline/ssg.js</code> and can always be rebuilt from the JSON above by re-running <code>npm run ssg</code>. None of it is ever hand-edited — if something looks wrong down there, the fix is upstream in the data, or in the build script itself.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7: CLEANUP -->
+  <section class="slide">
+    <div class="kicker">Recent Cleanup</div>
+    <h1>Removing the pipeline that was never live</h1>
+    <p class="deck-sub" style="margin-top:-10px;">The repo used to carry a second, fully-automated content engine (RSS retrieval → Groq LLM → cron) that predated the Gemini-Gem + editor.html workflow and was never reachable from it.</p>
+    <div class="body">
+      <div class="bargroup">
+        <div class="bg-title">pipeline/ files</div>
+        <div class="barrow before"><div class="blabel">Before</div><div class="btrack"><div class="bfill" style="width:100%;">20 files</div></div></div>
+        <div class="barrow after"><div class="blabel">After</div><div class="btrack"><div class="bfill" style="width:5%;">1 file</div></div></div>
+      </div>
+      <div class="bargroup">
+        <div class="bg-title">GitHub Actions workflows</div>
+        <div class="barrow before"><div class="blabel">Before</div><div class="btrack"><div class="bfill" style="width:100%;">3 workflows</div></div></div>
+        <div class="barrow after"><div class="blabel">After</div><div class="btrack"><div class="bfill" style="width:33%;">1 workflow</div></div></div>
+      </div>
+      <div class="bargroup">
+        <div class="bg-title">npm dependencies</div>
+        <div class="barrow before"><div class="blabel">Before</div><div class="btrack"><div class="bfill" style="width:100%;">9 packages</div></div></div>
+        <div class="barrow after"><div class="blabel">After</div><div class="btrack"><div class="bfill" style="width:33%;">3 packages</div></div></div>
+      </div>
+      <div class="grid cols3" style="margin-top:8px;">
+        <div class="card"><h3>Removed</h3><p>Groq-driven generate/retrieve/select/scrape/analyze/llm chain, the <code>daily.yml</code> cron, the dormant inbox-import path, an orphaned Python prototype, and a duplicate push-notification script.</p></div>
+        <div class="card"><h3>Kept</h3><p><code>pipeline/ssg.js</code> (always was standalone), <code>ssg.yml</code>, both Netlify functions, and everything editor.html actually calls.</p></div>
+        <div class="card"><h3>Verified</h3><p>Ran <code>npm run ssg</code> directly after the cleanup — it executed cleanly with the trimmed dependencies, confirming nothing load-bearing was touched.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8: REFERENCE -->
+  <section class="slide">
+    <div class="kicker">Reference</div>
+    <h1>Repo map &amp; the one rule to remember</h1>
+    <div class="body">
+      <div class="file-tree">
+<div><span class="dir">pipeline/ssg.js</span> <span class="cm">— the only build script: JSON → static HTML + OG images</span></div>
+<div><span class="dir">data/</span> <span class="cm">— source of truth: &lt;date&gt;.json, flash-&lt;date&gt;.json, index.json</span></div>
+<div><span class="gen">day/</span>, <span class="gen">story/</span>, <span class="gen">flash/</span>, <span class="gen">og-images/</span> <span class="cm">— generated output, committed by ssg.yml</span></div>
+<div><span class="dir">netlify/functions/</span> <span class="cm">— subscribe.js, notify.js (web-push)</span></div>
+<div><span class="dir">.github/workflows/ssg.yml</span> <span class="cm">— the only workflow left</span></div>
+<div>editor.html <span class="cm">— paste Gemini Gem output here, publishes straight to GitHub</span></div>
+<div>GEMINI_PROMPT.md <span class="cm">— the fixed prompt you run in the Gemini app</span></div>
+<div>app.js, index.html <span class="cm">— the SPA</span></div>
+<div>netlify.toml <span class="cm">— SPA-fallback redirect</span></div>
+      </div>
+      <div class="kpi-row" style="margin-top:22px;">
+        <div class="kpi" style="flex:1;">
+          <div class="lbl" style="font-size:14px;color:var(--ink);font-weight:700;margin-top:0;">Data is the source of truth. HTML is a cache of it.</div>
+          <div class="lbl" style="margin-top:8px;">Anything under <code>day/</code>, <code>story/</code>, <code>flash/</code>, or <code>og-images/</code> can be regenerated from <code>data/*.json</code> at any time — it's never the other way around.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="footer-nav">
+  <button class="nav-btn" id="prevBtn" onclick="go(-1)">&larr; Prev</button>
+  <div class="progress" id="progress"></div>
+  <div class="slide-counter" id="counter"></div>
+  <button class="nav-btn" id="nextBtn" onclick="go(1)">Next &rarr;</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let idx = 0;
+  const progress = document.getElementById('progress');
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'ddot' + (i === 0 ? ' active' : '');
+    d.onclick = () => { idx = i; render(); };
+    progress.appendChild(d);
+  });
+  function render(){
+    slides.forEach((s,i) => s.classList.toggle('active', i === idx));
+    document.querySelectorAll('.ddot').forEach((d,i) => d.classList.toggle('active', i === idx));
+    document.getElementById('counter').textContent = (idx+1) + ' / ' + slides.length;
+    document.getElementById('prevBtn').disabled = idx === 0;
+    document.getElementById('nextBtn').disabled = idx === slides.length - 1;
+  }
+  function go(delta){
+    idx = Math.min(slides.length - 1, Math.max(0, idx + delta));
+    render();
+  }
+  window.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') go(1);
+    if (e.key === 'ArrowLeft') go(-1);
+  });
+  render();
+</script>
+</body>
+</html>
