@@ -21,6 +21,8 @@ let selectedFlashStoryId = null;
 let physDragCleanup = null;
 let deckItems = [];
 let isPreloadingNextDay = false;
+let flashPreloadPromise = null;
+let flashDeckRefreshFn = null;
 
 /* ── Analytics tracking helpers ──────────────────────────────── */
 function trackPageView(path, title) {
@@ -2837,15 +2839,21 @@ function updateFlashCounter(index, total) {
 }
 
 function buildInitialDeckItems(stories, date) {
+  const resolvedDate = date || flashStories.loadedDate || (indexEntries[0] && indexEntries[0].date) || new Date().toISOString().split("T")[0];
   deckItems = stories.map(s => ({
     type: "story",
-    date: s.date || date || flashStories.loadedDate || (indexEntries[0] && indexEntries[0].date) || new Date().toISOString().split("T")[0],
+    date: s.date || resolvedDate,
     data: s
   }));
+  // Always show the "caught up for today" checkpoint after today's items —
+  // it's a per-day marker, not a hard stop. terminal is only ever true once
+  // we've actually confirmed (via findNextFlashBatch) there's no earlier
+  // date left at all; until then swiping past it should keep loading more.
   if (deckItems.length > 0) {
     deckItems.push({
       type: "alldone",
-      date: date || deckItems[0].date
+      date: resolvedDate,
+      terminal: !getPreviousFlashDate(resolvedDate)
     });
   }
 }
@@ -2863,45 +2871,82 @@ async function fetchFlashStoriesForDate(targetDate) {
   return await r.json();
 }
 
-async function triggerNextDayPreload() {
-  if (window.isViewingSavedFlashes || isPreloadingNextDay) return;
+function matchesActiveFlashCategory(story) {
+  if (activeFlashCategory === "all") return true;
+  const cat = story.cat?.toLowerCase();
+  if (activeFlashCategory === "global" && (cat === "global" || cat === "world")) return true;
+  if (activeFlashCategory === "economics" && (cat === "economics" || cat === "business")) return true;
+  if (activeFlashCategory === "ai-tech" && (cat === "ai-tech" || cat === "ai")) return true;
+  return cat === activeFlashCategory;
+}
 
-  if (deckItems.length === 0) return;
+// Walks backward from `fromDate` (exclusive) until it finds a date with at
+// least one story matching the active category filter, or genuinely runs
+// out of history. Returns { date, stories } or null.
+async function findNextFlashBatch(fromDate) {
+  let cursorDate = fromDate;
+  while (true) {
+    const prevDate = getPreviousFlashDate(cursorDate);
+    if (!prevDate) return null;
+    cursorDate = prevDate;
+
+    let newStories;
+    try {
+      newStories = await fetchFlashStoriesForDate(prevDate);
+    } catch (e) {
+      console.error(`Failed to load flashes for ${prevDate}:`, e);
+      continue;
+    }
+
+    const filteredNew = newStories.filter(matchesActiveFlashCategory);
+    if (filteredNew.length > 0) return { date: prevDate, stories: filteredNew };
+  }
+}
+
+// Loads the next batch of flash stories (skipping any day with nothing for
+// the active category) and appends it past the current "caught up for
+// today" checkpoint. Safe to call multiple times in a row — concurrent
+// callers all just await the same in-flight request instead of double
+// fetching, which lets the swipe-deck reactively retry this if it lands on
+// a non-terminal checkpoint before the original background preload (fired
+// a couple cards earlier) has actually finished.
+function triggerNextDayPreload() {
+  if (window.isViewingSavedFlashes) return Promise.resolve();
+  if (isPreloadingNextDay) return flashPreloadPromise;
+  if (deckItems.length === 0) return Promise.resolve();
+
   const lastItem = deckItems[deckItems.length - 1];
-  const lastDate = lastItem.date;
-
-  const prevDate = getPreviousFlashDate(lastDate);
-  if (!prevDate) return;
+  if (lastItem.type === "alldone" && lastItem.terminal) return Promise.resolve();
 
   isPreloadingNextDay = true;
-  try {
-    const newStories = await fetchFlashStoriesForDate(prevDate);
-    const filteredNew = activeFlashCategory === "all"
-      ? newStories
-      : newStories.filter(s => {
-        const cat = s.cat?.toLowerCase();
-        if (activeFlashCategory === "global" && (cat === "global" || cat === "world")) return true;
-        if (activeFlashCategory === "economics" && (cat === "economics" || cat === "business")) return true;
-        if (activeFlashCategory === "ai-tech" && (cat === "ai-tech" || cat === "ai")) return true;
-        return cat === activeFlashCategory;
-      });
+  flashPreloadPromise = (async () => {
+    try {
+      const lastDate = lastItem.date;
+      const batch = await findNextFlashBatch(lastDate);
 
-    const mapped = filteredNew.map(s => ({
-      type: "story",
-      date: prevDate,
-      data: s
-    }));
+      if (!batch) {
+        deckItems.push({ type: "alldone", date: lastDate, terminal: true });
+      } else {
+        deckItems.push(...batch.stories.map(s => ({
+          type: "story",
+          date: batch.date,
+          data: s
+        })));
+        deckItems.push({
+          type: "alldone",
+          date: batch.date,
+          terminal: !getPreviousFlashDate(batch.date)
+        });
+      }
+      if (typeof flashDeckRefreshFn === "function") flashDeckRefreshFn();
+    } catch (e) {
+      console.error("Failed to preload next day flashes:", e);
+    } finally {
+      isPreloadingNextDay = false;
+    }
+  })();
 
-    deckItems.push(...mapped);
-    deckItems.push({
-      type: "alldone",
-      date: prevDate
-    });
-  } catch (e) {
-    console.error("Failed to preload next day flashes:", e);
-  } finally {
-    isPreloadingNextDay = false;
-  }
+  return flashPreloadPromise;
 }
 
 function updateFlashUrlAndHeader(item) {
@@ -3046,16 +3091,22 @@ function attachPhysicalDrag() {
     return el;
   }
 
-  function mkAllDone(role, idxInDeck, date) {
+  function mkAllDone(role, idxInDeck, date, terminal) {
     const el = document.createElement('div');
     el.className = 'flash-card all-done-card';
     el.dataset.idx = String(idxInDeck);
-    
+
     const isSaved = window.isViewingSavedFlashes;
-    const title = isSaved ? "All Saved Flashes Read" : "You're All Caught Up!";
-    const description = isSaved 
+    const title = isSaved
+      ? "All Saved Flashes Read"
+      : terminal
+        ? "You're All Caught Up!"
+        : "Done for the Day!";
+    const description = isSaved
       ? "You've read all of your bookmarked flash updates.<br>Go back to the saved list or check out new briefings."
-      : "You've read all of today's speed news updates.<br>Check back later for more quick updates.";
+      : terminal
+        ? "You've read all of today's speed news updates.<br>Check back later for more quick updates."
+        : "You're all caught up on today's flashes.<br>Swipe up to explore past news.";
     const buttonLabel = isSaved ? "Back to Saved Items" : "Explore Deep Dives";
     const buttonSvg = isSaved
       ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>`
@@ -3144,7 +3195,7 @@ function attachPhysicalDrag() {
     if (item.type === 'story') {
       return mkStory(item.data, role, idx);
     } else {
-      return mkAllDone(role, idx, item.date);
+      return mkAllDone(role, idx, item.date, item.terminal);
     }
   }
 
@@ -3165,12 +3216,35 @@ function attachPhysicalDrag() {
 
     if (curCard && deckItems[idx].type === 'alldone') {
       wireAllDone();
+      // Landed on a per-day checkpoint with nothing queued up after it yet.
+      // If it's not actually the end of history, this is the race condition
+      // where the background preload (fired a couple cards earlier) hasn't
+      // resolved before the user got here — kick it off again (a no-op if
+      // already in flight) and attach the next card once it resolves.
+      if (!nxtCard && !deckItems[idx].terminal) {
+        triggerNextDayPreload();
+      }
     } else if (curCard) {
       trackViewCount(deckItems[idx].data.id);
       window.flashSessionViewedIds.add(deckItems[idx].data.id);
       checkAndShowNudge();
     }
   }
+
+  // Lets an async preload that resolves after buildDeck()/completeNav()
+  // already ran attach the newly available next card without requiring a
+  // full re-render — otherwise the user stays stuck on a stale nxtCard=null
+  // until their next swipe attempt happens to re-trigger something.
+  function refreshAdjacentCards() {
+    if (!stage.isConnected) return;
+    const idx = currentFlashIndex;
+    const total = deckItems.length;
+    if (!nxtCard && idx + 1 < total && curCard && Number(curCard.dataset.idx) === idx) {
+      nxtCard = createCard(idx + 1, 'next');
+      stage.appendChild(nxtCard);
+    }
+  }
+  flashDeckRefreshFn = refreshAdjacentCards;
 
   buildDeck();
   wireFlashNavigation();
@@ -3294,6 +3368,9 @@ function attachPhysicalDrag() {
 
       if (curCard && deckItems[newIdx].type === 'alldone') {
         wireAllDone();
+        if (!nxtCard && !deckItems[newIdx].terminal) {
+          triggerNextDayPreload();
+        }
       } else if (curCard) {
         trackViewCount(deckItems[newIdx].data.id);
         window.flashSessionViewedIds.add(deckItems[newIdx].data.id);
@@ -3674,15 +3751,7 @@ async function renderFlashView(date = null) {
     trackPageView("/saved/flash", "The Briefing | Saved Flash News");
   }
 
-  const filtered = activeFlashCategory === "all"
-    ? flashStories
-    : flashStories.filter(s => {
-      const cat = s.cat?.toLowerCase();
-      if (activeFlashCategory === "global" && (cat === "global" || cat === "world")) return true;
-      if (activeFlashCategory === "economics" && (cat === "economics" || cat === "business")) return true;
-      if (activeFlashCategory === "ai-tech" && (cat === "ai-tech" || cat === "ai")) return true;
-      return cat === activeFlashCategory;
-    });
+  const filtered = flashStories.filter(matchesActiveFlashCategory);
 
   const total = filtered.length;
 
