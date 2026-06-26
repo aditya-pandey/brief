@@ -277,7 +277,7 @@
           "lean": "center",
           "region": "global",
           "title": "Details on the 32,768 Hz electro-mechanical landscape of wristwatches: [https://www.media.mit.edu/projects/32768-times-per-second/overview/](https://www.media.mit.edu/projects/32768-times-per-second/overview/)",
-          "url": "[https://www.media.mit.edu/projects/32768-times-per-second/overview/](https://www.media.mit.edu/projects/32768-times-per-second/overview/)"
+          "url": "https://www.media.mit.edu/projects/32768-times-per-second/overview/"
         },
         {
           "outlet": "FCom Fuji Crystal",
@@ -285,7 +285,7 @@
           "lean": "center",
           "region": "global",
           "title": "Documentation on the 15-stage divide-down path and binary counter logic: [https://www.fujicrystal.com/news_details/why-32768hz-rules.html](https://www.fujicrystal.com/news_details/why-32768hz-rules.html)",
-          "url": "[https://www.fujicrystal.com/news_details/why-32768hz-rules.html](https://www.fujicrystal.com/news_details/why-32768hz-rules.html)"
+          "url": "https://www.fujicrystal.com/news_details/why-32768hz-rules.html"
         },
         {
           "outlet": "Wikipedia",
@@ -293,7 +293,7 @@
           "lean": "center",
           "region": "global",
           "title": "Technical metrics on the physical dimensions and vacuum capsules of quartz clocks: [https://en.wikipedia.org/wiki/Quartz_clock](https://en.wikipedia.org/wiki/Quartz_clock)",
-          "url": "[https://en.wikipedia.org/wiki/Quartz_clock](https://en.wikipedia.org/wiki/Quartz_clock)"
+          "url": "https://en.wikipedia.org/wiki/Quartz_clock"
         },
         {
           "outlet": "Seiko Watch Corporation",
@@ -301,7 +301,7 @@
           "lean": "center",
           "region": "global",
           "title": "Historical background on the development of the 1969 Quartz Astron: [https://www.seikowatches.com/ca-en/products/astron/special/story_qa50th_1](https://www.seikowatches.com/ca-en/products/astron/special/story_qa50th_1)",
-          "url": "[https://www.seikowatches.com/ca-en/products/astron/special/story_qa50th_1](https://www.seikowatches.com/ca-en/products/astron/special/story_qa50th_1)"
+          "url": "https://www.seikowatches.com/ca-en/products/astron/special/story_qa50th_1"
         },
         {
           "outlet": "Seiko Epson Corporation",
@@ -309,7 +309,7 @@
           "lean": "center",
           "region": "global",
           "title": "Manufacturing insights on etching synthetic crystals using hydrofluoric acid: [https://corporate.epson/en/technology/overview/wearable/quartz-watch.html](https://corporate.epson/en/technology/overview/wearable/quartz-watch.html)",
-          "url": "[https://corporate.epson/en/technology/overview/wearable/quartz-watch.html](https://corporate.epson/en/technology/overview/wearable/quartz-watch.html)"
+          "url": "https://corporate.epson/en/technology/overview/wearable/quartz-watch.html"
         }
       ],
       "heroImage": "https://nihonwatches.com/wp-content/uploads/2014/02/seikoastron35sq.jpg"
