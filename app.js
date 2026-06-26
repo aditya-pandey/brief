@@ -1827,9 +1827,6 @@ async function renderHome(date) {
         ${storyVisual(s, i)}
         <div class="card-accent"></div>
         <div class="card-body">
-          <div class="card-top">
-            <span class="card-num">${String(i + 1).padStart(2, "0")}</span>
-          </div>
           <h2 class="card-headline">${esc(s.headline)}</h2>
           ${s.tldr ? `<p class="card-tldr">${esc(s.tldr)}</p>` : ""}
           <div class="card-footer">
@@ -1908,7 +1905,7 @@ async function renderStory(date, id) {
 
   let backLink = `${BASE_PATH}/briefings`;
   let backLabel = "Back to Today's Deep Dives";
-  let kickerLabel = `FRONT ${String(storyIdx + 1).padStart(2, "0")}`;
+  let kickerLabel = "";
   let prevStoryLink = `<div class="story-nav-empty"></div>`;
   let nextStoryLink = `<div class="story-nav-empty"></div>`;
 
@@ -1973,9 +1970,10 @@ async function renderStory(date, id) {
           ${esc(backLabel)}
         </a>
       </div>
+      ${kickerLabel ? `
       <div class="article-kicker-row">
         <span>${esc(kickerLabel)}</span>
-      </div>
+      </div>` : ""}
 
       <h1 class="article-headline">${esc(s.headline)}</h1>
       ${s.subtitle ? `<p class="article-subtitle">${esc(s.subtitle)}</p>` : ""}
