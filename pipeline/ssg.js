@@ -2,6 +2,14 @@ import fs from 'fs';
 import path from 'path';
 import { Resvg } from '@resvg/resvg-js';
 
+// True if targetPath doesn't exist yet, or is older than sourceMtimeMs —
+// i.e. needs to be (re)generated. Lets runSSG() skip untouched dates/stories
+// instead of rebuilding the entire site's history on every run.
+function isStale(targetPath, sourceMtimeMs) {
+  if (!fs.existsSync(targetPath)) return true;
+  return fs.statSync(targetPath).mtimeMs < sourceMtimeMs;
+}
+
 // Replicate hashStr from app.js
 function hashStr(str) {
   let hash = 0;
@@ -1019,32 +1027,47 @@ function generateFlashOgSvg(story, date) {
 async function runSSG() {
   console.log('Generating SSG and OG Images...');
   
-  const rootHtml = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf8');
-  
+  const indexPath = path.join(process.cwd(), 'index.html');
+  const rootHtml = fs.readFileSync(indexPath, 'utf8');
+  const indexMtimeMs = fs.statSync(indexPath).mtimeMs;
+
   // Helper to replace dynamic base script with static base href
   const injectBaseHref = (html, relPath) => {
     const baseScriptRegex = /<script>\s*const basePath = [\s\S]*?<\/script>/;
     return html.replace(baseScriptRegex, `<base href="${relPath}" />`);
   };
-  
-  // Pre-render briefings, flash and install base directories
+
+  // Pre-render briefings, flash and install base directories — these are
+  // pure copies of index.html's shell, so only regenerate when it changed.
   const briefingsDir = path.join(process.cwd(), 'briefings');
   if (!fs.existsSync(briefingsDir)) fs.mkdirSync(briefingsDir, { recursive: true });
-  fs.writeFileSync(path.join(briefingsDir, 'index.html'), injectBaseHref(rootHtml, '../'));
+  const briefingsIndexPath = path.join(briefingsDir, 'index.html');
+  if (isStale(briefingsIndexPath, indexMtimeMs)) {
+    fs.writeFileSync(briefingsIndexPath, injectBaseHref(rootHtml, '../'));
+  }
 
   const flashDir = path.join(process.cwd(), 'flash');
   if (!fs.existsSync(flashDir)) fs.mkdirSync(flashDir, { recursive: true });
-  let flashHtml = injectBaseHref(rootHtml, '../');
-  flashHtml = flashHtml.replace(/https:\/\/thebriefings\.netlify\.app\/icon-briefing\.png/g, 'https://thebriefings.netlify.app/flash-logo.png');
-  fs.writeFileSync(path.join(flashDir, 'index.html'), flashHtml);
+  const flashIndexPath = path.join(flashDir, 'index.html');
+  if (isStale(flashIndexPath, indexMtimeMs)) {
+    let flashHtml = injectBaseHref(rootHtml, '../');
+    flashHtml = flashHtml.replace(/https:\/\/thebriefings\.netlify\.app\/icon-briefing\.png/g, 'https://thebriefings.netlify.app/flash-logo.png');
+    fs.writeFileSync(flashIndexPath, flashHtml);
+  }
 
   const installDir = path.join(process.cwd(), 'install');
   if (!fs.existsSync(installDir)) fs.mkdirSync(installDir, { recursive: true });
-  fs.writeFileSync(path.join(installDir, 'index.html'), injectBaseHref(rootHtml, '../'));
+  const installIndexPath = path.join(installDir, 'index.html');
+  if (isStale(installIndexPath, indexMtimeMs)) {
+    fs.writeFileSync(installIndexPath, injectBaseHref(rootHtml, '../'));
+  }
 
   const savedDir = path.join(process.cwd(), 'saved');
   if (!fs.existsSync(savedDir)) fs.mkdirSync(savedDir, { recursive: true });
-  fs.writeFileSync(path.join(savedDir, 'index.html'), injectBaseHref(rootHtml, '../'));
+  const savedIndexPath = path.join(savedDir, 'index.html');
+  if (isStale(savedIndexPath, indexMtimeMs)) {
+    fs.writeFileSync(savedIndexPath, injectBaseHref(rootHtml, '../'));
+  }
 
   const dataDir = path.join(process.cwd(), 'data');
   const allFiles = fs.readdirSync(dataDir);
@@ -1059,7 +1082,10 @@ async function runSSG() {
   
   const ogImagesDir = path.join(process.cwd(), 'og-images');
   if (!fs.existsSync(ogImagesDir)) fs.mkdirSync(ogImagesDir, { recursive: true });
-  
+
+  let briefingRegeneratedCount = 0;
+  let briefingSkippedCount = 0;
+
   for (const date of dateList) {
     const dataPath = path.join(dataDir, `${date}.json`);
     const briefingExists = fs.existsSync(dataPath);
@@ -1068,27 +1094,52 @@ async function runSSG() {
     const dateOgDir = path.join(ogImagesDir, date);
     if (!fs.existsSync(dateOgDir)) fs.mkdirSync(dateOgDir, { recursive: true });
     
-    // Also build a /day/YYYY-MM-DD/ route just in case
+    // Also build a /day/YYYY-MM-DD/ route just in case — pure shell copy,
+    // only depends on index.html.
     const dayDir = path.join(process.cwd(), 'day', date);
     if (!fs.existsSync(dayDir)) fs.mkdirSync(dayDir, { recursive: true });
-    fs.writeFileSync(path.join(dayDir, 'index.html'), injectBaseHref(rootHtml, '../../'));
+    const dayIndexPath = path.join(dayDir, 'index.html');
+    if (isStale(dayIndexPath, indexMtimeMs)) {
+      fs.writeFileSync(dayIndexPath, injectBaseHref(rootHtml, '../../'));
+    }
 
-    // Build briefings/day/YYYY-MM-DD and flash/day/YYYY-MM-DD
+    // Build briefings/day/YYYY-MM-DD and flash/day/YYYY-MM-DD — same, shell-only.
     const bDayDir = path.join(process.cwd(), 'briefings', 'day', date);
     if (!fs.existsSync(bDayDir)) fs.mkdirSync(bDayDir, { recursive: true });
-    fs.writeFileSync(path.join(bDayDir, 'index.html'), injectBaseHref(rootHtml, '../../../'));
+    const bDayIndexPath = path.join(bDayDir, 'index.html');
+    if (isStale(bDayIndexPath, indexMtimeMs)) {
+      fs.writeFileSync(bDayIndexPath, injectBaseHref(rootHtml, '../../../'));
+    }
 
     const fDayDir = path.join(process.cwd(), 'flash', 'day', date);
     if (!fs.existsSync(fDayDir)) fs.mkdirSync(fDayDir, { recursive: true });
-    let fDayHtml = injectBaseHref(rootHtml, '../../../');
-    fDayHtml = fDayHtml.replace(/https:\/\/thebriefings\.netlify\.app\/icon-briefing\.png/g, 'https://thebriefings.netlify.app/flash-logo.png');
-    fs.writeFileSync(path.join(fDayDir, 'index.html'), fDayHtml);
-    
+    const fDayIndexPath = path.join(fDayDir, 'index.html');
+    if (isStale(fDayIndexPath, indexMtimeMs)) {
+      let fDayHtml = injectBaseHref(rootHtml, '../../../');
+      fDayHtml = fDayHtml.replace(/https:\/\/thebriefings\.netlify\.app\/icon-briefing\.png/g, 'https://thebriefings.netlify.app/flash-logo.png');
+      fs.writeFileSync(fDayIndexPath, fDayHtml);
+    }
+
     if (briefingExists) {
       await backfillBriefingImages(dataPath, date);
+      // Re-stat after backfill — it may have just bumped this file's mtime
+      // by writing a newly-resolved heroImage, which should invalidate the
+      // story page/OG image below even if nothing else about the story changed.
+      const briefingMtimeMs = Math.max(fs.statSync(dataPath).mtimeMs, indexMtimeMs);
       const briefing = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
       let idx = 0;
       for (const story of briefing.stories) {
+        const pngPath = path.join(dateOgDir, `${story.id}.png`);
+        const storyDir = path.join(process.cwd(), 'story', date, story.id);
+        const storyHtmlPath = path.join(storyDir, 'index.html');
+
+        if (!isStale(pngPath, briefingMtimeMs) && !isStale(storyHtmlPath, briefingMtimeMs)) {
+          idx++;
+          briefingSkippedCount++;
+          continue;
+        }
+        briefingRegeneratedCount++;
+
         // 1. Generate fallback illustration PNG (used only if no hero image is available)
         const svgString = generateOgSvg(story, date, idx);
         const resvg = new Resvg(svgString, {
@@ -1097,12 +1148,9 @@ async function runSSG() {
         });
         const pngData = resvg.render();
         const pngBuffer = pngData.asPng();
-
-        const pngPath = path.join(dateOgDir, `${story.id}.png`);
         fs.writeFileSync(pngPath, pngBuffer);
 
         // 2. Generate HTML
-        const storyDir = path.join(process.cwd(), 'story', date, story.id);
         if (!fs.existsSync(storyDir)) fs.mkdirSync(storyDir, { recursive: true });
 
         const ogTitle = (story.headline || story.title || "").replace(/"/g, '&quot;');
@@ -1112,7 +1160,7 @@ async function runSSG() {
         const ogImage = (story.heroImage && story.heroImage.startsWith("http"))
           ? story.heroImage
           : `${domain}/og-images/${date}/${story.id}.png`;
-        
+
         let storyHtml = rootHtml;
         storyHtml = storyHtml.replace(/<title>.*?<\/title>/, `<title>${ogTitle}</title>`);
         storyHtml = storyHtml.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${ogTitle}" />`);
@@ -1120,23 +1168,36 @@ async function runSSG() {
         storyHtml = storyHtml.replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${ogDesc}" />`);
         storyHtml = storyHtml.replace(/<meta property="og:image" content=".*?" \/>/, `<meta property="og:image" content="${ogImage}" />`);
         storyHtml = storyHtml.replace(/<meta name="twitter:image" content=".*?" \/>/, `<meta name="twitter:image" content="${ogImage}" />`);
-        
-        fs.writeFileSync(path.join(storyDir, 'index.html'), injectBaseHref(storyHtml, '../../../'));
-        
+
+        fs.writeFileSync(storyHtmlPath, injectBaseHref(storyHtml, '../../../'));
+
         idx++;
       }
     }
   }
   
+  console.log(`Briefing SSG complete! ${briefingRegeneratedCount} regenerated, ${briefingSkippedCount} skipped (already up to date).`);
+
   // Now process Flash stories static pages and OG images
   console.log('Generating Flash SSG and OG Images...');
   const processedFlashIds = new Set();
-  
+  let flashRegeneratedCount = 0;
+
   const processFlashStory = (story, date) => {
     if (!story || !story.id) return;
     if (processedFlashIds.has(story.id)) return;
     processedFlashIds.add(story.id);
-    
+
+    // Flash items are immutable once published (no backfill step touches
+    // them afterward), so a plain existence check is enough to skip already-
+    // generated ones instead of re-rendering the entire historical feed.
+    const flashOgDir = path.join(process.cwd(), 'og-images', 'flash');
+    const pngPath = path.join(flashOgDir, `${story.id}.png`);
+    const storyDir = path.join(process.cwd(), 'flash', 'story', story.id);
+    const storyHtmlPath = path.join(storyDir, 'index.html');
+    if (fs.existsSync(pngPath) && fs.existsSync(storyHtmlPath)) return;
+    flashRegeneratedCount++;
+
     // 1. Generate PNG
     console.log(`Processing Flash Story ID: ${story.id}, Category: ${story.cat}`);
     const svgString = generateFlashOgSvg(story, date);
@@ -1146,15 +1207,11 @@ async function runSSG() {
     });
     const pngData = resvg.render();
     const pngBuffer = pngData.asPng();
-    
-    const flashOgDir = path.join(process.cwd(), 'og-images', 'flash');
+
     if (!fs.existsSync(flashOgDir)) fs.mkdirSync(flashOgDir, { recursive: true });
-    
-    const pngPath = path.join(flashOgDir, `${story.id}.png`);
     fs.writeFileSync(pngPath, pngBuffer);
-    
+
     // 2. Generate HTML
-    const storyDir = path.join(process.cwd(), 'flash', 'story', story.id);
     if (!fs.existsSync(storyDir)) fs.mkdirSync(storyDir, { recursive: true });
     
     const ogTitle = (story.headline || story.hl || "").replace(/"/g, '&quot;');
@@ -1170,7 +1227,7 @@ async function runSSG() {
     storyHtml = storyHtml.replace(/<meta property="og:image" content=".*?" \/>/, `<meta property="og:image" content="${ogImage}" />`);
     storyHtml = storyHtml.replace(/<meta name="twitter:image" content=".*?" \/>/, `<meta name="twitter:image" content="${ogImage}" />`);
     
-    fs.writeFileSync(path.join(storyDir, 'index.html'), injectBaseHref(storyHtml, '../../../'));
+    fs.writeFileSync(storyHtmlPath, injectBaseHref(storyHtml, '../../../'));
   };
   
   // Process root flash.json
@@ -1205,7 +1262,7 @@ async function runSSG() {
     }
   }
   
-  console.log(`Flash SSG complete! Processed ${processedFlashIds.size} stories.`);
+  console.log(`Flash SSG complete! ${flashRegeneratedCount} regenerated, ${processedFlashIds.size - flashRegeneratedCount} skipped (already up to date).`);
   console.log('SSG complete!');
 }
 
