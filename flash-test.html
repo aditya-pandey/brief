@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Flash Pipeline — Test Harness</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --ink: #eef0f3; --muted: #9aa3b2;
+    --accent: #5eb1ff; --good: #5edc8f; --warn: #ffce5e; --bad: #ff6b6b;
+    --line: #2a2f3a; --code: #10131a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 32px 24px 80px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+  .banner {
+    background: #2a1f10; border: 1px solid #5a4520; color: var(--warn);
+    border-radius: 8px; padding: 10px 14px; font-size: 12.5px; margin-bottom: 24px;
+  }
+  button {
+    background: var(--accent); color: #0a0d12; border: none; border-radius: 8px;
+    padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  button:disabled { opacity: .5; cursor: default; }
+  #log {
+    background: var(--code); border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px 14px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px; line-height: 1.6; color: var(--muted); margin-top: 20px;
+    max-height: 260px; overflow-y: auto; white-space: pre-wrap; display: none;
+  }
+  #log.visible { display: block; }
+  #log .err { color: var(--bad); }
+  #results { margin-top: 24px; }
+  .item {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .item-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .pill {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--accent); background: rgba(94,177,255,.12); border-radius: 12px;
+    padding: 3px 9px; font-family: ui-monospace, monospace;
+  }
+  .ts { font-size: 11px; color: var(--muted); margin-left: auto; }
+  .item h3 { margin: 0 0 8px; font-size: 16px; }
+  .item p { margin: 0 0 8px; font-size: 13.5px; line-height: 1.55; color: var(--ink); }
+  .why { font-size: 12.5px; color: var(--muted); border-left: 2px solid var(--accent); padding-left: 10px; margin: 8px 0; }
+  .meta { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; margin-top: 10px; }
+  .meta a { color: var(--muted); text-decoration: underline; }
+  img.hero { width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; display: block; }
+  .no-image { font-size: 11px; color: var(--bad); margin-bottom: 8px; }
+  .raw-toggle { margin-top: 28px; }
+  .raw-toggle summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+  pre#raw-json {
+    background: var(--code); border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px; font-size: 11px; overflow-x: auto; color: var(--muted); margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Flash Pipeline — Test Harness</h1>
+  <p class="sub">Display-only. Fetches RSS feeds, dedupes, scores, runs one batched LLM call. Never touches data/, never publishes to GitHub.</p>
+
+  <div class="banner">
+    This is a test page, not part of the live app. Output here has no effect on the production Flash feed until you manually decide otherwise.
+  </div>
+
+  <button id="run-btn">Run Pipeline Test</button>
+  <span id="status" style="margin-left: 12px; font-size: 13px; color: var(--muted);"></span>
+
+  <div id="log"></div>
+  <div id="results"></div>
+
+  <details class="raw-toggle" id="raw-details" style="display:none;">
+    <summary>Raw JSON output</summary>
+    <pre id="raw-json"></pre>
+  </details>
+</div>
+
+<script>
+  const runBtn = document.getElementById('run-btn');
+  const statusEl = document.getElementById('status');
+  const logEl = document.getElementById('log');
+  const resultsEl = document.getElementById('results');
+  const rawDetails = document.getElementById('raw-details');
+  const rawJsonEl = document.getElementById('raw-json');
+
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  }
+
+  runBtn.addEventListener('click', async () => {
+    runBtn.disabled = true;
+    statusEl.textContent = 'Running...';
+    logEl.className = 'visible';
+    logEl.textContent = '';
+    resultsEl.innerHTML = '';
+    rawDetails.style.display = 'none';
+
+    try {
+      const res = await fetch('/.netlify/functions/flash-pipeline-test');
+      const data = await res.json();
+
+      if (data.log) {
+        logEl.textContent = data.log.join('\n');
+      }
+
+      if (!res.ok || data.error) {
+        statusEl.textContent = 'Failed';
+        logEl.innerHTML += `\n<span class="err">ERROR: ${esc(data.error || 'Unknown error')}</span>`;
+        return;
+      }
+
+      statusEl.textContent = `Done — ${data.items.length} items`;
+
+      resultsEl.innerHTML = data.items.map(item => `
+        <div class="item">
+          ${item.image
+            ? `<img class="hero" src="${esc(item.image)}" alt="" onerror="this.style.display='none'" />`
+            : `<div class="no-image">⚠ no image found for this story</div>`}
+          <div class="item-top">
+            <span class="pill">${esc(item.cat)}</span>
+            <span class="ts">${esc(item.ts)}</span>
+          </div>
+          <h3>${esc(item.headline)}</h3>
+          <p>${esc(item.summary)}</p>
+          ${item.why_it_matters ? `<div class="why"><strong>Why it matters:</strong> ${esc(item.why_it_matters)}</div>` : ''}
+          <div class="meta">
+            <span>${esc(item.source)}</span>
+            <a href="${esc(item.source_url)}" target="_blank" rel="noopener noreferrer">source &rarr;</a>
+          </div>
+        </div>
+      `).join('');
+
+      rawJsonEl.textContent = JSON.stringify(data.items, null, 2);
+      rawDetails.style.display = 'block';
+    } catch (e) {
+      statusEl.textContent = 'Failed';
+      logEl.innerHTML += `\n<span class="err">ERROR: ${esc(e.message)}</span>`;
+    } finally {
+      runBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
