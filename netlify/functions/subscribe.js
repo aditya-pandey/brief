@@ -1,12 +1,16 @@
 import fs from 'fs';
 import path from 'path';
 
+// Always attempt Netlify Blobs first — getStore() works automatically inside an
+// actual Netlify Function invocation via ambient context, with no env var needed.
+// Gating this on process.env.NETLIFY/NETLIFY_API_TOKEN (neither of which is reliably
+// set at function runtime) silently fell through to a local file write instead, which
+// is lost the instant the serverless invocation ends — that was the actual bug behind
+// subscriptions appearing to succeed but never actually persisting.
 let getStore;
 try {
-  if (process.env.NETLIFY || process.env.NETLIFY_API_TOKEN) {
-    const blobs = await import('@netlify/blobs');
-    getStore = blobs.getStore;
-  }
+  const blobs = await import('@netlify/blobs');
+  getStore = blobs.getStore;
 } catch (e) {
   console.log('[PWA subscribe function] Netlify Blobs not loaded, falling back to local file.', e.message);
 }
@@ -65,11 +69,18 @@ export default async (req, context) => {
         });
       }
 
+      let persisted = false;
       if (getStore) {
-        const store = getStore({ name: 'subscriptions' });
-        const key = btoa(body.endpoint).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-        await store.setJSON(key, body);
-      } else {
+        try {
+          const store = getStore({ name: 'subscriptions' });
+          const key = btoa(body.endpoint).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+          await store.setJSON(key, body);
+          persisted = true;
+        } catch (blobErr) {
+          console.error('[PWA subscribe function] Blobs write failed, falling back to local file (dev-only — does not persist on Netlify):', blobErr.message);
+        }
+      }
+      if (!persisted) {
         const subs = readLocalSubscriptions();
         if (!subs.some(s => s.endpoint === body.endpoint)) {
           subs.push(body);
@@ -93,11 +104,18 @@ export default async (req, context) => {
         });
       }
 
+      let deleted = false;
       if (getStore) {
-        const store = getStore({ name: 'subscriptions' });
-        const key = btoa(body.endpoint).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-        await store.delete(key);
-      } else {
+        try {
+          const store = getStore({ name: 'subscriptions' });
+          const key = btoa(body.endpoint).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+          await store.delete(key);
+          deleted = true;
+        } catch (blobErr) {
+          console.error('[PWA subscribe function] Blobs delete failed, falling back to local file:', blobErr.message);
+        }
+      }
+      if (!deleted) {
         const subs = readLocalSubscriptions();
         const filtered = subs.filter(s => s.endpoint !== body.endpoint);
         writeLocalSubscriptions(filtered);
