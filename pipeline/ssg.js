@@ -58,6 +58,133 @@ function wrapText(text, maxChars) {
   return lines;
 }
 
+const esc = escapeXml;
+
+const FLASH_LABELS = {
+  india: 'India', world: 'Global', global: 'Global', ai: 'AI & Tech', 'ai-tech': 'AI & Tech',
+  politics: 'Politics', business: 'Economics', economics: 'Economics', sports: 'Sports',
+  entertainment: 'Entertainment', culture: 'Culture', science: 'Science', health: 'Health',
+};
+
+// Mirrors app.js's renderStory() article markup closely enough that hydration doesn't
+// cause a layout jump, but without the interactive-only bits (bookmark/share buttons,
+// prev/next nav) since those need client-side state that doesn't exist at build time.
+// This exists so crawlers and AI tools that don't execute JS can read the real article —
+// see the SEO/AI-crawlability work this was built for.
+function renderStoryArticleSSR(story) {
+  const overviewHtml = (story.overview || story.tldr || "")
+    .split("\n\n").map(p => `<p>${esc(p)}</p>`).join("");
+
+  const inPlainEnglish = story.inPlainEnglish || story.simple_explanation;
+  const inPlainEnglishHtml = inPlainEnglish ? `
+        <div class="article-in-plain-english">
+          <div class="article-in-plain-english-label">In Plain English</div>
+          <p>${esc(inPlainEnglish)}</p>
+        </div>` : "";
+
+  const chaptersHtml = (story.sections || []).map(sec => `
+          <section class="article-chapter">
+            <h2 class="chapter-title">${esc(sec.title)}</h2>
+            <div class="chapter-content">
+              ${(sec.content || "").split("\n\n").map(p => `<p>${esc(p)}</p>`).join("")}
+            </div>
+          </section>`).join("");
+
+  const conclusionHtml = story.conclusion ? `
+        <div class="article-conclusion">
+          <h3 class="conclusion-title">Conclusion</h3>
+          <div class="conclusion-content">
+            ${story.conclusion.split("\n\n").map(p => `<p>${esc(p)}</p>`).join("")}
+          </div>
+        </div>` : "";
+
+  const sourcesHtml = (story.sources || []).map(src => `
+            <div class="source-card">
+              <div class="source-card-info">
+                <h4 class="source-card-name">${esc(src.outlet)}</h4>
+                <p class="source-card-desc">${esc(src.title)}</p>
+              </div>
+              ${src.url ? `<a href="${esc(src.url)}" target="_blank" rel="noopener noreferrer" class="source-card-link">Link &rarr;</a>` : ''}
+            </div>`).join("");
+
+  const heroHtml = (story.heroImage && story.heroImage.startsWith("http"))
+    ? `<div id="article-hero-container"><img src="${esc(story.heroImage)}" alt="" style="width:100%; border-radius: 12px;" /></div>`
+    : `<div id="article-hero-container"></div>`;
+
+  return `
+    <article class="longform-article">
+      <h1 class="article-headline">${esc(story.headline)}</h1>
+      ${story.subtitle ? `<p class="article-subtitle">${esc(story.subtitle)}</p>` : ""}
+      ${heroHtml}
+      <div class="article-overview">${overviewHtml}</div>
+      ${inPlainEnglishHtml}
+      <div class="article-chapters">${chaptersHtml}</div>
+      ${conclusionHtml}
+      <div class="article-sources">
+        <h3 class="sources-title">Sources</h3>
+        <div class="sources-grid">${sourcesHtml}</div>
+      </div>
+    </article>`;
+}
+
+// Mirrors buildFlashCardInnerHTML()'s readable content (not the exact interactive
+// markup — bookmark/share buttons and category icon need client-side state/helpers
+// that don't exist at build time) so the real headline/summary/why_it_matters text
+// is present in the static HTML for non-JS crawlers and AI tools.
+function renderFlashCardSSR(story) {
+  const catLabel = FLASH_LABELS[story.cat] || story.cat || "";
+  const whyHtml = story.why_it_matters ? `
+      <div class="flash-why-it-matters">
+        <div class="flash-why-header-row">
+          <span class="flash-why-label">Why It Matters</span>
+        </div>
+        <span class="flash-why-value">${esc(story.why_it_matters)}</span>
+      </div>` : "";
+  const sourceUrl = story.source_url || "";
+  const sourceHtml = (story.source || story.src) ? `
+      <div class="flash-card-source-bottom">
+        <span class="flash-time">
+          <span style="opacity:0.65;">Source:</span>
+          ${sourceUrl ? `<a href="${esc(sourceUrl)}" target="_blank" rel="noopener noreferrer" class="flash-source-link">${esc(story.source || story.src)}</a>` : esc(story.source || story.src)}
+        </span>
+      </div>` : "";
+
+  return `
+    <article class="flash-card-content-area">
+      <div class="flash-card-top-row">
+        <span class="flash-cat-badge">${esc(catLabel)}</span>
+      </div>
+      <h1 class="flash-headline">${esc(story.headline || story.hl)}</h1>
+      <div class="flash-summary"><p>${esc(story.summary || story.body)}</p></div>
+      ${whyHtml}
+      ${sourceHtml}
+    </article>`;
+}
+
+function buildNewsArticleJsonLd({ headline, description, image, url, datePublished, sourceOutlet }) {
+  const ld = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline,
+    description,
+    image: image ? [image] : undefined,
+    datePublished,
+    url,
+    publisher: { "@type": "Organization", name: "The Briefing", url: "https://thebriefings.netlify.app" },
+    ...(sourceOutlet ? { isBasedOn: sourceOutlet } : {}),
+  };
+  return `<script type="application/ld+json">${JSON.stringify(ld)}</script>`;
+}
+
+// Injects rendered content into the empty <main id="app"> shell so non-JS
+// crawlers/AI tools see the real article instead of a loading spinner.
+function injectAppContent(html, contentHtml) {
+  return html.replace(
+    /<main id="app">\s*<div class="loading-screen">[\s\S]*?<\/main>/,
+    `<main id="app">${contentHtml}</main>`
+  );
+}
+
 // Convert YYYY-MM-DD to "MONTH DD, YYYY"
 function formatDateStr(dateStr) {
   if (!dateStr || typeof dateStr !== 'string') return "";
@@ -1069,6 +1196,9 @@ async function runSSG() {
     fs.writeFileSync(savedIndexPath, injectBaseHref(rootHtml, '../'));
   }
 
+  const domain = process.env.HOST || "https://thebriefings.netlify.app";
+  const sitemapUrls = [`${domain}/`, `${domain}/briefings/`, `${domain}/flash/`];
+
   const dataDir = path.join(process.cwd(), 'data');
   const allFiles = fs.readdirSync(dataDir);
   const dates = new Set();
@@ -1089,11 +1219,11 @@ async function runSSG() {
   for (const date of dateList) {
     const dataPath = path.join(dataDir, `${date}.json`);
     const briefingExists = fs.existsSync(dataPath);
-    
+
     // Ensure date OG dir
     const dateOgDir = path.join(ogImagesDir, date);
     if (!fs.existsSync(dateOgDir)) fs.mkdirSync(dateOgDir, { recursive: true });
-    
+
     // Also build a /day/YYYY-MM-DD/ route just in case — pure shell copy,
     // only depends on index.html.
     const dayDir = path.join(process.cwd(), 'day', date);
@@ -1102,6 +1232,7 @@ async function runSSG() {
     if (isStale(dayIndexPath, indexMtimeMs)) {
       fs.writeFileSync(dayIndexPath, injectBaseHref(rootHtml, '../../'));
     }
+    sitemapUrls.push(`${domain}/day/${date}/`);
 
     // Build briefings/day/YYYY-MM-DD and flash/day/YYYY-MM-DD — same, shell-only.
     const bDayDir = path.join(process.cwd(), 'briefings', 'day', date);
@@ -1132,6 +1263,7 @@ async function runSSG() {
         const pngPath = path.join(dateOgDir, `${story.id}.png`);
         const storyDir = path.join(process.cwd(), 'story', date, story.id);
         const storyHtmlPath = path.join(storyDir, 'index.html');
+        sitemapUrls.push(`${domain}/story/${date}/${story.id}/`);
 
         if (!isStale(pngPath, briefingMtimeMs) && !isStale(storyHtmlPath, briefingMtimeMs)) {
           idx++;
@@ -1155,12 +1287,12 @@ async function runSSG() {
 
         const ogTitle = (story.headline || story.title || "").replace(/"/g, '&quot;');
         const ogDesc = (story.tldr || story.overview || "").replace(/"/g, '&quot;');
-        const domain = process.env.HOST || "https://thebriefings.netlify.app";
         // Prefer the real hero image for link previews; fall back to the generated illustration card
         const ogImage = (story.heroImage && story.heroImage.startsWith("http"))
           ? story.heroImage
           : `${domain}/og-images/${date}/${story.id}.png`;
 
+        const storyUrl = `${domain}/story/${date}/${story.id}/`;
         let storyHtml = rootHtml;
         storyHtml = storyHtml.replace(/<title>.*?<\/title>/, `<title>${ogTitle}</title>`);
         storyHtml = storyHtml.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${ogTitle}" />`);
@@ -1168,6 +1300,11 @@ async function runSSG() {
         storyHtml = storyHtml.replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${ogDesc}" />`);
         storyHtml = storyHtml.replace(/<meta property="og:image" content=".*?" \/>/, `<meta property="og:image" content="${ogImage}" />`);
         storyHtml = storyHtml.replace(/<meta name="twitter:image" content=".*?" \/>/, `<meta name="twitter:image" content="${ogImage}" />`);
+        storyHtml = storyHtml.replace('</head>', `  <link rel="canonical" href="${storyUrl}" />\n  ${buildNewsArticleJsonLd({
+          headline: story.headline, description: story.tldr || story.overview,
+          image: ogImage, url: storyUrl, datePublished: `${date}T00:00:00+05:30`,
+        })}\n</head>`);
+        storyHtml = injectAppContent(storyHtml, renderStoryArticleSSR(story));
 
         fs.writeFileSync(storyHtmlPath, injectBaseHref(storyHtml, '../../../'));
 
@@ -1195,6 +1332,7 @@ async function runSSG() {
     const pngPath = path.join(flashOgDir, `${story.id}.png`);
     const storyDir = path.join(process.cwd(), 'flash', 'story', story.id);
     const storyHtmlPath = path.join(storyDir, 'index.html');
+    sitemapUrls.push(`${domain}/flash/story/${story.id}/`);
     if (fs.existsSync(pngPath) && fs.existsSync(storyHtmlPath)) return;
     flashRegeneratedCount++;
 
@@ -1216,9 +1354,9 @@ async function runSSG() {
     
     const ogTitle = (story.headline || story.hl || "").replace(/"/g, '&quot;');
     const ogDesc = (story.summary || story.body || "").replace(/"/g, '&quot;');
-    const domain = process.env.HOST || "https://thebriefings.netlify.app"; 
     const ogImage = `${domain}/og-images/flash/${story.id}.png`;
-    
+    const storyUrl = `${domain}/flash/story/${story.id}/`;
+
     let storyHtml = rootHtml;
     storyHtml = storyHtml.replace(/<title>.*?<\/title>/, `<title>${ogTitle}</title>`);
     storyHtml = storyHtml.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${ogTitle}" />`);
@@ -1226,7 +1364,12 @@ async function runSSG() {
     storyHtml = storyHtml.replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${ogDesc}" />`);
     storyHtml = storyHtml.replace(/<meta property="og:image" content=".*?" \/>/, `<meta property="og:image" content="${ogImage}" />`);
     storyHtml = storyHtml.replace(/<meta name="twitter:image" content=".*?" \/>/, `<meta name="twitter:image" content="${ogImage}" />`);
-    
+    storyHtml = storyHtml.replace('</head>', `  <link rel="canonical" href="${storyUrl}" />\n  ${buildNewsArticleJsonLd({
+      headline: story.headline || story.hl, description: story.summary || story.body,
+      image: ogImage, url: storyUrl, datePublished: `${date}T00:00:00+05:30`,
+    })}\n</head>`);
+    storyHtml = injectAppContent(storyHtml, renderFlashCardSSR(story));
+
     fs.writeFileSync(storyHtmlPath, injectBaseHref(storyHtml, '../../../'));
   };
   
@@ -1263,6 +1406,15 @@ async function runSSG() {
   }
   
   console.log(`Flash SSG complete! ${flashRegeneratedCount} regenerated, ${processedFlashIds.size - flashRegeneratedCount} skipped (already up to date).`);
+
+  // Sitemap is cheap to fully regenerate every run — single small file, no
+  // staleness check needed like the per-story pages above.
+  const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapUrls
+    .map((u) => `  <url><loc>${u}</loc></url>`)
+    .join('\n')}\n</urlset>\n`;
+  fs.writeFileSync(path.join(process.cwd(), 'sitemap.xml'), sitemapXml);
+  console.log(`Sitemap written with ${sitemapUrls.length} URLs.`);
+
   console.log('SSG complete!');
 }
 
