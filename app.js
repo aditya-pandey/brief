@@ -9,6 +9,18 @@ const BASE_PATH = (() => {
 })();
 const dayCache = {};
 let indexEntries = [];
+let searchIndexPromise = null;
+
+// Fetches the all-time search index once (built by ssg.js, contains every Briefing/Flash
+// story ever published) and caches the promise so repeated calls don't re-fetch.
+function ensureSearchIndex() {
+  if (!searchIndexPromise) {
+    searchIndexPromise = fetch(`${BASE_PATH ? BASE_PATH : ""}/search-index.json`, { cache: "no-store" })
+      .then(r => r.ok ? r.json() : [])
+      .catch(() => []);
+  }
+  return searchIndexPromise;
+}
 const FEEDBACK_ENDPOINT = ""; // Paste your Formspree, Formspark, or Webhook URL here to receive feedback
 
 /* ── Flash state variables ── */
@@ -4767,6 +4779,7 @@ function initSearch() {
     overlay.classList.add("open");
     setTimeout(() => { if (input) input.focus(); }, 50);
     document.body.style.overflow = "hidden";
+    ensureSearchIndex(); // kick off the fetch now so it's likely ready by the first keystroke
   }
   window.openGlobalSearch = openSearch;
 
@@ -4801,8 +4814,9 @@ function initSearch() {
         return;
       }
       if (empty) empty.style.display = "none";
-      debounceTimer = setTimeout(() => {
-        const results = searchAll(q);
+      debounceTimer = setTimeout(async () => {
+        const index = await ensureSearchIndex();
+        const results = searchAll(q, index);
         trackEvent("search", "Engagement", q);
         renderSearchResults(results, q);
       }, 120);
@@ -4810,53 +4824,36 @@ function initSearch() {
   }
 }
 
-function searchAll(query) {
+// Searches the all-time index (every Briefing/Flash story ever published, built by
+// ssg.js) rather than only whatever happens to currently be in memory — flashStories
+// and dayCache only ever hold whichever single day was most recently viewed, which
+// previously made search silently scoped to "today" instead of the full archive.
+function searchAll(query, index) {
   const q = query.toLowerCase().trim();
   if (!q) return [];
   const results = [];
 
-  // ── Flash stories ──────────────────────────────────────────
-  const allFlash = Array.isArray(flashStories) ? flashStories : [];
-  for (const s of allFlash) {
-    const hl = (s.headline || s.hl || "").toLowerCase();
-    const sum = (s.summary || s.body || "").toLowerCase();
-    const cat = (FLASH_LABELS[s.cat] || s.cat || "").toLowerCase();
-    const why = (s.why_it_matters || "").toLowerCase();
-    const hlScore = hl.includes(q) ? 3 : 0;
-    const sumScore = sum.includes(q) ? 1 : 0;
-    const catScore = cat.includes(q) ? 1 : 0;
-    const whyScore = why.includes(q) ? 1 : 0;
-    const score = hlScore + sumScore + catScore + whyScore;
-    if (score > 0) {
-      results.push({
-        type: "flash",
-        score,
-        id: s.id,
-        cat: s.cat,
-        headline: s.headline || s.hl,
-        meta: `${FLASH_LABELS[s.cat] || s.cat}${s.source ? " · " + s.source : ""}`,
-      });
-    }
-  }
-
-  // ── Briefing deep dives ────────────────────────────────────
-  for (const entry of (indexEntries || [])) {
-    const payload = dayCache[entry.date];
-    if (!payload || !Array.isArray(payload.stories)) continue;
-    for (const s of payload.stories) {
+  for (const s of (index || [])) {
+    if (s.type === "flash") {
       const hl = (s.headline || "").toLowerCase();
-      const tldr = (s.tldr || s.summary || "").toLowerCase();
-      const hlScore = hl.includes(q) ? 3 : 0;
-      const tlScore = tldr.includes(q) ? 1 : 0;
-      const score = hlScore + tlScore;
+      const sum = (s.summary || "").toLowerCase();
+      const cat = (FLASH_LABELS[s.cat] || s.cat || "").toLowerCase();
+      const why = (s.why_it_matters || "").toLowerCase();
+      const score = (hl.includes(q) ? 3 : 0) + (sum.includes(q) ? 1 : 0) + (cat.includes(q) ? 1 : 0) + (why.includes(q) ? 1 : 0);
       if (score > 0) {
         results.push({
-          type: "briefing",
-          score,
-          id: s.id,
-          date: entry.date,
-          headline: s.headline,
-          meta: `Deep Dive · ${entry.date}`,
+          type: "flash", score, id: s.id, cat: s.cat, headline: s.headline,
+          meta: `${FLASH_LABELS[s.cat] || s.cat}${s.source ? " · " + s.source : ""}`,
+        });
+      }
+    } else if (s.type === "briefing") {
+      const hl = (s.headline || "").toLowerCase();
+      const tldr = (s.tldr || "").toLowerCase();
+      const score = (hl.includes(q) ? 3 : 0) + (tldr.includes(q) ? 1 : 0);
+      if (score > 0) {
+        results.push({
+          type: "briefing", score, id: s.id, date: s.date, headline: s.headline,
+          meta: `Deep Dive · ${s.date}`,
         });
       }
     }

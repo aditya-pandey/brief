@@ -1146,8 +1146,8 @@ function generateFlashOgSvg(story, date) {
       <path d="M 0,-17 L 16,-9 L 0,-1 L -16,-9 Z" fill="#1E293B" stroke="#F4EFE6" stroke-width="1.5" />
       <path d="M 0,-23 L 16,-15 L 0,-7 L -16,-15 Z" fill="#1E293B" stroke="#F4EFE6" stroke-width="1.5" />
     </g>
-    <text x="96" y="573" font-family="Fraunces, Georgia, serif" font-size="22" font-weight="800" fill="#1E293B" letter-spacing="0.05em">THE BRIEFING</text>
-    <text x="1136" y="572" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="500" fill="#64748B" text-anchor="end" letter-spacing="0.02em">Know more. Understand deeper.</text>
+    <text x="96" y="573" font-family="Fraunces, Georgia, serif" font-size="22" font-weight="800" fill="#1E293B" letter-spacing="0.05em">THE BRIEFING <tspan fill="#E13C16">| FLASH</tspan></text>
+    <text x="1136" y="572" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="500" fill="#64748B" text-anchor="end" letter-spacing="0.02em">Speed news, decoded.</text>
   </svg>`;
 }
 
@@ -1198,6 +1198,9 @@ async function runSSG() {
 
   const domain = process.env.HOST || "https://thebriefings.netlify.app";
   const sitemapUrls = [`${domain}/`, `${domain}/briefings/`, `${domain}/flash/`];
+  // Compact, all-time search index — built once here instead of having the client
+  // fetch every historical day's JSON to search across the full archive.
+  const searchIndex = [];
 
   const dataDir = path.join(process.cwd(), 'data');
   const allFiles = fs.readdirSync(dataDir);
@@ -1264,6 +1267,10 @@ async function runSSG() {
         const storyDir = path.join(process.cwd(), 'story', date, story.id);
         const storyHtmlPath = path.join(storyDir, 'index.html');
         sitemapUrls.push(`${domain}/story/${date}/${story.id}/`);
+        searchIndex.push({
+          type: 'briefing', id: story.id, date,
+          headline: story.headline, tldr: (story.tldr || story.overview || '').slice(0, 200),
+        });
 
         if (!isStale(pngPath, briefingMtimeMs) && !isStale(storyHtmlPath, briefingMtimeMs)) {
           idx++;
@@ -1324,6 +1331,11 @@ async function runSSG() {
     if (!story || !story.id) return;
     if (processedFlashIds.has(story.id)) return;
     processedFlashIds.add(story.id);
+    searchIndex.push({
+      type: 'flash', id: story.id, cat: story.cat,
+      headline: story.headline || story.hl, summary: (story.summary || story.body || '').slice(0, 200),
+      why_it_matters: story.why_it_matters || '', source: story.source || '',
+    });
 
     // Flash items are immutable once published (no backfill step touches
     // them afterward), so a plain existence check is enough to skip already-
@@ -1414,6 +1426,9 @@ async function runSSG() {
     .join('\n')}\n</urlset>\n`;
   fs.writeFileSync(path.join(process.cwd(), 'sitemap.xml'), sitemapXml);
   console.log(`Sitemap written with ${sitemapUrls.length} URLs.`);
+
+  fs.writeFileSync(path.join(process.cwd(), 'search-index.json'), JSON.stringify(searchIndex));
+  console.log(`Search index written with ${searchIndex.length} entries.`);
 
   console.log('SSG complete!');
 }
