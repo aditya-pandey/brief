@@ -1,4 +1,80 @@
+# Default: allow everything and everyone.
 User-agent: *
+Allow: /
+
+# Explicitly allow known AI crawlers/assistants by name, so nothing
+# relies solely on the wildcard above.
+
+# OpenAI / ChatGPT
+User-agent: GPTBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+
+# Anthropic / Claude
+User-agent: ClaudeBot
+Allow: /
+User-agent: Claude-Web
+Allow: /
+User-agent: anthropic-ai
+Allow: /
+
+# Google / Gemini
+User-agent: Googlebot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: GoogleOther
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+User-agent: Perplexity-User
+Allow: /
+
+# Microsoft / Bing / Copilot
+User-agent: Bingbot
+Allow: /
+User-agent: BingPreview
+Allow: /
+
+# Meta / Llama
+User-agent: Meta-ExternalAgent
+Allow: /
+User-agent: Meta-ExternalFetcher
+Allow: /
+User-agent: FacebookBot
+Allow: /
+
+# Amazon / Alexa
+User-agent: Amazonbot
+Allow: /
+
+# Apple / Siri
+User-agent: Applebot
+Allow: /
+User-agent: Applebot-Extended
+Allow: /
+
+# ByteDance / TikTok
+User-agent: Bytespider
+Allow: /
+
+# Common Crawl (widely used as LLM training data source)
+User-agent: CCBot
+Allow: /
+
+# Other AI/search assistants
+User-agent: cohere-ai
+Allow: /
+User-agent: DuckAssistBot
+Allow: /
+User-agent: Diffbot
+Allow: /
+User-agent: YouBot
 Allow: /
 
 Sitemap: https://thebriefings.netlify.app/sitemap.xml
