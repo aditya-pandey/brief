@@ -54,7 +54,7 @@ export default async (req, context) => {
         const store = getStore({ name: 'subscriptions' });
         const list = await store.list();
         for (const blob of list.blobs) {
-          const item = await store.getJSON(blob.key);
+          const item = await store.get(blob.key, { type: 'json' });
           if (item) subs.push(item);
         }
         blobsOk = true;
@@ -72,31 +72,6 @@ export default async (req, context) => {
           subs = JSON.parse(fs.readFileSync(p, 'utf8'));
         }
       } catch (e) {}
-    } else {
-      // One-time self-heal: an earlier bug wrote some subscriptions to the
-      // ephemeral local data/subscriptions.json fallback instead of Blobs.
-      // Migrate any of those not already in Blobs so they aren't lost.
-      try {
-        const fs = await import('fs');
-        const path = await import('path');
-        const p = path.join(process.cwd(), 'data', 'subscriptions.json');
-        if (fs.existsSync(p)) {
-          const legacySubs = JSON.parse(fs.readFileSync(p, 'utf8'));
-          const knownEndpoints = new Set(subs.map(s => s.endpoint));
-          const store = getStore({ name: 'subscriptions' });
-          for (const legacy of legacySubs) {
-            if (legacy && legacy.endpoint && !knownEndpoints.has(legacy.endpoint)) {
-              const key = btoa(legacy.endpoint).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-              await store.setJSON(key, legacy);
-              subs.push(legacy);
-              knownEndpoints.add(legacy.endpoint);
-              console.log('[PWA Notify function] Migrated legacy local subscription into Blobs:', legacy.endpoint);
-            }
-          }
-        }
-      } catch (e) {
-        console.error('[PWA Notify function] Legacy subscription migration failed:', e.message);
-      }
     }
 
     if (subs.length === 0) {
