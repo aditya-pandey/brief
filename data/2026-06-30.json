@@ -1,9 +1,137 @@
 {
   "date": "2026-06-30",
-  "generated_at": "2026-06-30T12:05:46.767Z",
+  "generated_at": "2026-06-30T12:35:34.552Z",
   "source": "gemini-app",
-  "recap": [],
+  "recap": [
+    {
+      "front": "Front 5",
+      "primary_catalyst": "Accidental route extensions during the 1908 London Olympics due to a royal nursery viewing request and stadium detours.",
+      "core_threat": "A lack of standardized distance across early global marathons leading to athletic inconsistency.",
+      "horizon": "The permanent standardization of the 26.2-mile distance by the International Association of Athletics Federations in 1921."
+    }
+  ],
   "stories": [
+    {
+      "id": "the-universal-distance-for-human-endurance-was-decided",
+      "headline": "The universal distance for human endurance was decided by a British royal nursery",
+      "tldr": "Every year, millions of runners around the world train to complete a race that is exactly twenty-six miles and three hundred and eighty-five yards long. This highly specific, uneven number seems like it must be rooted in ancient Greek history or rigorous physical science. In reality, the distance is a series of accidental adjustments made during the 1908 London Olympics. By the end of this piece, you will understand how a rainy-day request from a royal nursery and a stadium tracking error permanently fixed the global standard for human endurance.",
+      "region": "global",
+      "simple_explanation": "Imagine planning a neighborhood running race and deciding it should start at your front door and end exactly at your local park. That sounds simple enough. But just before the race starts, your neighbor asks if the runners can start in their driveway instead, so their kids can watch from the window. Then, the park manager tells you the main gate is locked, so the runners have to go through a side entrance and run around the playground to reach the picnic tables.\n\nSuddenly, your simple race has grown by a few hundred random yards. If your neighborhood race became so incredibly famous that every city on Earth copied your exact path forever, you would have created the modern marathon. The global distance of twenty-six point two miles is not a perfect mathematical benchmark. It is simply the exact map of a single, chaotic afternoon in England.",
+      "sections": [
+        {
+          "title": "Why wasn't a marathon always the same length?",
+          "question": "Why wasn't a marathon always the same length?",
+          "content": "When the modern Olympic Games were revived in Athens in 1896, organizers wanted a signature event that honored ancient Greece. They created a long-distance footrace based on the myth of Pheidippides, a messenger who supposedly ran from the battlefield of Marathon to Athens to announce a military victory. The distance between those two historic points was roughly twenty-five miles.\n\nFor the first few Olympic Games, the marathon distance was completely flexible. The 1896 race in Athens was about twenty-five miles long. Four years later, the 1900 Paris Olympics featured a twenty-five point five mile course that wound through the streets of France. The 1904 St. Louis Olympics used a brutal, dusty twenty-four point eight mile path. Organizers simply picked two local landmarks that were roughly a day's run apart and drew a line between them. Nobody felt any need to standardize the distance because runners were only competing against the other people in that specific race, not against an abstract world record.",
+          "answer": "When the modern Olympic Games were revived in Athens in 1896, organizers wanted a signature event that honored ancient Greece. They created a long-distance footrace based on the myth of Pheidippides, a messenger who supposedly ran from the battlefield of Marathon to Athens to announce a military victory. The distance between those two historic points was roughly twenty-five miles.\n\nFor the first few Olympic Games, the marathon distance was completely flexible. The 1896 race in Athens was about twenty-five miles long. Four years later, the 1900 Paris Olympics featured a twenty-five point five mile course that wound through the streets of France. The 1904 St. Louis Olympics used a brutal, dusty twenty-four point eight mile path. Organizers simply picked two local landmarks that were roughly a day's run apart and drew a line between them. Nobody felt any need to standardize the distance because runners were only competing against the other people in that specific race, not against an abstract world record.",
+          "table": null
+        },
+        {
+          "title": "How did the British royal nursery change the race?",
+          "question": "How did the British royal nursery change the race?",
+          "content": "Everything changed when London was chosen to host the 1908 Olympic Games. The British Olympic Association wanted a grand, prestigious route that would showcase the nation's landmarks. They planned a course that would begin outside London at Windsor Castle and finish inside the newly constructed White City Stadium. Initial measurements placed this route at an even twenty-six miles.\n\nThe first major adjustment came directly from the British royal family. Princess Mary requested that the starting line be moved from the public gates of Windsor Castle to the private East Lawn. She wanted the race to begin directly beneath the windows of the Royal Nursery so her young children could watch the athletes line up without being swamped by the public crowds. King Edward VII granted permission, and this seemingly minor shift pushed the starting line back into the castle grounds, lengthening the entire course by a few hundred yards before the runners even took their first step.",
+          "answer": "Everything changed when London was chosen to host the 1908 Olympic Games. The British Olympic Association wanted a grand, prestigious route that would showcase the nation's landmarks. They planned a course that would begin outside London at Windsor Castle and finish inside the newly constructed White City Stadium. Initial measurements placed this route at an even twenty-six miles.\n\nThe first major adjustment came directly from the British royal family. Princess Mary requested that the starting line be moved from the public gates of Windsor Castle to the private East Lawn. She wanted the race to begin directly beneath the windows of the Royal Nursery so her young children could watch the athletes line up without being swamped by the public crowds. King Edward VII granted permission, and this seemingly minor shift pushed the starting line back into the castle grounds, lengthening the entire course by a few hundred yards before the runners even took their first step.",
+          "table": null
+        },
+        {
+          "title": "Why did the final yards require an extra lap?",
+          "question": "Why did the final yards require an extra lap?",
+          "content": "The adjustments at Windsor Castle were only half of the problem. A second logistical headache was brewing at the finish line inside White City Stadium. The original plan was for the runners to enter the stadium through a main gate and head straight to the finish line. However, the stadium was a complex multi-sport venue that featured a large swimming pool and an infield cycling track.\n\nTo keep the crowds organized and ensure the safety of the athletes, stadium officials realized the runners could not use the standard entrance. They redirected the approach path to enter through a separate gate at the side of the stadium. Once inside, the runners could no longer just sprint across the finish line. To position the final moments directly in front of the Royal Box where Queen Alexandra was sitting, the athletes had to run a partial lap around the running track. This specific routing detour added the final three hundred and eighty-five yards to the race.",
+          "answer": "The adjustments at Windsor Castle were only half of the problem. A second logistical headache was brewing at the finish line inside White City Stadium. The original plan was for the runners to enter the stadium through a main gate and head straight to the finish line. However, the stadium was a complex multi-sport venue that featured a large swimming pool and an infield cycling track.\n\nTo keep the crowds organized and ensure the safety of the athletes, stadium officials realized the runners could not use the standard entrance. They redirected the approach path to enter through a separate gate at the side of the stadium. Once inside, the runners could no longer just sprint across the finish line. To position the final moments directly in front of the Royal Box where Queen Alexandra was sitting, the athletes had to run a partial lap around the running track. This specific routing detour added the final three hundred and eighty-five yards to the race.",
+          "table": null
+        },
+        {
+          "title": "What caused the finish line collapse to go viral?",
+          "question": "What caused the finish line collapse to go viral?",
+          "content": "If the 1908 race had been a boring event, organizers likely would have returned to an even twenty-five miles for the next Olympics. Instead, the race delivered the most dramatic finish in sporting history. An Italian confectionery maker named Dorando Pietri entered the stadium first, but he was suffering from extreme heat stroke and exhaustion.\n\nPietri turned the wrong way on the track, collapsed five times, and had to be massaged by doctors. Fearing he would die on the track just yards from victory, well-meaning officials lifted him up and pushed him across the finish line. Because of this outside assistance, American runner Johnny Hayes was awarded the gold medal. The public drama of Pietri's collapse captured the global imagination. Famous author Arthur Conan Doyle wrote a passionate newspaper article about the race, and Queen Alexandra even presented Pietri with a special silver cup to honor his courage.",
+          "answer": "If the 1908 race had been a boring event, organizers likely would have returned to an even twenty-five miles for the next Olympics. Instead, the race delivered the most dramatic finish in sporting history. An Italian confectionery maker named Dorando Pietri entered the stadium first, but he was suffering from extreme heat stroke and exhaustion.\n\nPietri turned the wrong way on the track, collapsed five times, and had to be massaged by doctors. Fearing he would die on the track just yards from victory, well-meaning officials lifted him up and pushed him across the finish line. Because of this outside assistance, American runner Johnny Hayes was awarded the gold medal. The public drama of Pietri's collapse captured the global imagination. Famous author Arthur Conan Doyle wrote a passionate newspaper article about the race, and Queen Alexandra even presented Pietri with a special silver cup to honor his courage.",
+          "table": null
+        },
+        {
+          "title": "How did a royal accident become international law?",
+          "question": "How did a royal accident become international law?",
+          "content": "The sheer drama of the London finish triggered an immediate global obsession called marathon mania. Promoters realized they could make massive amounts of money by organizing professional rematches between Dorando Pietri and Johnny Hayes. Madison Square Garden in New York was packed to capacity for indoor races where the track was looped hundreds of times.\n\nBecause fans wanted to see an exact replay of the dramatic London race, promoters insisted that every single rematch be run at the exact same distance of twenty-six miles and three hundred and eighty-five yards. For over a decade, cities around the world hosted their own marathons using a mix of traditional twenty-five mile routes and the famous London distance. Finally, in 1921, the International Association of Athletics Federations decided to settle the debate forever. Instead of picking a round mathematical number, they officially ratified the 1908 London distance as the mandatory global standard, turning a series of royal viewing requests into permanent international sports law.",
+          "answer": "The sheer drama of the London finish triggered an immediate global obsession called marathon mania. Promoters realized they could make massive amounts of money by organizing professional rematches between Dorando Pietri and Johnny Hayes. Madison Square Garden in New York was packed to capacity for indoor races where the track was looped hundreds of times.\n\nBecause fans wanted to see an exact replay of the dramatic London race, promoters insisted that every single rematch be run at the exact same distance of twenty-six miles and three hundred and eighty-five yards. For over a decade, cities around the world hosted their own marathons using a mix of traditional twenty-five mile routes and the famous London distance. Finally, in 1921, the International Association of Athletics Federations decided to settle the debate forever. Instead of picking a round mathematical number, they officially ratified the 1908 London distance as the mandatory global standard, turning a series of royal viewing requests into permanent international sports law.",
+          "table": {
+            "headers": [
+              "Olympic Games",
+              "Year",
+              "Approximate Distance",
+              "The Core Route Logic"
+            ],
+            "rows": [
+              [
+                "Athens",
+                "1896",
+                "24.8 miles (40 km)",
+                "Bridge of Marathon to the historic Panathenaic Stadium"
+              ],
+              [
+                "Paris",
+                "1900",
+                "25.1 miles (40.5 km)",
+                "A winding loop through the crowded streets of Paris"
+              ],
+              [
+                "St. Louis",
+                "1904",
+                "24.8 miles (40 km)",
+                "A brutal, dusty dirt road course through Missouri"
+              ],
+              [
+                "London",
+                "1908",
+                "26.2 miles (42.195 km)",
+                "Windsor Castle nursery window to the stadium Royal Box"
+              ],
+              [
+                "Global Standard",
+                "1921 to Present",
+                "26.2 miles (42.195 km)",
+                "Formally frozen by international law to match the 1908 race"
+              ]
+            ]
+          }
+        }
+      ],
+      "conclusion": "What began as a collection of royal viewing adjustments and stadium detours ultimately redefined athletic endurance for generations to come. By codifying the unique, accidental path of the 1908 London race, international sports authorities permanently transformed a series of logistical compromises into the definitive global benchmark for long-distance running.",
+      "sources": [
+        {
+          "outlet": "University of Westminster Archives",
+          "name": "University of Westminster Archives",
+          "desk": "",
+          "lean": "center",
+          "region": "global",
+          "title": "Detailed records of the 1908 London Olympic route planning and course re-measurements",
+          "description": "Detailed records of the 1908 London Olympic route planning and course re-measurements",
+          "url": "https://recordsandarchives.westminster.ac.uk/archive-blog/polymarathon/"
+        },
+        {
+          "outlet": "World Athletics",
+          "name": "World Athletics",
+          "desk": "",
+          "lean": "center",
+          "region": "global",
+          "title": "Historical milestones of the marathon distance and the formal 1921 ratification details",
+          "description": "Historical milestones of the marathon distance and the formal 1921 ratification details",
+          "url": "https://aims-worldrunning.org/articles/162-worlds-apart.html"
+        },
+        {
+          "outlet": "The Guardian",
+          "name": "The Guardian",
+          "desk": "",
+          "lean": "left",
+          "region": "global",
+          "title": "Analysis of historical corrections regarding the exact 1908 course layouts and royal family involvement",
+          "description": "Analysis of historical corrections regarding the exact 1908 course layouts and royal family involvement",
+          "url": "https://www.theguardian.com/article/2024/jul/23/mystery-solved-after-116-years-how-the-king-helped-prove-marathon-really-is-26m-385yds"
+        }
+      ],
+      "title": "The universal distance for human endurance was decided by a British royal nursery",
+      "subtitle": "",
+      "heroImage": "https://res.cloudinary.com/kavval/image/upload/c_lfill,f_auto,w_1600,h_550,g_auto,q_auto:low/pages/articles/la-distance-du-marathon/y38fxvoorxayhpfwidzz",
+      "overview": "Every year, millions of runners around the world train to complete a race that is exactly twenty-six miles and three hundred and eighty-five yards long. This highly specific, uneven number seems like it must be rooted in ancient Greek history or rigorous physical science. In reality, the distance is a series of accidental adjustments made during the 1908 London Olympics. By the end of this piece, you will understand how a rainy-day request from a royal nursery and a stadium tracking error permanently fixed the global standard for human endurance.",
+      "inPlainEnglish": "Imagine planning a neighborhood running race and deciding it should start at your front door and end exactly at your local park. That sounds simple enough. But just before the race starts, your neighbor asks if the runners can start in their driveway instead, so their kids can watch from the window. Then, the park manager tells you the main gate is locked, so the runners have to go through a side entrance and run around the playground to reach the picnic tables.\n\nSuddenly, your simple race has grown by a few hundred random yards. If your neighborhood race became so incredibly famous that every city on Earth copied your exact path forever, you would have created the modern marathon. The global distance of twenty-six point two miles is not a perfect mathematical benchmark. It is simply the exact map of a single, chaotic afternoon in England."
+    },
     {
       "id": "the-doha-paradox-why-washington-and-tehran-are-talking-while-still-shooting",
       "headline": "The Doha Paradox: Why Washington and Tehran are Talking While Still Shooting",
