@@ -1,28 +1,192 @@
 {
   "date": "2026-07-01",
-  "generated_at": "2026-07-01T03:16:24.872Z",
+  "generated_at": "2026-07-01T03:21:58.888Z",
   "source": "gemini-app",
   "recap": [
     {
-      "front": "Front 1",
-      "primary_catalyst": "Approval of the Delhi EV Policy 2026",
-      "core_threat": "Severe urban power grid strain and massive two-wheeler manufacturing disruption",
-      "horizon": "April 2028 petrol and CNG registration ban"
-    },
-    {
       "front": "Front 2",
-      "primary_catalyst": "Unprecedented late-June 2026 European heatwave",
-      "core_threat": "Spiking excess mortality and widespread structural grid failure in heat-trapping cities",
-      "horizon": "Immediate summer seasonal threat"
+      "primary_catalyst": "Clearance of the 1.25 lakh crore rupees fiscal allocation for India Semiconductor Mission 2.0",
+      "core_threat": "Severe vulnerability to foreign supply chain disruptions for foundational electronic-grade raw materials",
+      "horizon": "The next decade of industrial ecosystem development"
     },
     {
       "front": "Front 3",
-      "primary_catalyst": "World Bank Global Economic Prospects report growth downgrade",
-      "core_threat": "Sovereign defaults driven by undisclosed public liabilities and high interest rates",
-      "horizon": "Remainder of fiscal year 2026"
+      "primary_catalyst": "Enforcement of the Reserve Bank of India's enhanced mis-selling framework",
+      "core_threat": "Existential operational crises for mid-sized banks and a sharp decline in cross-selling fee income",
+      "horizon": "Immediate enforcement with strict 90-day remediation windows"
+    },
+    {
+      "front": "Front 4",
+      "primary_catalyst": "Detection of 1,139 unauthorized aircraft and neutralization of over 300 drones at the 2026 FIFA World Cup",
+      "core_threat": "Absolute vulnerability of unprotected civilian spaces to low-altitude third-dimensional vectors",
+      "horizon": "The month-long tournament and future urban security planning cycles"
     }
   ],
   "stories": [
+    {
+      "id": "the-sky-above-the-2026-world-cup-becomes-a-counter-drone-battleground",
+      "headline": "The sky above the 2026 World Cup becomes a counter-drone battleground",
+      "tldr": "During the opening weeks of the 2026 FIFA World Cup, the Federal Bureau of Investigation revealed that its specialized counter-drone units have detected 1,139 unauthorized aircraft operating near restricted tournament airspace. Security teams have actively neutralized over 300 drones using advanced electronic warfare systems to protect packed stadiums across North America. The scale of the operations marks a fundamental shift in civilian security, proving that low-altitude drone saturation has become the primary threat to modern mass gatherings.",
+      "region": "global",
+      "simple_explanation": "Imagine a packed sports stadium surrounded not just by physical concrete gates, but by an invisible, high-tech dome extending miles into the sky. For decades, police focused entirely on checking bags and monitoring turnstiles on the ground.\n\nToday, the explosion of cheap, powerful commercial drones means that anyone with a remote control can fly a camera or a dangerous package directly over the field. To counter this, federal agents are now fighting an invisible electronic war above the stadiums, using advanced jamming gear to secretly hijack and ground rogue drones before the fans inside even realize they are there.",
+      "sections": [
+        {
+          "title": "What triggered this unprecedented airspace crackdown?",
+          "question": "What triggered this unprecedented airspace crackdown?",
+          "content": "The massive deployment of federal counter-drone assets stems directly from the rapid proliferation of high-performance, inexpensive consumer unmanned aircraft systems. Modern commercial drones can easily carry heavy payloads, travel miles from their operators, and stream high-definition footage without relying on a direct line of sight. This technological leap has turned a tool once reserved for hobbyists into a potent instrument for intellectual property theft, commercial espionage, and potential asymmetric attacks.\n\nDuring major global sporting events, the presence of unauthorized drones poses immediate physical risks. A heavy multi-rotor drone losing power or colliding with stadium infrastructure can drop directly into crowded grandstands, causing severe injuries. Furthermore, broadcasters paying billions of dollars for exclusive media rights have placed intense pressure on federal authorities to eliminate rogue operators attempting to pirate live aerial footage of the matches.",
+          "answer": "The massive deployment of federal counter-drone assets stems directly from the rapid proliferation of high-performance, inexpensive consumer unmanned aircraft systems. Modern commercial drones can easily carry heavy payloads, travel miles from their operators, and stream high-definition footage without relying on a direct line of sight. This technological leap has turned a tool once reserved for hobbyists into a potent instrument for intellectual property theft, commercial espionage, and potential asymmetric attacks.\n\nDuring major global sporting events, the presence of unauthorized drones poses immediate physical risks. A heavy multi-rotor drone losing power or colliding with stadium infrastructure can drop directly into crowded grandstands, causing severe injuries. Furthermore, broadcasters paying billions of dollars for exclusive media rights have placed intense pressure on federal authorities to eliminate rogue operators attempting to pirate live aerial footage of the matches.",
+          "table": null
+        },
+        {
+          "title": "How does the FBI safely ground rogue drones?",
+          "question": "How does the FBI safely ground rogue drones?",
+          "content": "Neutralizing an unauthorized drone inside a dense, high-frequency urban environment requires highly precise electronic intervention rather than physical destruction. Shooting down an aircraft with kinetic projectiles or net-guns over a crowd of 80,000 fans is fundamentally unviable, as the falling debris creates the exact public safety hazard security teams are trying to avoid. Instead, the FBI counter-UAS teams rely entirely on directed energy and radio-frequency manipulation.\n\nWhen a rogue drone crosses into a temporary flight restriction zone, specialized tracking systems immediately analyze its control frequencies. Security teams then deploy localized electronic jamming to sever the link between the pilot's remote control and the aircraft. By overriding the drone's internal command systems, federal operators can trick the vehicle into executing an automatic, vertical landing or force it to return directly to its original launch point, allowing ground units to quickly apprehend the operator.",
+          "answer": "Neutralizing an unauthorized drone inside a dense, high-frequency urban environment requires highly precise electronic intervention rather than physical destruction. Shooting down an aircraft with kinetic projectiles or net-guns over a crowd of 80,000 fans is fundamentally unviable, as the falling debris creates the exact public safety hazard security teams are trying to avoid. Instead, the FBI counter-UAS teams rely entirely on directed energy and radio-frequency manipulation.\n\nWhen a rogue drone crosses into a temporary flight restriction zone, specialized tracking systems immediately analyze its control frequencies. Security teams then deploy localized electronic jamming to sever the link between the pilot's remote control and the aircraft. By overriding the drone's internal command systems, federal operators can trick the vehicle into executing an automatic, vertical landing or force it to return directly to its original launch point, allowing ground units to quickly apprehend the operator.",
+          "table": null
+        },
+        {
+          "title": "Where does federal authority stop over local skies?",
+          "question": "Where does federal authority stop over local skies?",
+          "content": "The intensive enforcement mechanism deployed across World Cup venues tests the delicate legal boundaries of civilian airspace sovereignty. Under standard United States law, the Federal Aviation Administration exercises absolute jurisdiction over all domestic airspace, meaning that even the air directly above a private stadium is legally considered public territory. Local police departments are strictly forbidden from jamming or seizing aircraft, as doing so violates federal wiretapping and computer sabotage laws.\n\nTo bypass these local restrictions, the federal government has utilized specialized post-9/11 national security statutes to grant the FBI and the Department of Homeland Security exclusive authority to deploy military-grade electronic warfare assets on domestic soil. This centralized arrangement creates significant friction with state and municipal law enforcement, who often find themselves completely locked out of low-altitude airspace monitoring despite being the first responders on the ground.",
+          "answer": "The intensive enforcement mechanism deployed across World Cup venues tests the delicate legal boundaries of civilian airspace sovereignty. Under standard United States law, the Federal Aviation Administration exercises absolute jurisdiction over all domestic airspace, meaning that even the air directly above a private stadium is legally considered public territory. Local police departments are strictly forbidden from jamming or seizing aircraft, as doing so violates federal wiretapping and computer sabotage laws.\n\nTo bypass these local restrictions, the federal government has utilized specialized post-9/11 national security statutes to grant the FBI and the Department of Homeland Security exclusive authority to deploy military-grade electronic warfare assets on domestic soil. This centralized arrangement creates significant friction with state and municipal law enforcement, who often find themselves completely locked out of low-altitude airspace monitoring despite being the first responders on the ground.",
+          "table": null
+        },
+        {
+          "title": "Why did this surpass Olympic security scales?",
+          "question": "Why did this surpass Olympic security scales?",
+          "content": "The electronic warfare footprint established for the 2026 World Cup represents the largest domestic counter-drone operation in North American history, comfortably eclipsing the security measures deployed for recent Olympic Games. This unprecedented scale is driven by the geographic fragmentation of the tournament. Unlike an Olympic Games, which typically concentrates its events within a single host city, the World Cup is spread across 16 completely separate metropolitan areas spanning the United States, Canada, and Mexico.\n\nThis massive geographic dispersion prevents the centralization of security assets. The FBI has been forced to establish separate, fully autonomous counter-drone protection teams at each individual venue, including AT&T Stadium in Texas, which is hosting nine separate matches. The logistical burden of maintaining 16 simultaneous, top-tier electronic exclusion zones for an entire month has strained federal technology reserves to their absolute limit.",
+          "answer": "The electronic warfare footprint established for the 2026 World Cup represents the largest domestic counter-drone operation in North American history, comfortably eclipsing the security measures deployed for recent Olympic Games. This unprecedented scale is driven by the geographic fragmentation of the tournament. Unlike an Olympic Games, which typically concentrates its events within a single host city, the World Cup is spread across 16 completely separate metropolitan areas spanning the United States, Canada, and Mexico.\n\nThis massive geographic dispersion prevents the centralization of security assets. The FBI has been forced to establish separate, fully autonomous counter-drone protection teams at each individual venue, including AT&T Stadium in Texas, which is hosting nine separate matches. The logistical burden of maintaining 16 simultaneous, top-tier electronic exclusion zones for an entire month has strained federal technology reserves to their absolute limit.",
+          "table": null
+        },
+        {
+          "title": "What future public safety crisis does this signal?",
+          "question": "What future public safety crisis does this signal?",
+          "content": "The tactical realities exposed above the World Cup stadiums demonstrate that the traditional architecture of public security is fundamentally obsolete. For generations, protecting a major event was an exclusively two-dimensional challenge focused on securing perimeters, scanning tickets, and controlling crowds at street level. The detection of over a thousand rogue drones in a matter of weeks proves that the modern threat vector has permanently shifted to the third dimension.\n\nThe more convincing reading of this trend is that civilian infrastructure is completely unprepared for this shift. While billion-dollar sporting events can command the exclusive attention of federal electronic warfare units, everyday targets like open-air markets, critical electrical substations, and local political rallies possess zero counter-drone protection. As drone technology continues to evolve faster than local laws can adapt, the vulnerability of unprotected civilian spaces will become the defining challenge for urban security planners.",
+          "answer": "The tactical realities exposed above the World Cup stadiums demonstrate that the traditional architecture of public security is fundamentally obsolete. For generations, protecting a major event was an exclusively two-dimensional challenge focused on securing perimeters, scanning tickets, and controlling crowds at street level. The detection of over a thousand rogue drones in a matter of weeks proves that the modern threat vector has permanently shifted to the third dimension.\n\nThe more convincing reading of this trend is that civilian infrastructure is completely unprepared for this shift. While billion-dollar sporting events can command the exclusive attention of federal electronic warfare units, everyday targets like open-air markets, critical electrical substations, and local political rallies possess zero counter-drone protection. As drone technology continues to evolve faster than local laws can adapt, the vulnerability of unprotected civilian spaces will become the defining challenge for urban security planners.",
+          "table": null
+        }
+      ],
+      "conclusion": "The massive scale of drone interceptions over tournament stadiums underscores a structural shift in civilian security dynamics. As low-altitude airspace threats outpace current municipal defenses, protecting everyday civilian infrastructure will become the defining hurdle for urban planning.",
+      "sources": [
+        {
+          "outlet": "Federal Bureau of Investigation",
+          "name": "Federal Bureau of Investigation",
+          "desk": "Dallas Field Office",
+          "lean": "center",
+          "region": "global",
+          "title": "warning mandates, drone operator penalties, and counter-UAS team deployment details",
+          "description": "warning mandates, drone operator penalties, and counter-UAS team deployment details",
+          "url": "https://www.fbi.gov/contact-us/field-offices/dallas/news/fbi-dallas-warns-drone-operators-of-temporary-flight-restrictions-during-fifa-world-cup-2026"
+        },
+        {
+          "outlet": "Department of Justice",
+          "name": "Department of Justice",
+          "desk": "Northern District of Texas",
+          "lean": "center",
+          "region": "global",
+          "title": "federal prosecution guidelines and temporary flight restriction boundaries",
+          "description": "federal prosecution guidelines and temporary flight restriction boundaries",
+          "url": "https://www.justice.gov/usao-ndtx/pr/us-attorneys-office-and-fbi-issue-warning-over-use-drones-during-2026-fifa-world-cup"
+        },
+        {
+          "outlet": "NDTV World News",
+          "name": "NDTV World News",
+          "desk": "",
+          "lean": "center",
+          "region": "india",
+          "title": "Global drone intercept metrics and comparative historical security scales",
+          "description": "Global drone intercept metrics and comparative historical security scales",
+          "url": "https://www.ndtv.com/world-news"
+        }
+      ],
+      "title": "The sky above the 2026 World Cup becomes a counter-drone battleground",
+      "subtitle": "",
+      "heroImage": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5lC97o6ELHBIj5x2suOULqyueLytUAFi6ApuK7lueDgniillqmTOUAxM&s=10",
+      "overview": "During the opening weeks of the 2026 FIFA World Cup, the Federal Bureau of Investigation revealed that its specialized counter-drone units have detected 1,139 unauthorized aircraft operating near restricted tournament airspace. Security teams have actively neutralized over 300 drones using advanced electronic warfare systems to protect packed stadiums across North America. The scale of the operations marks a fundamental shift in civilian security, proving that low-altitude drone saturation has become the primary threat to modern mass gatherings.",
+      "inPlainEnglish": "Imagine a packed sports stadium surrounded not just by physical concrete gates, but by an invisible, high-tech dome extending miles into the sky. For decades, police focused entirely on checking bags and monitoring turnstiles on the ground.\n\nToday, the explosion of cheap, powerful commercial drones means that anyone with a remote control can fly a camera or a dangerous package directly over the field. To counter this, federal agents are now fighting an invisible electronic war above the stadiums, using advanced jamming gear to secretly hijack and ground rogue drones before the fans inside even realize they are there."
+    },
+    {
+      "id": "india-unlocks-a-massive-trillion-rupee-war-chest-for-chip-supremacy",
+      "headline": "India unlocks a massive trillion-rupee war chest for chip supremacy",
+      "tldr": "The Finance Ministry's Expenditure Finance Committee has formally cleared a 1.25 lakh crore rupees fiscal allocation for India Semiconductor Mission 2.0. This second phase represents a massive expansion from the initial 76,000 crore rupees package, shifting capital away from a pure focus on mega-foundries toward building an end-to-end supply chain. By prioritizing domestic chip design startups and processing infrastructure, the state aims to convert its raw engineering talent into sovereign intellectual property.",
+      "region": "india",
+      "simple_explanation": "Think of the global semiconductor industry like an incredibly complex, high-stakes cooking competition. In the first round, India spent billions of dollars just trying to build the physical, state-of-the-art kitchens, known as fabrication foundries.\n\nNow, with Phase 2.0, the government realizes that owning a kitchen matters very little if you do not own the secret recipes or control the supply of rare ingredients. This new funding is designed to sponsor the local chefs inventing the recipes, while securing the domestic supply lines for the specialized chemicals, gases, and minerals required to actually cook the chips.",
+      "sections": [
+        {
+          "title": "Why did the budget expand so massively?",
+          "question": "Why did the budget expand so massively?",
+          "content": "The expansion of the budget to 1.25 lakh crore rupees reflects a calculated realization that the initial fiscal pool was mathematically insufficient to compete globally. Building a single modern logic foundry can easily consume over 10 billion dollars in upfront capital expenditure. By raising the stakes to roughly 15 billion dollars for the second phase, New Delhi is attempting to achieve a critical fiscal mass that commands international corporate attention.\n\nThe previous allocation under Phase 1.0 successfully anchored 12 manufacturing projects, including major facilities like the Micron Technology packaging plant in Sanand, Gujarat. However, those early wins demonstrated that high-tech manufacturing cannot survive in a geographic vacuum. The increased capital pool is an admission that the state must underwrite the secondary and tertiary layers of the industry if it wants the primary fabrication plants to remain commercially viable over the next decade.",
+          "answer": "The expansion of the budget to 1.25 lakh crore rupees reflects a calculated realization that the initial fiscal pool was mathematically insufficient to compete globally. Building a single modern logic foundry can easily consume over 10 billion dollars in upfront capital expenditure. By raising the stakes to roughly 15 billion dollars for the second phase, New Delhi is attempting to achieve a critical fiscal mass that commands international corporate attention.\n\nThe previous allocation under Phase 1.0 successfully anchored 12 manufacturing projects, including major facilities like the Micron Technology packaging plant in Sanand, Gujarat. However, those early wins demonstrated that high-tech manufacturing cannot survive in a geographic vacuum. The increased capital pool is an admission that the state must underwrite the secondary and tertiary layers of the industry if it wants the primary fabrication plants to remain commercially viable over the next decade.",
+          "table": null
+        },
+        {
+          "title": "What makes Phase 2.0 structurally different?",
+          "question": "What makes Phase 2.0 structurally different?",
+          "content": "The architectural difference between the two phases lies in a pivot from manufacturing-led design to design-led manufacturing. Phase 1.0 acted as a brute-force infrastructure push, focusing almost exclusively on attracting massive capital investments for physical assembly, testing, and packaging plants. Phase 2.0 targets the upstream segments of the value chain, specifically prioritizing indigenous chip equipment, specialized materials, and homegrown patents.\n\nThis structural evolution is designed to insulate the Indian market from external geopolitical shocks. By shifting focus toward domestic equipment manufacturing and chemical processing, the state is attempting to build an entire industrial ecosystem rather than a collection of isolated assembly lines. The goal is to move the country beyond simple contract manufacturing and establish true technological sovereignty over the entire production cycle.",
+          "answer": "The architectural difference between the two phases lies in a pivot from manufacturing-led design to design-led manufacturing. Phase 1.0 acted as a brute-force infrastructure push, focusing almost exclusively on attracting massive capital investments for physical assembly, testing, and packaging plants. Phase 2.0 targets the upstream segments of the value chain, specifically prioritizing indigenous chip equipment, specialized materials, and homegrown patents.\n\nThis structural evolution is designed to insulate the Indian market from external geopolitical shocks. By shifting focus toward domestic equipment manufacturing and chemical processing, the state is attempting to build an entire industrial ecosystem rather than a collection of isolated assembly lines. The goal is to move the country beyond simple contract manufacturing and establish true technological sovereignty over the entire production cycle.",
+          "table": null
+        },
+        {
+          "title": "Why target design startups over massive fabs?",
+          "question": "Why target design startups over massive fabs?",
+          "content": "The strategic emphasis on design startups leverages India's existing engineering base to capture higher-margin segments of the global market. While building physical foundries is an incredibly capital-intensive process with thin margins, chip design relies entirely on human capital and generates highly lucrative intellectual property. Indian engineers already perform roughly 20 to 30 percent of global chip design work, but they historically do so as back-office employees for foreign multinational corporations.\n\nThe Design Linked Incentive scheme under Phase 2.0 aims to change this dynamic by expanding its support to at least 100 domestic product companies. Navin Bishnoi, chairman of the India Electronics and Semiconductor Association, noted that the initial design kitty was too restrictive, leaving early-stage firms without a financial safety bracket to complete expensive chip prototypes. By offering larger direct subsidies for prototype creation and testing tools, the government is intentionally funding local firms so they can retain ownership of their creations rather than exporting their innovations overseas.",
+          "answer": "The strategic emphasis on design startups leverages India's existing engineering base to capture higher-margin segments of the global market. While building physical foundries is an incredibly capital-intensive process with thin margins, chip design relies entirely on human capital and generates highly lucrative intellectual property. Indian engineers already perform roughly 20 to 30 percent of global chip design work, but they historically do so as back-office employees for foreign multinational corporations.\n\nThe Design Linked Incentive scheme under Phase 2.0 aims to change this dynamic by expanding its support to at least 100 domestic product companies. Navin Bishnoi, chairman of the India Electronics and Semiconductor Association, noted that the initial design kitty was too restrictive, leaving early-stage firms without a financial safety bracket to complete expensive chip prototypes. By offering larger direct subsidies for prototype creation and testing tools, the government is intentionally funding local firms so they can retain ownership of their creations rather than exporting their innovations overseas.",
+          "table": null
+        },
+        {
+          "title": "What raw material bottlenecks remain unsolved?",
+          "question": "What raw material bottlenecks remain unsolved?",
+          "content": "Despite the immense financial scale of the new mission, India remains completely dependent on foreign supply chains for the foundational elements of chip production. Manufacturing semiconductors requires an unremitting supply of ultra-high-purity gases, specialized industrial chemicals, and rare earth minerals. Currently, the local chemical and mining industries lack the refining capabilities required to meet the stringent electronic-grade standards demanded by international foundries.\n\nThe more convincing reading of the current policy framework is that it underemphasizes this raw material vulnerability. If a diplomatic crisis or maritime blockade cuts off the import of specialized gases from East Asia, local fabrication plants will grind to an immediate halt regardless of how many trillions of rupees sit in the state treasury. Resolving this bottleneck will require decades of deep industrial restructuring, a reality that cannot be bypassed by short-term fiscal incentives alone.",
+          "answer": "Despite the immense financial scale of the new mission, India remains completely dependent on foreign supply chains for the foundational elements of chip production. Manufacturing semiconductors requires an unremitting supply of ultra-high-purity gases, specialized industrial chemicals, and rare earth minerals. Currently, the local chemical and mining industries lack the refining capabilities required to meet the stringent electronic-grade standards demanded by international foundries.\n\nThe more convincing reading of the current policy framework is that it underemphasizes this raw material vulnerability. If a diplomatic crisis or maritime blockade cuts off the import of specialized gases from East Asia, local fabrication plants will grind to an immediate halt regardless of how many trillions of rupees sit in the state treasury. Resolving this bottleneck will require decades of deep industrial restructuring, a reality that cannot be bypassed by short-term fiscal incentives alone.",
+          "table": null
+        },
+        {
+          "title": "Can India truly challenge global chip giants?",
+          "question": "Can India truly challenge global chip giants?",
+          "content": "The ambition to transform the country into a global semiconductor hub faces deep historical headwinds from established ecosystems in Taiwan, South Korea, and the United States. These dominant hubs possess decades of compounding institutional knowledge, tightly integrated supplier networks, and highly specialized labor pools that cannot be replicated quickly. India's current progress, while rapid, consists largely of legacy nodes and back-end assembly rather than the cutting-edge sub-3-nanometer processing that powers modern artificial intelligence.\n\nHowever, viewing this as a binary race for absolute dominance misses the true geopolitical objective. The state is not trying to replace Taiwan. It is positioning itself as the premier alternative destination for global corporations seeking to diversify away from East Asian geopolitical flashpoints. By building a reliable, state-subsidized ecosystem, the country can successfully secure a vital slice of the global supply chain, achieving resilience rather than complete dominance.",
+          "answer": "The ambition to transform the country into a global semiconductor hub faces deep historical headwinds from established ecosystems in Taiwan, South Korea, and the United States. These dominant hubs possess decades of compounding institutional knowledge, tightly integrated supplier networks, and highly specialized labor pools that cannot be replicated quickly. India's current progress, while rapid, consists largely of legacy nodes and back-end assembly rather than the cutting-edge sub-3-nanometer processing that powers modern artificial intelligence.\n\nHowever, viewing this as a binary race for absolute dominance misses the true geopolitical objective. The state is not trying to replace Taiwan. It is positioning itself as the premier alternative destination for global corporations seeking to diversify away from East Asian geopolitical flashpoints. By building a reliable, state-subsidized ecosystem, the country can successfully secure a vital slice of the global supply chain, achieving resilience rather than complete dominance.",
+          "table": null
+        }
+      ],
+      "conclusion": "Achieving true technological sovereignty requires deep industrial integration beyond financial subsidies. Resolving upstream raw material bottlenecks will ultimately dictate whether India can establish itself as a durable alternative in the global semiconductor supply chain.",
+      "sources": [
+        {
+          "outlet": "The Economic Times",
+          "name": "The Economic Times",
+          "desk": "",
+          "lean": "center",
+          "region": "india",
+          "title": "Navin Bishnoi on ecosystem creation and DLI scaling requirements",
+          "description": "Navin Bishnoi on ecosystem creation and DLI scaling requirements",
+          "url": "https://electronics.economictimes.indiatimes.com/news/semiconductors/indias-chip-dreams-get-a-1-25-lakh-crore-push-with-semiconductor-mission-2-0/132092124"
+        },
+        {
+          "outlet": "The Daily Pioneer",
+          "name": "The Daily Pioneer",
+          "desk": "",
+          "lean": "center",
+          "region": "india",
+          "title": "Expenditure Finance Committee approval details and manufacturing project pipelines",
+          "description": "Expenditure Finance Committee approval details and manufacturing project pipelines",
+          "url": "https://dailypioneer.com/news/slug-lite/finance-finance-ministry-panel-clears-rs-1-25-lakh-cr-outlay-for-ism-2-0?year=2026"
+        },
+        {
+          "outlet": "Press Information Bureau",
+          "name": "Press Information Bureau",
+          "desk": "",
+          "lean": "center",
+          "region": "india",
+          "title": "Official framework of India Semiconductor Mission 2.0 and DLI targets",
+          "description": "Official framework of India Semiconductor Mission 2.0 and DLI targets",
+          "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2224839&reg=3&lang=1"
+        }
+      ],
+      "title": "India unlocks a massive trillion-rupee war chest for chip supremacy",
+      "subtitle": "",
+      "heroImage": "https://ibgnews.com/wp-content/uploads/2026/02/India-Semiconductor-Map.png",
+      "overview": "The Finance Ministry's Expenditure Finance Committee has formally cleared a 1.25 lakh crore rupees fiscal allocation for India Semiconductor Mission 2.0. This second phase represents a massive expansion from the initial 76,000 crore rupees package, shifting capital away from a pure focus on mega-foundries toward building an end-to-end supply chain. By prioritizing domestic chip design startups and processing infrastructure, the state aims to convert its raw engineering talent into sovereign intellectual property.",
+      "inPlainEnglish": "Think of the global semiconductor industry like an incredibly complex, high-stakes cooking competition. In the first round, India spent billions of dollars just trying to build the physical, state-of-the-art kitchens, known as fabrication foundries.\n\nNow, with Phase 2.0, the government realizes that owning a kitchen matters very little if you do not own the secret recipes or control the supply of rare ingredients. This new funding is designed to sponsor the local chefs inventing the recipes, while securing the domestic supply lines for the specialized chemicals, gases, and minerals required to actually cook the chips."
+    },
     {
       "id": "world-bank-warns-of-slowing-global-growth-and-hidden-sovereign-debt",
       "headline": "World Bank warns of slowing global growth and hidden sovereign debt",
