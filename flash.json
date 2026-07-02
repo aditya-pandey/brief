@@ -229,5 +229,60 @@
     "source_url": "https://www.ndtv.com/world-news",
     "ts": "8h ago",
     "source_search": "United States Navy helicopter makes emergency sea landing leaving one missing Reuters · NDTV"
+  },
+  {
+    "id": "centre-orders-meta-to-pause-whatsapp-username-rollout",
+    "cat": "ai-tech",
+    "headline": "Centre orders Meta to pause WhatsApp username rollout over impersonation fears",
+    "summary": "The Ministry of Electronics and Information Technology directed Meta on Thursday to suspend its planned global rollout of the WhatsApp username feature within India. The government requested a comprehensive security response within three days regarding identity theft and digital impersonation loopholes. Officials are concerned that removing phone numbers will make tracing online financial scammers significantly more difficult for law enforcement teams.",
+    "why_it_matters": "Halting prominent communication updates signals India's tightening regulatory authority over global tech platforms and forces immediate adjustments to consumer data privacy frameworks.",
+    "source": "MeitY · India Today",
+    "source_url": "https://www.indiatoday.in/",
+    "ts": "3h ago",
+    "source_search": "Centre orders Meta to pause WhatsApp username rollout over impersonation fears MeitY · India Today"
+  },
+  {
+    "id": "us-and-iran-report-positive-progress-in-qatar-peace-talks",
+    "cat": "global",
+    "headline": "United States and Iran report positive progress in Doha ceasefire talks",
+    "summary": "Qatari mediators confirmed on Thursday that indirect diplomatic negotiations between United States and Iranian officials in Doha have achieved actionable progress toward a fourteen point peace memorandum. Both nations agreed to establish a dedicated communication channel to manage maritime disputes and finalized a partial thaw of six billion dollars in frozen Iranian financial assets. The breakthrough comes after intense regional conflicts threatened shipping lanes.",
+    "why_it_matters": "A functional diplomatic breakthrough helps stabilize critical energy transit corridors in the Middle East and lowers immediate geopolitical risk premiums for global commodity markets.",
+    "source": "Reuters · NDTV",
+    "source_url": "https://www.ndtv.com/world-news",
+    "ts": "2h ago",
+    "source_search": "United States and Iran report positive progress in Doha ceasefire talks Reuters · NDTV"
+  },
+  {
+    "id": "us-supreme-court-upholds-birthright-citizenship-against-executive-limits",
+    "cat": "politics",
+    "headline": "United States Supreme Court upholds birthright citizenship against executive challenges",
+    "summary": "The United States Supreme Court delivered a major constitutional ruling on Wednesday night, voting to uphold birthright citizenship and decisively reject executive branch limitations on the Fourteenth Amendment. The legal challenge followed an executive order attempting to deny automatic citizenship to children born on American soil to undocumented parents. The judicial decision firmly establishes long-standing legal precedents despite intense political lobbying from conservative administration strategists.",
+    "why_it_matters": "The ruling secures legal protections for millions of immigrant families and restricts the executive branch from unilaterally redefining foundational constitutional citizenship rules.",
+    "source": "Associated Press · The Hindu",
+    "source_url": "https://www.thehindu.com/news/international/",
+    "ts": "6h ago",
+    "source_search": "United States Supreme Court upholds birthright citizenship against executive challenges Associated Press · The Hindu"
+  },
+  {
+    "id": "alibaba-settles-us-illegal-product-charges-for-six-hundred-million",
+    "cat": "economics",
+    "headline": "Alibaba settles United States illegal merchant product charges for millions",
+    "summary": "Chinese e-commerce giant Alibaba agreed to a six hundred million dollar federal settlement on Wednesday following allegations that its payment subsidiary failed to block illicit transactions. United States prosecutors alleged that AUS Merchant Services systematically permitted third party vendors to import illegal narcotics and counterfeit goods into domestic markets. Alibaba did not admit wrongdoing but committed to overhaul its digital compliance monitoring frameworks.",
+    "why_it_matters": "Substantial regulatory fines signal an era of heightened enforcement for cross-border e-commerce networks and demand extreme accountability from international payment processors.",
+    "source": "Associated Press · Reuters",
+    "source_url": "https://www.ndtv.com/world-news",
+    "ts": "5h ago",
+    "source_search": "Alibaba settles United States illegal merchant product charges for millions Associated Press · Reuters"
+  },
+  {
+    "id": "russia-imports-indian-petrol-to-mitigate-domestic-fuel-crisis",
+    "cat": "india",
+    "headline": "Russia imports Indian petrol to mitigate widespread domestic fuel shortages",
+    "summary": "Russia has commenced emergency imports of finished petrol from Indian refineries to counter severe domestic fuel deficits triggered by Ukrainian drone strikes on its infrastructure. Long queues and fuel rationing were reported across several Russian time zones following extensive damage to major western refineries. The unusual energy trade pivot flips traditional supply mechanics, as India typically imports cheap crude oil from Moscow before refining it.",
+    "why_it_matters": "A reverse energy trade pattern emphasizes the domestic logistical vulnerabilities of wartime Russia while positioning Indian refining companies as critical stabilizers in global fuel supply chains.",
+    "source": "Reuters · India Today",
+    "source_url": "https://www.indiatoday.in/",
+    "ts": "3h ago",
+    "source_search": "Russia imports Indian petrol to mitigate widespread domestic fuel shortages Reuters · India Today"
   }
 ]
