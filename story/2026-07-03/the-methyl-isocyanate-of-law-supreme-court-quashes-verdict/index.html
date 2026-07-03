@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>The Methyl Isocyanate of Law: Supreme Court Quashes Verdicts Over AI Hallucinations</title>
+  <base href="../../../" />
+  <meta name="description" content="The Supreme Court of India delivered a landmark judgment on July 2, 2026, setting aside orders from the National Company Law Tribunal and its appellate body because they relied on six completely fictitious, AI generated case citations. Justices P.S. Narasimha and Alok Aradhe established a strict zero tolerance doctrine for unverified machine text in judicial determinations, warning that unchecked automation threatens human reasoning. The apex court directed the Bar Council of India to immediately draft punitive guidelines for professional misconduct. This analysis details how automated legal tools polluted the judiciary and why the court treated the lapse as a systemic emergency." />
+  
+  <!-- Favicon and Social Share Images -->
+  <link rel="icon" type="image/png" href="icon-briefing.png" />
+  <link rel="apple-touch-icon" href="icon-briefing.png" />
+  <meta property="og:image" content="https://th-i.thgim.com/public/incoming/wg3jwg/article71173761.ece/alternates/FREE_1200/vbk-stock-rdff-law-ai-judgment-iStock-2265191306.jpg" />
+  <meta name="twitter:image" content="https://th-i.thgim.com/public/incoming/wg3jwg/article71173761.ece/alternates/FREE_1200/vbk-stock-rdff-law-ai-judgment-iStock-2265191306.jpg" />
+  <meta property="og:title" content="The Methyl Isocyanate of Law: Supreme Court Quashes Verdicts Over AI Hallucinations" />
+  <meta property="og:description" content="The Supreme Court of India delivered a landmark judgment on July 2, 2026, setting aside orders from the National Company Law Tribunal and its appellate body because they relied on six completely fictitious, AI generated case citations. Justices P.S. Narasimha and Alok Aradhe established a strict zero tolerance doctrine for unverified machine text in judicial determinations, warning that unchecked automation threatens human reasoning. The apex court directed the Bar Council of India to immediately draft punitive guidelines for professional misconduct. This analysis details how automated legal tools polluted the judiciary and why the court treated the lapse as a systemic emergency." />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,650;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:wght@700&family=Roboto+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,550;8..60,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=10" />
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-602K6P5H7B"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-602K6P5H7B', {
+      send_page_view: false
+    });
+  </script>
+
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="manifest.json" />
+  
+  <meta name="theme-color" content="#0B1020" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="The Briefings" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <!-- PWA Service Worker & Installation Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(reg => {
+            console.log('[PWA] Service Worker registered successfully with scope:', reg.scope);
+            
+            reg.onupdatefound = () => {
+              const installingWorker = reg.installing;
+              if (installingWorker) {
+                installingWorker.onstatechange = () => {
+                  if (installingWorker.state === 'installed') {
+                    if (navigator.serviceWorker.controller) {
+                      console.log('[PWA] New content is available; please refresh.');
+                    } else {
+                      console.log('[PWA] Content is cached for offline use.');
+                    }
+                  }
+                };
+              }
+            };
+          })
+          .catch(err => {
+            console.error('[PWA] Service Worker registration failed:', err);
+          });
+      });
+    }
+
+    // Install prompt handling
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log('[PWA] beforeinstallprompt event captured and deferred.');
+      if (window.showPwaBanner) window.showPwaBanner();
+      else window.__pwaBannerReady = true;
+    });
+
+    // Expose showInstallPrompt function to window so UI can trigger it
+    window.showInstallPrompt = async function() {
+      if (!deferredPrompt) {
+        console.log('[PWA] No deferred install prompt available.');
+        return false;
+      }
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`[PWA] User response to the install prompt: ${outcome}`);
+      if (typeof gtag === 'function') {
+        gtag('event', 'pwa_install_prompt_response', {
+          event_category: 'PWA',
+          event_label: outcome
+        });
+      }
+      deferredPrompt = null;
+      return outcome === 'accepted';
+    };
+
+    window.addEventListener('appinstalled', (evt) => {
+      console.log('[PWA] The Briefings was installed successfully.');
+      if (typeof gtag === 'function') {
+        gtag('event', 'pwa_installed', {
+          event_category: 'PWA',
+          event_label: 'Success'
+        });
+      }
+    });
+  </script>
+
+  <!-- Microsoft Clarity -->
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "xc6c0dk2up");
+  </script>
+
+  <!-- PostHog Analytics -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="xi Si init Ni ji pr qi Ui $i capture calculateEventProperties Zi register register_once register_for_session unregister unregister_for_session Yi getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync Ki identify setPersonProperties unsetPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty Qi Wi createPersonProfile setInternalOrTestUser Ji Fi tn opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing zi debug mr it getPageViewId captureTraceFeedback captureTraceMetric Ri".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_yfBBQavwkg3wFBGh9tGKBAGuYQcgfwE9pzxNk5M3daT5', {
+        api_host: 'https://us.i.posthog.com',
+        person_profiles: 'identified_only',
+        capture_pageview: false,
+        capture_pageleave: true
+    })
+  </script>
+  <link rel="canonical" href="https://thebriefings.netlify.app/story/2026-07-03/the-methyl-isocyanate-of-law-supreme-court-quashes-verdict/" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"The Methyl Isocyanate of Law: Supreme Court Quashes Verdicts Over AI Hallucinations","description":"The Supreme Court of India delivered a landmark judgment on July 2, 2026, setting aside orders from the National Company Law Tribunal and its appellate body because they relied on six completely fictitious, AI generated case citations. Justices P.S. Narasimha and Alok Aradhe established a strict zero tolerance doctrine for unverified machine text in judicial determinations, warning that unchecked automation threatens human reasoning. The apex court directed the Bar Council of India to immediately draft punitive guidelines for professional misconduct. This analysis details how automated legal tools polluted the judiciary and why the court treated the lapse as a systemic emergency.","image":["https://th-i.thgim.com/public/incoming/wg3jwg/article71173761.ece/alternates/FREE_1200/vbk-stock-rdff-law-ai-judgment-iStock-2265191306.jpg"],"datePublished":"2026-07-03T00:00:00+05:30","url":"https://thebriefings.netlify.app/story/2026-07-03/the-methyl-isocyanate-of-law-supreme-court-quashes-verdict/","publisher":{"@type":"Organization","name":"The Briefing","url":"https://thebriefings.netlify.app"}}</script>
+</head>
+<body>
+
+  <header id="site-header">
+    <div class="header-inner">
+
+      <!-- Row 1: Logo + Icons -->
+      <div class="header-row-top">
+        <a class="wordmark" href="./" id="wordmark-link">
+          <img src="icon-briefing.png" alt="Logo" class="wordmark-logo logo-briefing" />
+          <img src="flash-logo.png" alt="Flash Logo" class="wordmark-logo logo-flash" />
+          <span>The Briefing</span>
+        </a>
+
+        <div class="header-right">
+          <!-- Desktop Flash center progress (hidden by default) -->
+          <div id="flash-header-center" class="flash-header-center-progress"></div>
+          <!-- Desktop Flash switch mode nav (hidden by default) -->
+          <div id="flash-desktop-right-nav" class="flash-desktop-right-nav">
+            <button id="desktop-switch-briefing" class="desktop-switch-briefing-btn">📰 Switch to Briefing</button>
+          </div>
+
+          <!-- Date at top right with Day + Calendar -->
+          <div class="header-date-wrapper" id="header-date-wrapper">
+            <button class="header-date-trigger" id="header-date-trigger" aria-label="Open date picker">
+              <span class="header-date-cal-icon">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+              </span>
+              <span id="header-date" class="header-top-date"></span>
+              <svg class="header-date-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="calendar-dropdown" id="calendar-dropdown">
+              <div class="calendar-header">
+                <button class="cal-nav-btn" id="cal-prev-month" aria-label="Previous month">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <span class="cal-month-year" id="cal-month-year"></span>
+                <button class="cal-nav-btn" id="cal-next-month" aria-label="Next month">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+              </div>
+              <div class="cal-weekdays" id="cal-weekdays"></div>
+              <div class="cal-grid" id="cal-grid"></div>
+              <div class="cal-footer">
+                <button class="cal-today-btn" id="cal-today-btn">Today</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop Actions -->
+          <div class="desktop-header-actions">
+            <!-- Search Button -->
+            <button id="desktop-search-btn" class="hdr-icon-btn" aria-label="Search" title="Search">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </button>
+            
+            <!-- Saved Stories Button -->
+            <a href="/saved" id="desktop-saved-btn" class="hdr-icon-btn" aria-label="Saved Stories" title="Saved Stories" style="position: relative; display: inline-flex;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span id="desktop-saved-badge" class="badge-dot" style="display: none; position: absolute; top: -1px; right: -1px; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; border: 1px solid var(--bg);"></span>
+            </a>
+
+            <!-- Theme Toggle Button -->
+            <button id="desktop-theme-btn" class="hdr-icon-btn" aria-label="Toggle Theme" title="Toggle Theme">
+              <svg class="theme-icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <svg class="theme-icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Menu Hamburger Button (hidden on desktop) -->
+          <button id="menu-trigger" class="hdr-icon-btn mobile-only-menu" aria-label="Open menu" title="Menu">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Row 2: Mode Toggle -->
+      <div class="header-row-bottom">
+        <div class="mode-seg-toggle" id="mode-seg-toggle">
+          <button id="seg-flash" class="seg-btn seg-flash" aria-label="Flash mode">
+            <span class="seg-btn-title">⚡ Flash</span>
+            <span class="seg-btn-subtitle">Stories in minutes</span>
+          </button>
+          <button id="seg-briefing" class="seg-btn seg-briefing" aria-label="Briefing mode">
+            <span class="seg-btn-title">📰 Deep Dive</span>
+            <span class="seg-btn-subtitle">Analysis in depth</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+    <!-- reading progress bar (only visible on story detail) -->
+    <div id="progress-bar"></div>
+  </header>
+
+  <!-- ── Hero banner (home only) ───────────────── -->
+  <div id="hero" class="hero hidden">
+    <div class="hero-inner">
+      <p class="hero-kicker">Daily Intelligence Briefing</p>
+      <h1 id="hero-title-h1" class="hero-title"></h1>
+      <p id="hero-meta" class="hero-meta"></p>
+    </div>
+  </div>
+
+  <!-- ── Main content ───────────────────────────── -->
+  <main id="app">
+    <article class="longform-article">
+      <h1 class="article-headline">The Methyl Isocyanate of Law: Supreme Court Quashes Verdicts Over AI Hallucinations</h1>
+      
+      <div id="article-hero-container"><img src="https://th-i.thgim.com/public/incoming/wg3jwg/article71173761.ece/alternates/FREE_1200/vbk-stock-rdff-law-ai-judgment-iStock-2265191306.jpg" alt="" style="width:100%; border-radius: 12px;" /></div>
+      <div class="article-overview"><p>The Supreme Court of India delivered a landmark judgment on July 2, 2026, setting aside orders from the National Company Law Tribunal and its appellate body because they relied on six completely fictitious, AI generated case citations. Justices P.S. Narasimha and Alok Aradhe established a strict zero tolerance doctrine for unverified machine text in judicial determinations, warning that unchecked automation threatens human reasoning. The apex court directed the Bar Council of India to immediately draft punitive guidelines for professional misconduct. This analysis details how automated legal tools polluted the judiciary and why the court treated the lapse as a systemic emergency.</p></div>
+      
+        <div class="article-in-plain-english">
+          <div class="article-in-plain-english-label">In Plain English</div>
+          <p>Imagine a doctor performing a critical surgery by reading an instruction manual written by a computer that occasionally invents imaginary organs. The surgery might look professional from the outside, but the internal foundation is completely lethal. This is exactly what just happened in India&apos;s corporate bankruptcy courts, where judges used artificial intelligence to look up past legal rulings, only for the software to make up fake cases that never existed.
+
+The Supreme Court had to step in and throw out the entire ruling. The judges made it clear that while AI can be a helpful assistant to gather data, it cannot be allowed to do the actual thinking. When a computer hallucinates a fact in a courtroom, it is not just a minor glitch; it breaks the entire foundation of human justice.</p>
+        </div>
+      <div class="article-chapters">
+          <section class="article-chapter">
+            <h2 class="chapter-title">How did fake case law infiltrate the tribunal?</h2>
+            <div class="chapter-content">
+              <p>The breakdown occurred during a high stakes corporate insolvency dispute involving Pooja Ramesh Singh, the suspended director of a corporate debtor. Senior Advocate Madhavi Divan, appearing before the Supreme Court, exposed that the National Company Law Tribunal (NCLT) and the National Company Law Appellate Tribunal (NCLAT) had anchored their decisions on six specific judicial precedents. Upon close inspection, these cases were found to be completely non existent, generated entirely by automated legal research software that fabricated titles, citations, and legal propositions out of thin air.</p><p>The tribunals had accepted these citations without manual verification, weaving them directly into the core ratios of their judgments. The tech tool answered the prompts with plausible sounding legal prose, and the judges simply copy pasted the output into their official orders. This blind acceptance allowed fabricated text to masquerade as established law, showing how easily automated tools can compromise formal judicial findings.</p>
+            </div>
+          </section>
+          <section class="article-chapter">
+            <h2 class="chapter-title">Why did the court choose such severe language?</h2>
+            <div class="chapter-content">
+              <p>The Supreme Court bench did not treat this as a simple procedural oversight, choosing instead to compare AI hallucinations to &quot;the release of methyl isocyanate in the province of law and justice: invisible, insidious.&quot; By invoking the chemical compound responsible for the historic Bhopal gas tragedy, the court signaled that fake machine data acts as a toxic contaminant. The justices wrote that even if a tiny iota of hallucinated material enters the process, it completely invalidates the sanctity of the adjudication, rendering the final order &quot;no decision in the eyes of law.&quot;</p><p>This aggressive rhetoric stems from a deeper fear that the legal profession is rapidly delegating its core human faculty: systematic, disciplined reasoning. The bench warned that cultivating a habit of outsourcing intellectual heavy lifting to black box algorithms threatens human cognitive independence. The judgment asserts that human judgment is formed through rigorous mental training, an asset that the judiciary cannot relinquish to generative software.</p>
+            </div>
+          </section>
+          <section class="article-chapter">
+            <h2 class="chapter-title">Who carries the ultimate blame for this lapse?</h2>
+            <div class="chapter-content">
+              <p>The judgment divides accountability equally between the Bar and the Bench, eliminating the defense of technological ignorance. The court ruled that an advocate commits clear professional misconduct if they present AI generated citations in a courtroom without verifying their authenticity from official law reporters. Lawyers can no longer blame their software subscriptions or research assistants for fabricated filings; the signature on the brief remains a personal guarantee of factual truth.</p><p>Concurrently, the court placed a heavy burden on the judges themselves. Relying on unverified machine text while writing an opinion was classified as an equally serious judicial lapse. The more convincing reading of this ruling is that the Supreme Court is stripping away the mystique of AI, treating it not as an advanced oracle, but as a high risk clerical aid that requires constant human oversight.</p>
+            </div>
+          </section>
+          <section class="article-chapter">
+            <h2 class="chapter-title">What happens to the underlying bankruptcy case now?</h2>
+            <div class="chapter-content">
+              <p>Rather than trying to sort out the real legal arguments from the fabricated data, the Supreme Court took a scorched earth approach. It completely set aside both the NCLT and NCLAT judgments, erasing the legal conclusions entirely. The matter has been remanded back to the tribunal for a completely fresh consideration, with strict instructions to evaluate the dispute based solely on the physical facts of the case, uninfluenced by the hallucinated precedents.</p><p>This means the corporate debtor, Pooja Ramesh Singh, and her creditors must restart their legal battles from scratch, incurring massive delays and mounting legal fees. The economic cost of this single automated error is substantial, paralyzing assets and stalling restructuring proceedings. The ruling serves as a stark warning to the corporate sector that using unverified tech shortcuts can destroy years of litigation.</p>
+            </div>
+          </section>
+          <section class="article-chapter">
+            <h2 class="chapter-title">How will this change daily court operations?</h2>
+            <div class="chapter-content">
+              <p>The immediate administrative consequence is a direct order to the Bar Council of India, the country&apos;s apex statutory regulatory body for lawyers. The court directed the council to form a dedicated committee to investigate machine generated fabrications and prescribe hard disciplinary actions, including the potential suspension of licenses for non compliance. This shifts AI verification from an ethical recommendation to a strict regulatory mandate.</p><p>This crackdown coincides with the top court&apos;s release of the Draft Regulations for Use of Artificial Intelligence in Courts, 2026, which are currently undergoing public consultation. These draft rules explicitly prohibit the use of generative tools for determining final judicial outcomes or compiling witness profiles. The judiciary is rapidly constructing a regulatory wall, ensuring that while technology can assist in scheduling and indexing, the actual core of justice remains entirely human.</p>
+            </div>
+          </section></div>
+      
+        <div class="article-conclusion">
+          <h3 class="conclusion-title">Conclusion</h3>
+          <div class="conclusion-content">
+            <p>By instituting a zero tolerance policy for unverified machine text, the Supreme Court has reasserted the supremacy of human reasoning in the judicial system. This ruling transforms AI verification from a best practice into an absolute regulatory mandate for the entire legal profession.</p>
+          </div>
+        </div>
+      <div class="article-sources">
+        <h3 class="sources-title">Sources</h3>
+        <div class="sources-grid">
+            <div class="source-card">
+              <div class="source-card-info">
+                <h4 class="source-card-name">LiveLaw</h4>
+                <p class="source-card-desc">Detailed report on the quashing of the NCLT judgment and the instructions to the Bar Council of India</p>
+              </div>
+              <a href="https://www.livelaw.in/supreme-court/supreme-court-sets-aside-nclt-judgment-for-using-ai-hallucinated-citations-asks-bci-to-examine-issue-539616" target="_blank" rel="noopener noreferrer" class="source-card-link">Link &rarr;</a>
+            </div>
+            <div class="source-card">
+              <div class="source-card-info">
+                <h4 class="source-card-name">The Hindu</h4>
+                <p class="source-card-desc">Comprehensive analysis of the &quot;methyl isocyanate&quot; comparison and the Draft Regulations for Use of AI in Courts</p>
+              </div>
+              <a href="https://www.thehindu.com/news/national/methyl-isocyanate-of-law-supreme-court-quashes-verdict-based-on-ai-generated-precedents/article71173725.ece" target="_blank" rel="noopener noreferrer" class="source-card-link">Link &rarr;</a>
+            </div></div>
+      </div>
+    </article></main>
+
+  <!-- ── Footer ────────────────────────────────── -->
+  <footer id="site-footer">
+    <div class="footer-inner">
+      <span class="footer-brand">The Briefing</span>
+      <span class="footer-copy">Analysis is AI-generated from cited sources and may contain errors — always check the linked originals. Source text is never republished; only analysis and attribution.</span>
+      <div class="footer-links">
+        <a href="mailto:hello.thebriefings@gmail.com" class="footer-link">Email</a>
+        <a href="https://x.com/readbriefings" target="_blank" rel="noopener noreferrer" class="footer-link">Twitter</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Share Sheet Modal -->
+  <div id="share-sheet-modal" class="share-sheet" role="dialog" aria-modal="true" aria-labelledby="share-sheet-title">
+    <div class="share-sheet-backdrop" id="share-sheet-backdrop"></div>
+    <div class="share-sheet-content">
+      <div class="share-sheet-header">
+        <h3 id="share-sheet-title" class="share-sheet-title">Share Story</h3>
+        <button id="share-sheet-close" class="share-sheet-close-btn" aria-label="Close share options">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="share-sheet-options">
+        <button class="share-sheet-opt-btn" id="share-opt-wa">
+          <div class="share-opt-icon green-bg">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.488 1.459 5.416 1.46 5.48-.004 9.938-4.467 9.94-9.948.002-2.65-1.026-5.143-2.897-7.017C17.228 1.776 14.73 .746 12.08.745 6.596.745 2.136 5.207 2.134 10.69c-.001 1.929.501 3.812 1.457 5.417l-.982 3.58 3.674-.963zm11.393-4.504c-.3-.15-1.77-.874-2.043-.973-.272-.1-.47-.15-.668.15-.198.3-.765.973-.938 1.17-.173.198-.346.223-.646.074-.3-.15-1.264-.467-2.41-1.485-.892-.793-1.493-1.773-1.668-2.07-.173-.3-.018-.462.13-.61.135-.133.3-.35.45-.525.15-.173.2-.297.3-.495.1-.198.05-.371-.025-.52-.075-.15-.668-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.568-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.77-.724 2.017-1.424.248-.699.248-1.299.173-1.424-.075-.124-.272-.198-.57-.347z"/></svg>
+          </div>
+          <span>WhatsApp</span>
+        </button>
+        <button class="share-sheet-opt-btn" id="share-opt-x">
+          <div class="share-opt-icon black-bg">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </div>
+          <span>X / Twitter</span>
+        </button>
+        <button class="share-sheet-opt-btn" id="share-opt-copy">
+          <div class="share-opt-icon blue-bg">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+          </div>
+          <span>Share Anywhere</span>
+        </button>
+        <button class="share-sheet-opt-btn" id="share-opt-native">
+          <div class="share-opt-icon grey-bg">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          </div>
+          <span>Copy Link</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ── Search Overlay ──────────────────────────────────────── -->
+  <div id="search-overlay" class="search-overlay" role="dialog" aria-modal="true" aria-label="Search">
+    <div class="search-overlay-inner">
+      <div class="search-input-row">
+        <svg class="search-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input id="search-input" class="search-input" type="text" placeholder="Search stories, flash news…" autocomplete="off" spellcheck="false" />
+        <button id="search-close" class="search-close-btn" aria-label="Close search">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div id="search-results" class="search-results">
+        <div class="search-empty-state" id="search-empty">
+          <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.3; margin-bottom: 12px;">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <p>Search across Flash news and Deep Dives</p>
+        </div>
+        <div id="search-results-list" class="search-results-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Jump to Today FAB (hidden by default) -->
+  <button id="jump-to-today-btn" class="jump-to-today-btn hidden" aria-label="Jump to Today">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+      <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+    <span style="vertical-align: middle; font-weight: 600;">Today</span>
+  </button>
+
+  <!-- ── Mobile Bottom Navigation Bar ───────────────────────────────── -->
+  <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+    <button id="bottom-nav-flash" class="bottom-nav-btn" aria-label="Flash">
+      <img src="flash-logo.png" class="bottom-nav-logo" alt="Flash Logo" />
+      <span class="bottom-nav-label">Flash</span>
+    </button>
+    <button id="bottom-nav-briefing" class="bottom-nav-btn" aria-label="Deep Dive">
+      <img src="icon-briefing.png" class="bottom-nav-logo" alt="Briefing Logo" />
+      <span class="bottom-nav-label">Deep Dive</span>
+    </button>
+    <button id="bottom-nav-saved" class="bottom-nav-btn" aria-label="Saved">
+      <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span id="bottom-nav-saved-badge" class="bottom-nav-badge" style="display: none;">0</span>
+      </div>
+      <span class="bottom-nav-label">Saved</span>
+    </button>
+    <button id="bottom-nav-menu" class="bottom-nav-btn" aria-label="Menu">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
+      </svg>
+      <span class="bottom-nav-label">Menu</span>
+    </button>
+  </nav>
+
+  <!-- ── Slide-in Menu ──────────────────────────────────────── -->
+  <div id="menu-overlay" class="menu-overlay"></div>
+  <div id="slide-menu" class="slide-menu" role="dialog" aria-modal="true" aria-labelledby="menu-title">
+    <div class="menu-header">
+      <div class="menu-logo-row" id="menu-title">
+        <img src="icon-briefing.png" alt="Logo" class="menu-logo-img" />
+        <span class="menu-logo-text">The Briefing</span>
+      </div>
+      <button id="menu-close" class="menu-close-btn" aria-label="Close menu">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="menu-body">
+      <!-- Search Section -->
+      <div class="menu-section menu-clickable-row" id="menu-search-trigger">
+        <div class="menu-section-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+        <div class="menu-section-info">
+          <h4 class="menu-section-title">Search</h4>
+          <p class="menu-section-desc">Search stories and flash news</p>
+        </div>
+        <div class="menu-chevron">&rarr;</div>
+      </div>
+
+      <!-- Appearance Section -->
+      <div class="menu-section" id="menu-appearance-section">
+        <div class="menu-section-header-row" style="margin-bottom: 8px;">
+          <div class="menu-section-icon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v2"></path><path d="M12 20v2"></path>
+              <path d="M4.93 4.93l1.41 1.41"></path><path d="M17.66 17.66l1.41 1.41"></path>
+              <path d="M2 12h2"></path><path d="M20 12h2"></path>
+              <path d="M6.34 17.66l-1.41 1.41"></path><path d="M19.07 4.93l-1.41 1.41"></path>
+              <circle cx="12" cy="12" r="4"></circle>
+            </svg>
+          </div>
+          <div class="menu-section-info">
+            <h4 class="menu-section-title">Appearance</h4>
+          </div>
+        </div>
+        <div class="menu-theme-capsule">
+          <button id="menu-theme-light" class="menu-theme-btn" aria-label="Light mode">Light</button>
+          <button id="menu-theme-dark" class="menu-theme-btn" aria-label="Dark mode">Dark</button>
+        </div>
+      </div>
+
+      <!-- Date selection lives in the header calendar picker; kept here only as a hidden data store -->
+      <input type="date" id="archive-select" class="archive-date-picker" aria-label="Search by date" style="display: none;" />
+
+      <!-- Notifications Section -->
+      <div class="menu-section menu-clickable-row" id="notification-trigger" aria-label="Toggle notifications" title="Enable Notifications">
+        <div class="menu-section-icon">
+          <svg id="icon-bell" class="hidden" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+          </svg>
+          <svg id="icon-bell-off" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8.7 3A6 6 0 0 1 18 8a21.3 21.3 0 0 0 .6 5"></path>
+            <path d="M17 17H3s3-2 3-9a4.67 4.67 0 0 1 .3-1.7"></path>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+            <path d="M2 2l20 20"></path>
+          </svg>
+        </div>
+        <div class="menu-section-info">
+          <h4 class="menu-section-title">Notifications</h4>
+          <p class="menu-section-desc">Get alerted when new stories drop</p>
+        </div>
+      </div>
+
+      <!-- Install The App Section -->
+      <div class="menu-section menu-clickable-row" id="menu-install-trigger">
+        <div class="menu-section-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+          </svg>
+        </div>
+        <div class="menu-section-info">
+          <h4 class="menu-section-title">Install The App</h4>
+          <p class="menu-section-desc">Get a native experience</p>
+        </div>
+        <div class="menu-chevron">&rarr;</div>
+      </div>
+
+      <!-- Contact Section -->
+      <a href="mailto:hello.briefings@gmail.com" class="menu-section menu-clickable-row" id="menu-contact-section" style="text-decoration: none; color: inherit;">
+        <div class="menu-section-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+        </div>
+        <div class="menu-section-info">
+          <h4 class="menu-section-title">Contact</h4>
+          <p class="menu-section-desc">Send Email</p>
+        </div>
+        <div class="menu-chevron">&rarr;</div>
+      </a>
+    </div>
+  </div>
+
+  <script src="app.js?v=10" defer></script>
+</body>
+</html>
