@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>The Passing of King of Cricket: How Sir Garfield Sobers Rewrote the Limits of the Possible</title>
+  <base href="../../../" />
+  <meta name="description" content="The international cricket community is mourning the passing of Sir Garfield Sobers, who died at his home in Barbados at the age of 89. Widely regarded as the most complete all-rounder to ever play the game, his career spanned two defining decades of international dominance from 1954 to 1974. His death has triggered a day of national mourning in his home nation and an outpouring of global tributes from administrators and former players alike. By understanding his technical versatility, historic milestones, and cultural significance, readers will grasp why his legacy remains the gold standard for sporting excellence." />
+  
+  <!-- Favicon and Social Share Images -->
+  <link rel="icon" type="image/png" href="icon-briefing.png" />
+  <link rel="apple-touch-icon" href="icon-briefing.png" />
+  <meta property="og:image" content="https://cdnx.premiumread.com/?url=https://www.gulftoday.ae/gulftoday/uploads/images/2026/07/17/1096703.webp&w=600&q=100&f=webp&t=0.0.2" />
+  <meta name="twitter:image" content="https://cdnx.premiumread.com/?url=https://www.gulftoday.ae/gulftoday/uploads/images/2026/07/17/1096703.webp&w=600&q=100&f=webp&t=0.0.2" />
+  <meta property="og:title" content="The Passing of King of Cricket: How Sir Garfield Sobers Rewrote the Limits of the Possible" />
+  <meta property="og:description" content="The international cricket community is mourning the passing of Sir Garfield Sobers, who died at his home in Barbados at the age of 89. Widely regarded as the most complete all-rounder to ever play the game, his career spanned two defining decades of international dominance from 1954 to 1974. His death has triggered a day of national mourning in his home nation and an outpouring of global tributes from administrators and former players alike. By understanding his technical versatility, historic milestones, and cultural significance, readers will grasp why his legacy remains the gold standard for sporting excellence." />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,650;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:wght@700&family=Roboto+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,550;8..60,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=10" />
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-602K6P5H7B"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-602K6P5H7B', {
+      send_page_view: false
+    });
+  </script>
+
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="manifest.json" />
+  
+  <meta name="theme-color" content="#0B1020" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="The Briefings" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <!-- PWA Service Worker & Installation Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(reg => {
+            console.log('[PWA] Service Worker registered successfully with scope:', reg.scope);
+            
+            reg.onupdatefound = () => {
+              const installingWorker = reg.installing;
+              if (installingWorker) {
+                installingWorker.onstatechange = () => {
+                  if (installingWorker.state === 'installed') {
+                    if (navigator.serviceWorker.controller) {
+                      console.log('[PWA] New content is available; please refresh.');
+                    } else {
+                      console.log('[PWA] Content is cached for offline use.');
+                    }
+                  }
+                };
+              }
+            };
+          })
+          .catch(err => {
+            console.error('[PWA] Service Worker registration failed:', err);
+          });
+      });
+    }
+
+    // Install prompt handling
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log('[PWA] beforeinstallprompt event captured and deferred.');
+      if (window.showPwaBanner) window.showPwaBanner();
+      else window.__pwaBannerReady = true;
+    });
+
+    // Expose showInstallPrompt function to window so UI can trigger it
+    window.showInstallPrompt = async function() {
+      if (!deferredPrompt) {
+        console.log('[PWA] No deferred install prompt available.');
+        return false;
+      }
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`[PWA] User response to the install prompt: ${outcome}`);
+      if (typeof gtag === 'function') {
+        gtag('event', 'pwa_install_prompt_response', {
+          event_category: 'PWA',
+          event_label: outcome
+        });
+      }
+      deferredPrompt = null;
+      return outcome === 'accepted';
+    };
+
+    window.addEventListener('appinstalled', (evt) => {
+      console.log('[PWA] The Briefings was installed successfully.');
+      if (typeof gtag === 'function') {
+        gtag('event', 'pwa_installed', {
+          event_category: 'PWA',
+          event_label: 'Success'
+        });
+      }
+    });
+  </script>
+
+  <!-- Microsoft Clarity -->
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "xc6c0dk2up");
+  </script>
+
+  <!-- PostHog Analytics -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="xi Si init Ni ji pr qi Ui $i capture calculateEventProperties Zi register register_once register_for_session unregister unregister_for_session Yi getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync Ki identify setPersonProperties unsetPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty Qi Wi createPersonProfile setInternalOrTestUser Ji Fi tn opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing zi debug mr it getPageViewId captureTraceFeedback captureTraceMetric Ri".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_yfBBQavwkg3wFBGh9tGKBAGuYQcgfwE9pzxNk5M3daT5', {
+        api_host: 'https://us.i.posthog.com',
+        person_profiles: 'identified_only',
+        capture_pageview: false,
+        capture_pageleave: true
+    })
+  </script>
+  <link rel="canonical" href="https://thebriefings.netlify.app/story/2026-07-18/the-passing-of-king-cricket-how-sir-garfield-sobers-rewrote/" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"The Passing of King of Cricket: How Sir Garfield Sobers Rewrote the Limits of the Possible","description":"The international cricket community is mourning the passing of Sir Garfield Sobers, who died at his home in Barbados at the age of 89. Widely regarded as the most complete all-rounder to ever play the game, his career spanned two defining decades of international dominance from 1954 to 1974. His death has triggered a day of national mourning in his home nation and an outpouring of global tributes from administrators and former players alike. By understanding his technical versatility, historic milestones, and cultural significance, readers will grasp why his legacy remains the gold standard for sporting excellence.","image":["https://cdnx.premiumread.com/?url=https://www.gulftoday.ae/gulftoday/uploads/images/2026/07/17/1096703.webp&w=600&q=100&f=webp&t=0.0.2"],"datePublished":"2026-07-18T00:00:00+05:30","url":"https://thebriefings.netlify.app/story/2026-07-18/the-passing-of-king-cricket-how-sir-garfield-sobers-rewrote/","publisher":{"@type":"Organization","name":"The Briefing","url":"https://thebriefings.netlify.app"}}</script>
+</head>
+<body>
+
+  <header id="site-header">
+    <div class="header-inner">
+
+      <!-- Row 1: Logo + Icons -->
+      <div class="header-row-top">
+        <a class="wordmark" href="./" id="wordmark-link">
+          <img src="icon-briefing.png" alt="Logo" class="wordmark-logo logo-briefing" />
+          <img src="flash-logo.png" alt="Flash Logo" class="wordmark-logo logo-flash" />
+          <span>The Briefing</span>
+        </a>
+
+        <div class="header-right">
+          <!-- Desktop Flash center progress (hidden by default) -->
+          <div id="flash-header-center" class="flash-header-center-progress"></div>
+          <!-- Desktop Flash switch mode nav (hidden by default) -->
+          <div id="flash-desktop-right-nav" class="flash-desktop-right-nav">
+            <button id="desktop-switch-briefing" class="desktop-switch-briefing-btn">📰 Switch to Briefing</button>
+          </div>
+
+          <!-- Date at top right with Day + Calendar -->
+          <div class="header-date-wrapper" id="header-date-wrapper">
+            <button class="header-date-trigger" id="header-date-trigger" aria-label="Open date picker">
+              <span class="header-date-cal-icon">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+              </span>
+              <span id="header-date" class="header-top-date"></span>
+              <svg class="header-date-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="calendar-dropdown" id="calendar-dropdown">
+              <div class="calendar-header">
+                <button class="cal-nav-btn" id="cal-prev-month" aria-label="Previous month">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <span class="cal-month-year" id="cal-month-year"></span>
+                <button class="cal-nav-btn" id="cal-next-month" aria-label="Next month">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+              </div>
+              <div class="cal-weekdays" id="cal-weekdays"></div>
+              <div class="cal-grid" id="cal-grid"></div>
+              <div class="cal-footer">
+                <button class="cal-today-btn" id="cal-today-btn">Today</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop Actions -->
+          <div class="desktop-header-actions">
+            <!-- Search Button -->
+            <button id="desktop-search-btn" class="hdr-icon-btn" aria-label="Search" title="Search">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </button>
+            
+            <!-- Saved Stories Button -->
+            <a href="/saved" id="desktop-saved-btn" class="hdr-icon-btn" aria-label="Saved Stories" title="Saved Stories" style="position: relative; display: inline-flex;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span id="desktop-saved-badge" class="badge-dot" style="display: none; position: absolute; top: -1px; right: -1px; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; border: 1px solid var(--bg);"></span>
+            </a>
+
+            <!-- Theme Toggle Button -->
+            <button id="desktop-theme-btn" class="hdr-icon-btn" aria-label="Toggle Theme" title="Toggle Theme">
+              <svg class="theme-icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <svg class="theme-icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Menu Hamburger Button (hidden on desktop) -->
+          <button id="menu-trigger" class="hdr-icon-btn mobile-only-menu" aria-label="Open menu" title="Menu">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Row 2: Mode Toggle -->
+      <div class="header-row-bottom">
+        <div class="mode-seg-toggle" id="mode-seg-toggle">
+          <button id="seg-flash" class="seg-btn seg-flash" aria-label="Flash mode">
+            <span class="seg-btn-title">⚡ Flash</span>
+            <span class="seg-btn-subtitle">Stories in minutes</span>
+          </button>
+          <button id="seg-briefing" class="seg-btn seg-briefing" aria-label="Briefing mode">
+            <span class="seg-btn-title">📰 Deep Dive</span>
+            <span class="seg-btn-subtitle">Analysis in depth</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+    <!-- reading progress bar (only visible on story detail) -->
+    <div id="progress-bar"></div>
+  </header>
+
+  <!-- ── Hero banner (home only) ───────────────── -->
+  <div id="hero" class="hero hidden">
+    <div class="hero-inner">
+      <p class="hero-kicker">Daily Intelligence Briefing</p>
+      <h1 id="hero-title-h1" class="hero-title"></h1>
+      <p id="hero-meta" class="hero-meta"></p>
+    </div>
+  </div>
+
+  <!-- ── Main content ───────────────────────────── -->
+  <main id="app">
+    <article class="longform-article">
+      <h1 class="article-headline">The Passing of King of Cricket: How Sir Garfield Sobers Rewrote the Limits of the Possible</h1>
+      
+      <div id="article-hero-container"><img src="https://cdnx.premiumread.com/?url=https://www.gulftoday.ae/gulftoday/uploads/images/2026/07/17/1096703.webp&amp;w=600&amp;q=100&amp;f=webp&amp;t=0.0.2" alt="" style="width:100%; border-radius: 12px;" /></div>
+      <div class="article-overview"><p>The international cricket community is mourning the passing of Sir Garfield Sobers, who died at his home in Barbados at the age of 89. Widely regarded as the most complete all-rounder to ever play the game, his career spanned two defining decades of international dominance from 1954 to 1974. His death has triggered a day of national mourning in his home nation and an outpouring of global tributes from administrators and former players alike. By understanding his technical versatility, historic milestones, and cultural significance, readers will grasp why his legacy remains the gold standard for sporting excellence.</p></div>
+      
+        <div class="article-in-plain-english">
+          <div class="article-in-plain-english-label">In Plain English</div>
+          <p>Imagine a professional baseball player who routinely leads the league in batting average, hits for massive power, regularly opens the game as a 95-mile-per-hour starting pitcher, and switches to throwing elite knuckleballs or curveballs later in the game depending on what the team needs. To top it off, he is also the finest shortstop in the league, catching everything that comes near him.
+
+In the cricketing world, Sir Gary Sobers was that exact player. He did not simply participate in every facet of the game; he operated at a world-class level in all of them simultaneously, breaking records that stood for decades and proving that one individual could master every single dimension of a sport.</p>
+        </div>
+      <div class="article-chapters">
+          <section class="article-chapter">
+            <h2 class="chapter-title">How did Barbados mark the passing of King Cricket?</h2>
+            <div class="chapter-content">
+              <p>The formal announcement of the passing of Sir Garfield Sobers occurred on Friday, July 17, 2026, just 11 days short of his 90th birthday. His son Daniel confirmed that the legendary former captain died peacefully at his home in Barbados. Cricket West Indies immediately released a statement marking the conclusion of what they termed a great innings, expressing a sentiment of permanent remembrance across the global cricket fraternity.</p><p>The domestic political response reflected the towering status Sobers held within his home island. Barbadian Prime Minister Mia Mottley officially declared a national day of mourning, ordering all state flags to be flown at half-mast and suspending all official public functions. Mottley confirmed that a formal state funeral would be organized in the coming days to honor the man affectionately known as King Cricket.</p><p>The global administrative community quickly joined the tributes. International Cricket Council Chairman Jay Shah issued a statement on behalf of the global governing body, labeling Sobers the finest all-rounder the game has ever known and one of its greatest icons. Parallel condolences were published by major international organizations, including the Board of Control for Cricket in India and Cricket Australia, illustrating a rare unanimity of respect that crossed traditional competitive boundaries.</p>
+            </div>
+          </section>
+          <section class="article-chapter">
+            <h2 class="chapter-title">How did Sobers master three completely different bowling styles?</h2>
+            <div class="chapter-content">
+              <p>The core of the sporting genius surrounding Sobers lay in his unprecedented physical and technical adaptability on the field. While modern cricket forces players to specialize intensely, Sobers was remarkably capable of taking the new ball as a fast-medium opening bowler, before shifting mid-match to bowl traditional left-arm orthodox spin or highly complex over-the-wrist wrist spin. The late Australian captain and broadcaster Richie Benaud frequently noted this extraordinary versatility, highlighting that his fielding close to the wicket was just as splendid as his multifaceted bowling.</p><p>This absolute mastery across disciplines is starkly reflected in his career numbers. Over 93 Test matches between 1954 and 1974, Sobers accumulated 235 wickets at an average of 34.03. Former England batsman Geoffrey Boycott reflected on this competitive presence in the Telegraph, describing Sobers as walking out to bat like a panther with a purposeful, loping, and confident stride that conveyed business without a shred of personal ego.</p><p>The statistical reality shows that his bowling was never a secondary gimmick used to rest the primary attack. In first-class cricket, he collected a massive haul of 1,043 wickets at an average of 27.74. This volume of production, combined with his close-in fielding agility, meant that he fundamentally altered team composition, effectively allowing the West Indies to field an extra specialist batsman or bowler because Sobers occupied multiple strategic roles single-handedly.</p>
+            </div>
+          </section>
+          <section class="article-chapter">
+            <h2 class="chapter-title">What drove his historic 36-year batting record?</h2>
+            <div class="chapter-content">
+              <p>Though initially selected primarily for his bowling capabilities, Sobers transformed himself into the most feared batsman of his era. He accumulated 8,032 Test runs at an exceptional average of 57.78, featuring 26 centuries and 30 half-centuries. Among all players in cricket history who have scored at least 5,000 Test runs, his career batting average is surpassed by only three individuals: Sir Donald Bradman, Ken Barrington, and Wally Hammond.</p><p>His definitive breakthrough occurred in 1958 at Sabina Park against Pakistan, where he registered his maiden Test century. Rather than stopping at a standard milestone, he pushed onward to score an unbeaten 365, eclipsing Sir Len Hutton&apos;s previous world-record individual score of 364. This monumental achievement remained completely unbroken for 36 years until fellow West Indian Brian Lara scored 375 against England in Antigua in 1994, an event where Sobers was personally present on the outfield to offer his congratulations.</p><p>The longevity of his batting records stems from an innate blend of classical defensive technique and revolutionary attacking power. The more convincing reading of his batting legacy is that he anticipated the aggressive strokeplay of the modern era without sacrificing the rigorous patience required for long-format saves. His career established that an all-rounder could match, and frequently exceed, the absolute peak statistical outputs of pure specialist batsmen.</p>
+            </div>
+          </section>
+          <section class="article-chapter">
+            <h2 class="chapter-title">Why did his domestic exploits stun two continents?</h2>
+            <div class="chapter-content">
+              <p>The reverence for Sobers extended far beyond the international arena, cemented by legendary stints in the domestic circuits of England and Australia. In 1968, while captaining Nottinghamshire against Glamorgan at the St Helen&apos;s ground in Swansea, he secured an immortal place in sporting folklore by becoming the first batsman in first-class history to hit six consecutive sixes in a single over. The unfortunate bowler, Malcolm Nash, later recalled that the second delivery traveled like a tracer bullet, striking the guttering of a nearby pub while still rising.</p><p>His impact on Australian cricket was equally profound during his three summers representing South Australia in the Sheffield Shield between 1961 and 1964. His final season in 1963-64 is widely considered the most dominant individual all-round performance in the history of the competition. He amassed 973 runs at an average of 74.85 while simultaneously claiming 47 wickets at 27.60, carrying South Australia directly to the domestic title.</p><p>These prolonged domestic campaigns allowed foreign audiences to witness his talents on a weekly basis, breaking down the insular nationalism that often characterizes cricket fanbases. By demonstrating his excellence in diverse climates and against varying regional tactics, he validated his status as a universal master of the sport. His presence raised the standard of domestic cricket globally, inspiring a generation of Anglo-Australian players who attempted to copy his fluid style.</p>
+            </div>
+          </section>
+          <section class="article-chapter">
+            <h2 class="chapter-title">Why did his excellence define the modern Caribbean?</h2>
+            <div class="chapter-content">
+              <p>The emergence of Sobers coincided with a profound geopolitical transformation across the West Indies. Prime Minister Mia Mottley emphasized this cultural intersection, noting that Sobers rose to prominence precisely when the Caribbean region was actively finding its political voice and asserting its independence on the global stage. His sporting triumphs served as a powerful public demonstration that excellence was not dictated by geographic size or colonial history.</p><p>His societal impact was formally recognized in 1975 when Queen Elizabeth II knighted him for his services to cricket during a ceremony at the Garrison Racecourse in Barbados, situated just a mile from his childhood home in the parish of St Michael. Decades after his retirement, his name remains institutionalized via the Sir Garfield Sobers Trophy, which the International Cricket Council has awarded annually since 2004 to honor the Men&apos;s Cricketer of the Year.</p><p>The deep emotional resonance of his departure was captured by the legendary Trinidadian calypsonian David Rudder, who remarked that the man widely called the greatest of all time had finally left the round table to join the ancestors. Sobers did not merely collect statistical records; he gave an emerging diaspora a collective sense of pride and self-belief. His life demonstrated that a sport could serve as the primary vehicle for a region&apos;s cultural awakening.</p>
+            </div>
+          </section></div>
+      
+        <div class="article-conclusion">
+          <h3 class="conclusion-title">Conclusion</h3>
+          <div class="conclusion-content">
+            <p>The passing of Sir Garfield Sobers marks the end of an era for a monumental figure who unified the cricketing world through unprecedented all-round mastery. His enduring legacy remains both a statistical gold standard and a powerful symbol of cultural pride and self-belief across the Caribbean.</p>
+          </div>
+        </div>
+      <div class="article-sources">
+        <h3 class="sources-title">Sources</h3>
+        <div class="sources-grid">
+            <div class="source-card">
+              <div class="source-card-info">
+                <h4 class="source-card-name">The Guardian</h4>
+                <p class="source-card-desc">Details on the announcement of death, national day of mourning in Barbados, quotes from Mia Mottley and David Rudder, and details of the 1968 six-sixes feat</p>
+              </div>
+              <a href="https://www.theguardian.com/sport/2026/jul/17/west-indies-cricket-great-sir-garry-sobers-dies" target="_blank" rel="noopener noreferrer" class="source-card-link">Link &rarr;</a>
+            </div>
+            <div class="source-card">
+              <div class="source-card-info">
+                <h4 class="source-card-name">Cricket Australia</h4>
+                <p class="source-card-desc">Statistics on Test matches, runs, wickets, historical averages, and a breakdown of his Sheffield Shield career with South Australia</p>
+              </div>
+              <a href="https://www.cricket.com.au/news/4538101/sir-garfield-sobers-obituary-west-indies-barbados-age-89" target="_blank" rel="noopener noreferrer" class="source-card-link">Link &rarr;</a>
+            </div>
+            <div class="source-card">
+              <div class="source-card-info">
+                <h4 class="source-card-name">ICC News</h4>
+                <p class="source-card-desc">Official statements from Chairman Jay Shah, induction details for the Hall of Fame, and background on the Sir Garfield Sobers Trophy</p>
+              </div>
+              <a href="https://www.icc-cricket.com/news/west-indies-legend-sir-garfield-sobers-passes-away" target="_blank" rel="noopener noreferrer" class="source-card-link">Link &rarr;</a>
+            </div>
+            <div class="source-card">
+              <div class="source-card-info">
+                <h4 class="source-card-name">Times of India</h4>
+                <p class="source-card-desc">Overview of global tributes, confirmation of death by his son Daniel, and details regarding his 365* world record against Pakistan</p>
+              </div>
+              <a href="https://timesofindia.indiatimes.com/sports/cricket/news/a-true-icon-of-the-game-bcci-pays-tribute-to-sir-garfield-sobers-with-throwback-video/articleshow/132464957.cms" target="_blank" rel="noopener noreferrer" class="source-card-link">Link &rarr;</a>
+            </div>
+            <div class="source-card">
+              <div class="source-card-info">
+                <h4 class="source-card-name">Fox Sports</h4>
+                <p class="source-card-desc">Insights from Geoffrey Boycott&apos;s tribute regarding his batting approach and general career outlines</p>
+              </div>
+              <a href="https://www.foxsports.com.au/cricket/cricket-2026-garry-sobers-dies-at-89-years-old-cause-of-death-reaction-test-career-numbers/news-story/aaca37d804bc58081914353ab03c0d06" target="_blank" rel="noopener noreferrer" class="source-card-link">Link &rarr;</a>
+            </div></div>
+      </div>
+    </article></main>
+
+  <!-- ── Footer ────────────────────────────────── -->
+  <footer id="site-footer">
+    <div class="footer-inner">
+      <span class="footer-brand">The Briefing</span>
+      <span class="footer-copy">Analysis is AI-generated from cited sources and may contain errors — always check the linked originals. Source text is never republished; only analysis and attribution.</span>
+      <div class="footer-links">
+        <a href="mailto:hello.thebriefings@gmail.com" class="footer-link">Email</a>
+        <a href="https://x.com/readbriefings" target="_blank" rel="noopener noreferrer" class="footer-link">Twitter</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Share Sheet Modal -->
+  <div id="share-sheet-modal" class="share-sheet" role="dialog" aria-modal="true" aria-labelledby="share-sheet-title">
+    <div class="share-sheet-backdrop" id="share-sheet-backdrop"></div>
+    <div class="share-sheet-content">
+      <div class="share-sheet-header">
+        <h3 id="share-sheet-title" class="share-sheet-title">Share Story</h3>
+        <button id="share-sheet-close" class="share-sheet-close-btn" aria-label="Close share options">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="share-sheet-options">
+        <button class="share-sheet-opt-btn" id="share-opt-wa">
+          <div class="share-opt-icon green-bg">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.488 1.459 5.416 1.46 5.48-.004 9.938-4.467 9.94-9.948.002-2.65-1.026-5.143-2.897-7.017C17.228 1.776 14.73 .746 12.08.745 6.596.745 2.136 5.207 2.134 10.69c-.001 1.929.501 3.812 1.457 5.417l-.982 3.58 3.674-.963zm11.393-4.504c-.3-.15-1.77-.874-2.043-.973-.272-.1-.47-.15-.668.15-.198.3-.765.973-.938 1.17-.173.198-.346.223-.646.074-.3-.15-1.264-.467-2.41-1.485-.892-.793-1.493-1.773-1.668-2.07-.173-.3-.018-.462.13-.61.135-.133.3-.35.45-.525.15-.173.2-.297.3-.495.1-.198.05-.371-.025-.52-.075-.15-.668-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.568-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.77-.724 2.017-1.424.248-.699.248-1.299.173-1.424-.075-.124-.272-.198-.57-.347z"/></svg>
+          </div>
+          <span>WhatsApp</span>
+        </button>
+        <button class="share-sheet-opt-btn" id="share-opt-x">
+          <div class="share-opt-icon black-bg">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </div>
+          <span>X / Twitter</span>
+        </button>
+        <button class="share-sheet-opt-btn" id="share-opt-copy">
+          <div class="share-opt-icon blue-bg">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+          </div>
+          <span>Share Anywhere</span>
+        </button>
+        <button class="share-sheet-opt-btn" id="share-opt-native">
+          <div class="share-opt-icon grey-bg">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          </div>
+          <span>Copy Link</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ── Search Overlay ──────────────────────────────────────── -->
+  <div id="search-overlay" class="search-overlay" role="dialog" aria-modal="true" aria-label="Search">
+    <div class="search-overlay-inner">
+      <div class="search-input-row">
+        <svg class="search-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input id="search-input" class="search-input" type="text" placeholder="Search stories, flash news…" autocomplete="off" spellcheck="false" />
+        <button id="search-close" class="search-close-btn" aria-label="Close search">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div id="search-results" class="search-results">
+        <div class="search-empty-state" id="search-empty">
+          <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.3; margin-bottom: 12px;">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <p>Search across Flash news and Deep Dives</p>
+        </div>
+        <div id="search-results-list" class="search-results-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Jump to Today FAB (hidden by default) -->
+  <button id="jump-to-today-btn" class="jump-to-today-btn hidden" aria-label="Jump to Today">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+      <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+    <span style="vertical-align: middle; font-weight: 600;">Today</span>
+  </button>
+
+  <!-- ── Mobile Bottom Navigation Bar ───────────────────────────────── -->
+  <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+    <button id="bottom-nav-flash" class="bottom-nav-btn" aria-label="Flash">
+      <img src="flash-logo.png" class="bottom-nav-logo" alt="Flash Logo" />
+      <span class="bottom-nav-label">Flash</span>
+    </button>
+    <button id="bottom-nav-briefing" class="bottom-nav-btn" aria-label="Deep Dive">
+      <img src="icon-briefing.png" class="bottom-nav-logo" alt="Briefing Logo" />
+      <span class="bottom-nav-label">Deep Dive</span>
+    </button>
+    <button id="bottom-nav-saved" class="bottom-nav-btn" aria-label="Saved">
+      <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span id="bottom-nav-saved-badge" class="bottom-nav-badge" style="display: none;">0</span>
+      </div>
+      <span class="bottom-nav-label">Saved</span>
+    </button>
+    <button id="bottom-nav-menu" class="bottom-nav-btn" aria-label="Menu">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
+      </svg>
+      <span class="bottom-nav-label">Menu</span>
+    </button>
+  </nav>
+
+  <!-- ── Slide-in Menu ──────────────────────────────────────── -->
+  <div id="menu-overlay" class="menu-overlay"></div>
+  <div id="slide-menu" class="slide-menu" role="dialog" aria-modal="true" aria-labelledby="menu-title">
+    <div class="menu-header">
+      <div class="menu-logo-row" id="menu-title">
+        <img src="icon-briefing.png" alt="Logo" class="menu-logo-img" />
+        <span class="menu-logo-text">The Briefing</span>
+      </div>
+      <button id="menu-close" class="menu-close-btn" aria-label="Close menu">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="menu-body">
+      <!-- Search Section -->
+      <div class="menu-section menu-clickable-row" id="menu-search-trigger">
+        <div class="menu-section-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+        <div class="menu-section-info">
+          <h4 class="menu-section-title">Search</h4>
+          <p class="menu-section-desc">Search stories and flash news</p>
+        </div>
+        <div class="menu-chevron">&rarr;</div>
+      </div>
+
+      <!-- Appearance Section -->
+      <div class="menu-section" id="menu-appearance-section">
+        <div class="menu-section-header-row" style="margin-bottom: 8px;">
+          <div class="menu-section-icon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v2"></path><path d="M12 20v2"></path>
+              <path d="M4.93 4.93l1.41 1.41"></path><path d="M17.66 17.66l1.41 1.41"></path>
+              <path d="M2 12h2"></path><path d="M20 12h2"></path>
+              <path d="M6.34 17.66l-1.41 1.41"></path><path d="M19.07 4.93l-1.41 1.41"></path>
+              <circle cx="12" cy="12" r="4"></circle>
+            </svg>
+          </div>
+          <div class="menu-section-info">
+            <h4 class="menu-section-title">Appearance</h4>
+          </div>
+        </div>
+        <div class="menu-theme-capsule">
+          <button id="menu-theme-light" class="menu-theme-btn" aria-label="Light mode">Light</button>
+          <button id="menu-theme-dark" class="menu-theme-btn" aria-label="Dark mode">Dark</button>
+        </div>
+      </div>
+
+      <!-- Date selection lives in the header calendar picker; kept here only as a hidden data store -->
+      <input type="date" id="archive-select" class="archive-date-picker" aria-label="Search by date" style="display: none;" />
+
+      <!-- Notifications Section -->
+      <div class="menu-section menu-clickable-row" id="notification-trigger" aria-label="Toggle notifications" title="Enable Notifications">
+        <div class="menu-section-icon">
+          <svg id="icon-bell" class="hidden" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+          </svg>
+          <svg id="icon-bell-off" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8.7 3A6 6 0 0 1 18 8a21.3 21.3 0 0 0 .6 5"></path>
+            <path d="M17 17H3s3-2 3-9a4.67 4.67 0 0 1 .3-1.7"></path>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+            <path d="M2 2l20 20"></path>
+          </svg>
+        </div>
+        <div class="menu-section-info">
+          <h4 class="menu-section-title">Notifications</h4>
+          <p class="menu-section-desc">Get alerted when new stories drop</p>
+        </div>
+      </div>
+
+      <!-- Install The App Section -->
+      <div class="menu-section menu-clickable-row" id="menu-install-trigger">
+        <div class="menu-section-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+          </svg>
+        </div>
+        <div class="menu-section-info">
+          <h4 class="menu-section-title">Install The App</h4>
+          <p class="menu-section-desc">Get a native experience</p>
+        </div>
+        <div class="menu-chevron">&rarr;</div>
+      </div>
+
+      <!-- Contact Section -->
+      <a href="mailto:hello.briefings@gmail.com" class="menu-section menu-clickable-row" id="menu-contact-section" style="text-decoration: none; color: inherit;">
+        <div class="menu-section-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+        </div>
+        <div class="menu-section-info">
+          <h4 class="menu-section-title">Contact</h4>
+          <p class="menu-section-desc">Send Email</p>
+        </div>
+        <div class="menu-chevron">&rarr;</div>
+      </a>
+    </div>
+  </div>
+
+  <script src="app.js?v=10" defer></script>
+</body>
+</html>
