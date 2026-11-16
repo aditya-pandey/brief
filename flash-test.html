@@ -68,10 +68,10 @@
   <p class="sub">Display-only. Fetches RSS feeds, dedupes, scores, runs one batched LLM call. Never touches data/, never publishes to GitHub.</p>
 
   <div class="banner">
-    This is a test page, not part of the live app. Output here has no effect on the production Flash feed until you manually decide otherwise.
+    This is a test page, not part of the live app. The pipeline runs locally (no live server call — Netlify's function timeout can't reliably fit one batched Gemini call). To refresh these results: run <code>npm run flash-test</code> in your terminal, then commit + push <code>flash-test-output.json</code> and reload this page.
   </div>
 
-  <button id="run-btn">Run Pipeline Test</button>
+  <button id="run-btn">Load Latest Results</button>
   <span id="status" style="margin-left: 12px; font-size: 13px; color: var(--muted);"></span>
 
   <div id="log"></div>
@@ -104,20 +104,25 @@
     rawDetails.style.display = 'none';
 
     try {
-      const res = await fetch('/.netlify/functions/flash-pipeline-test');
+      const res = await fetch(`./flash-test-output.json?t=${Date.now()}`);
+      if (!res.ok) {
+        statusEl.textContent = 'Failed';
+        logEl.innerHTML += `\n<span class="err">ERROR: flash-test-output.json not found yet. Run "npm run flash-test" locally first.</span>`;
+        return;
+      }
       const data = await res.json();
 
       if (data.log) {
         logEl.textContent = data.log.join('\n');
       }
 
-      if (!res.ok || data.error) {
+      if (data.error) {
         statusEl.textContent = 'Failed';
-        logEl.innerHTML += `\n<span class="err">ERROR: ${esc(data.error || 'Unknown error')}</span>`;
+        logEl.innerHTML += `\n<span class="err">ERROR: ${esc(data.error)}</span>`;
         return;
       }
 
-      statusEl.textContent = `Done — ${data.items.length} items`;
+      statusEl.textContent = `${data.items.length} items — generated ${esc(new Date(data.generatedAt).toLocaleString())}`;
 
       resultsEl.innerHTML = data.items.map(item => `
         <div class="item">
