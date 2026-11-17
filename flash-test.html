@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Flash Pipeline — Test Harness</title>
+<title>Flash Drafts</title>
+<meta name="robots" content="noindex">
 <style>
   :root {
     --bg: #0f1115; --panel: #171a21; --ink: #eef0f3; --muted: #9aa3b2;
@@ -60,98 +61,92 @@
     background: var(--code); border: 1px solid var(--line); border-radius: 8px;
     padding: 12px; font-size: 11px; overflow-x: auto; color: var(--muted); margin-top: 10px;
   }
+  .counts { font-size: 11px; color: var(--muted); margin-left: 8px; font-family: ui-monospace, monospace; }
+  .counts.off { color: var(--warn); }
+  input[type=date] { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; font-size: 14px; margin-right: 8px; }
+  .rej { font-size: 12px; color: var(--muted); margin: 4px 0; }
+  .rej b { color: var(--ink); font-weight: 500; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Flash Pipeline — Test Harness</h1>
-  <p class="sub">Display-only. Fetches RSS feeds, dedupes, scores, runs one batched LLM call. Never touches data/, never publishes to GitHub.</p>
+  <h1>Flash Drafts</h1>
+  <p class="sub">Daily automated Flash runs saved as drafts (data/drafts/). Nothing here is live. Compare with your Gem before switching on auto-publish.</p>
 
-  <div class="banner">
-    This is a test page, not part of the live app. The pipeline runs locally (no live server call — Netlify's function timeout can't reliably fit one batched Gemini call). To refresh these results: run <code>npm run flash-test</code> in your terminal, then commit + push <code>flash-test-output.json</code> and reload this page.
-  </div>
-
-  <button id="run-btn">Load Latest Results</button>
+  <input type="date" id="date" />
+  <button id="run-btn">Load draft</button>
   <span id="status" style="margin-left: 12px; font-size: 13px; color: var(--muted);"></span>
 
-  <div id="log"></div>
   <div id="results"></div>
+  <div id="rejected"></div>
+  <div id="log"></div>
 
   <details class="raw-toggle" id="raw-details" style="display:none;">
-    <summary>Raw JSON output</summary>
+    <summary>Raw JSON</summary>
     <pre id="raw-json"></pre>
   </details>
 </div>
 
 <script>
-  const runBtn = document.getElementById('run-btn');
-  const statusEl = document.getElementById('status');
-  const logEl = document.getElementById('log');
-  const resultsEl = document.getElementById('results');
-  const rawDetails = document.getElementById('raw-details');
-  const rawJsonEl = document.getElementById('raw-json');
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  const words = (s) => String(s || '').trim().split(/\s+/).filter(Boolean).length;
+  // Today in India, the publishing day.
+  $('date').value = new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10);
 
-  function esc(s) {
-    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
-  }
-
-  runBtn.addEventListener('click', async () => {
-    runBtn.disabled = true;
-    statusEl.textContent = 'Running...';
-    logEl.className = 'visible';
-    logEl.textContent = '';
-    resultsEl.innerHTML = '';
-    rawDetails.style.display = 'none';
-
+  async function load() {
+    const date = $('date').value;
+    $('run-btn').disabled = true;
+    $('status').textContent = 'Loading...';
+    $('results').innerHTML = $('rejected').innerHTML = '';
+    $('log').className = ''; $('raw-details').style.display = 'none';
     try {
-      const res = await fetch(`./flash-test-output.json?t=${Date.now()}`);
-      if (!res.ok) {
-        statusEl.textContent = 'Failed';
-        logEl.innerHTML += `\n<span class="err">ERROR: flash-test-output.json not found yet. Run "npm run flash-test" locally first.</span>`;
-        return;
-      }
-      const data = await res.json();
+      const res = await fetch(`/data/drafts/flash-${date}.json?t=${Date.now()}`);
+      if (!res.ok) { $('status').textContent = `No draft for ${date} yet.`; return; }
+      const items = await res.json();
+      const report = await fetch(`/data/drafts/flash-${date}.report.json?t=${Date.now()}`).then(r => r.ok ? r.json() : null).catch(() => null);
+      const withPhoto = items.filter(i => i.image).length;
+      $('status').textContent = `${items.length} stories · ${withPhoto} with photos${report ? ` · generated ${new Date(report.generatedAt).toLocaleString()}` : ''}`;
 
-      if (data.log) {
-        logEl.textContent = data.log.join('\n');
-      }
-
-      if (data.error) {
-        statusEl.textContent = 'Failed';
-        logEl.innerHTML += `\n<span class="err">ERROR: ${esc(data.error)}</span>`;
-        return;
-      }
-
-      statusEl.textContent = `${data.items.length} items — generated ${esc(new Date(data.generatedAt).toLocaleString())}`;
-
-      resultsEl.innerHTML = data.items.map(item => `
+      $('results').innerHTML = items.map(item => {
+        const sw = words(item.summary), ww = words(item.why_it_matters);
+        return `
         <div class="item">
           ${item.image
-            ? `<img class="hero" src="${esc(item.image)}" alt="" onerror="this.style.display='none'" />`
-            : `<div class="no-image">⚠ no image found for this story</div>`}
+            ? `<img class="hero" src="${esc(item.image)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=no-image>⚠ photo failed to load</div>'" />`
+            : `<div class="no-image">no photo (card shows the category icon)</div>`}
           <div class="item-top">
             <span class="pill">${esc(item.cat)}</span>
+            <span class="counts ${sw < 45 || sw > 50 ? 'off' : ''}">summary ${sw}w</span>
+            <span class="counts">why ${ww}w</span>
             <span class="ts">${esc(item.ts)}</span>
           </div>
           <h3>${esc(item.headline)}</h3>
           <p>${esc(item.summary)}</p>
-          ${item.why_it_matters ? `<div class="why"><strong>Why it matters:</strong> ${esc(item.why_it_matters)}</div>` : ''}
+          <div class="why"><strong>Why it matters:</strong> ${esc(item.why_it_matters)}</div>
           <div class="meta">
-            <span>${esc(item.source)}</span>
+            <span>${esc(item.source)}${item.image_credit ? ` · ${esc(item.image_credit)}` : ''}</span>
             <a href="${esc(item.source_url)}" target="_blank" rel="noopener noreferrer">source &rarr;</a>
           </div>
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
 
-      rawJsonEl.textContent = JSON.stringify(data.items, null, 2);
-      rawDetails.style.display = 'block';
+      if (report) {
+        if (report.shortfalls?.length) $('rejected').innerHTML += `<p class="rej"><b>Below category minimum:</b> ${esc(report.shortfalls.join(', '))}</p>`;
+        if (report.rejected?.length) $('rejected').innerHTML += `<details class="raw-toggle"><summary>${report.rejected.length} stories rejected by the checks</summary>${report.rejected.map(r => `<p class="rej"><b>[${esc(r.cat)}] ${esc(r.headline)}</b><br>${esc(r.reasons.join('; '))}</p>`).join('')}</details>`;
+        $('log').textContent = (report.log || []).join('\n');
+        $('log').className = 'visible';
+      }
+      $('raw-json').textContent = JSON.stringify(items, null, 2);
+      $('raw-details').style.display = 'block';
     } catch (e) {
-      statusEl.textContent = 'Failed';
-      logEl.innerHTML += `\n<span class="err">ERROR: ${esc(e.message)}</span>`;
+      $('status').textContent = `Failed: ${e.message}`;
     } finally {
-      runBtn.disabled = false;
+      $('run-btn').disabled = false;
     }
-  });
+  }
+  $('run-btn').addEventListener('click', load);
+  load();
 </script>
 </body>
 </html>

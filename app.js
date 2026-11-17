@@ -3873,6 +3873,20 @@ function getFlashSourceHtml(s, timeClass = 'flash-time') {
 
 /* ── Mobile Layout Renderer ── */
 /* ── Flash card inner-HTML builder (reused by animation + render) ── */
+// A Flash photo failed to load: drop the photo and bring back the category icon row.
+window.flashPhotoFailed = function (img) {
+  const strip = img.closest('.flash-photo-strip, .desktop-flash-photo');
+  if (!strip) return;
+  strip.parentElement?.querySelector('.has-photo')?.classList.remove('has-photo');
+  strip.remove();
+};
+
+// Photo block for desktop Flash cards; empty for stories without a source photo.
+function desktopFlashPhoto(s, size) {
+  if (typeof s.image !== 'string' || !s.image.startsWith('http')) return '';
+  return `<div class="desktop-flash-photo ${size}"><img src="${esc(s.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="flashPhotoFailed(this)" />${s.image_credit ? `<span class="flash-photo-credit">${esc(s.image_credit)}</span>` : ''}</div>`;
+}
+
 function buildFlashCardInnerHTML(s, col, isSaved) {
   const rgb = getCategoryColorRgb(s.cat);
   const actionsHtml = `
@@ -3906,8 +3920,17 @@ function buildFlashCardInnerHTML(s, col, isSaved) {
       <span class="flash-why-value">${esc(s.why_it_matters)}</span>
     </div>` : '';
 
-  return `
-    <div class="flash-card-content-area" style="--cat-color: ${col}; --cat-color-rgb: ${rgb};">
+  // Source photo strip (automated Flash adds `image`); older stories without one keep the icon row.
+  const hasPhoto = typeof s.image === 'string' && s.image.startsWith('http');
+  const photoHtml = hasPhoto ? `
+    <div class="flash-photo-strip">
+      <img src="${esc(s.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="flashPhotoFailed(this)" />
+      <span class="flash-cat-badge flash-photo-badge" style="color:${col};">${esc(FLASH_LABELS[s.cat] || s.cat)}</span>
+      ${s.image_credit ? `<span class="flash-photo-credit">${esc(s.image_credit)}</span>` : ''}
+    </div>` : '';
+
+  return `${photoHtml}
+    <div class="flash-card-content-area${hasPhoto ? ' has-photo' : ''}" style="--cat-color: ${col}; --cat-color-rgb: ${rgb};">
       <div class="flash-card-top-row">
         <div class="flash-card-icon-badge" style="background: rgba(${rgb}, 0.08); border: 1px solid rgba(${rgb}, 0.15);">
           <div class="flash-card-visual" style="width: 28px; height: 28px; color: ${col}; background: none; border: none; padding: 0;">
@@ -4047,6 +4070,7 @@ function renderDesktopGrid(filtered, targetDate) {
 
   const heroHtml = `
     <div class="desktop-hero-card" data-id="${esc(heroStory.id)}" style="--cat-color: ${heroCol}; --cat-color-rgb: ${heroRgb};">
+      ${desktopFlashPhoto(heroStory, 'hero')}
       <div class="hero-card-header">
         <div class="flash-card-icon-badge" style="background: rgba(${heroRgb}, 0.08); border: 1px solid rgba(${heroRgb}, 0.15);">
           <div class="flash-card-visual" style="width: 28px; height: 28px; color: ${heroCol}; background: none; border: none; padding: 0;">
@@ -4126,6 +4150,7 @@ function renderDesktopGrid(filtered, targetDate) {
 
     return `
       <div class="desktop-grid-card" data-id="${esc(s.id)}" style="--cat-color: ${col}; --cat-color-rgb: ${rgb};">
+        ${desktopFlashPhoto(s, 'grid')}
         <div class="grid-card-header">
           <div class="flash-card-icon-badge" style="background: rgba(${rgb}, 0.08); border: 1px solid rgba(${rgb}, 0.15);">
             <div class="flash-card-visual" style="width: 24px; height: 24px; color: ${col}; background: none; border: none; padding: 0;">

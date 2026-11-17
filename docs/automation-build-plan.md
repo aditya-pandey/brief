@@ -33,7 +33,7 @@ Key insight: your Gem runs on hydrogen too. The model is the same, so the only r
 ```
 GitHub Action (cron)  ──►  node pipeline/run.js <flash|deepdive>
                               │
-   feeds (34 RSS) ──► cluster + score ──► pick ──► full article text + photo
+   feeds (38 RSS) ──► cluster + score ──► pick ──► full article text + photo
                                             │     (+ Bing News, approved outlets, for deep dive)
                                             ▼
           Gemini hydrogen (Flash: free key · Deep dive: paid key + Google Search)
@@ -51,7 +51,7 @@ GitHub Action (cron)  ──►  node pipeline/run.js <flash|deepdive>
 
 | Path | Purpose |
 |---|---|
-| `pipeline/lib/feeds.js` | The 34 feeds, fetch, recency filter, clustering, scoring (moved from `scripts/flash-test.mjs`). |
+| `pipeline/lib/feeds.js` | The 38 feeds (34 + BBC Health, ScienceDaily Health, BBC Sport, Guardian Society added 2026-11-17), fetch, recency filter, clustering, scoring (moved from `scripts/flash-test.mjs`). |
 | `pipeline/lib/articles.js` | Full-text extraction (cheerio), paywall/short-text detection. Returns text **and** `og:image` from the same fetch. |
 | `pipeline/lib/images.js` | Picks and checks the photo, swaps out branded versions, falls back to Wikimedia Commons (see Images). |
 | `pipeline/lib/sources.js` | Approved outlet list (global, India, `.gov`), Bing News `site:` search, outlet → lean/region table. |
@@ -69,7 +69,7 @@ GitHub Action (cron)  ──►  node pipeline/run.js <flash|deepdive>
 
 **Order of preference:**
 1. **Source article photo.** Taken from `og:image` / `twitter:image` during the article fetch the pipeline already does, so it needs no extra requests. Checks:
-   - the response really is an image, larger than about 20 KB;
+   - the response really is an image, larger than about 12 KB;
    - it passes the existing `isGenericImage` filter (no logos or placeholders);
    - it is not a Google thumbnail (`gstatic.com`);
    - per-outlet cleanup, for example BBC `/branded_news/` → `/standard/`.
@@ -114,7 +114,7 @@ Shared code is now in `pipeline/lib/` (feeds, articles, sources, gemini, factche
 **Schedule:** once a day at 07:00 IST, 25 stories, the same product as today. An evening top-up can come later.
 
 **Steps**
-1. Fetch the 34 feeds, keep the last 24h, cluster, score.
+1. Fetch the 38 feeds, keep the last 30h ("Yesterday" is the oldest ts the Gem allows), cluster, score.
 2. Build a shortlist per category, with headroom above your min/max table (about 1.5× the max per category).
 3. Fetch full article text and photo for each candidate.
 4. Hydrogen (free key) writes the stories in **3 batches** (~10 categories split into groups). One giant call was the latency problem seen earlier.
@@ -135,8 +135,11 @@ Shared code is now in `pipeline/lib/` (feeds, articles, sources, gemini, factche
 **Site change (`app.js` + `styles.css`):** add the photo strip to `buildFlashCardInnerHTML`, lazy-loaded, falling back to the category icon on error. Old Flash days without `image` look exactly as they do now.
 
 **Rollout**
-- 3 days with the Action in draft mode: it writes `data/drafts/flash-<date>.json` only, viewable in `flash-test.html` (with photos), so you can compare it with your Gem.
-- Then switch on auto-publish.
+- 3 days with the Action in draft mode: it writes `data/drafts/flash-<date>.json` (plus a `.report.json` with rejected stories and the run log) only, viewable in `flash-test.html` (with photos), so you can compare it with your Gem.
+- Then switch on auto-publish: set the repository variable `FLASH_MODE` to `publish` (GitHub → Settings → Secrets and variables → Actions → Variables). Deleting it returns to drafts.
+- Manual runs: Actions → Automated Flash → Run workflow, with a draft/publish choice and a dry-run option.
+
+**Build notes (2026-11-17):** code in `pipeline/flash-auto.js`, `pipeline/lib/{images,publish}.js`, `.github/workflows/automate.yml`; the prompt is your Flash Gem prompt verbatim in `pipeline/prompts/flash.md` plus an override block. The summary gate allows 44–52 words (the prompt asks for 45–50) to absorb word-counting differences.
 
 ## Phase 2: Deep dive drafts
 

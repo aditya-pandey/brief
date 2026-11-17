@@ -4,9 +4,11 @@ import Parser from 'rss-parser';
 
 export const REAL_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
-const parser = new Parser({
-  customFields: { item: [['media:content', 'mediaContent'], ['enclosure', 'enclosure']] },
-});
+const customFields = { item: [['media:content', 'mediaContent'], ['enclosure', 'enclosure']] };
+// Sites disagree: ESPN rejects browser-like requests, Nature sometimes rejects the default ones.
+// So each feed is tried with the default headers first, then once with browser headers.
+const parser = new Parser({ customFields });
+const browserParser = new Parser({ customFields, headers: { 'User-Agent': REAL_UA, Accept: 'application/rss+xml, application/xml;q=0.9, */*;q=0.8' } });
 
 // Verified working as of 2026-06-26. Dropped: The Print, Business Standard, DNA India (bot-blocked,
 // 403 even with a browser UA), Down To Earth (malformed XML), OpIndia/Swarajya (credibility), Cricbuzz (dead RSS).
@@ -50,12 +52,15 @@ export const FEEDS = [
   { url: 'https://www.sciencedaily.com/rss/all.xml', cat: 'science', source: 'ScienceDaily', weight: 0.8 },
   { url: 'https://www.nature.com/nature.rss', cat: 'science', source: 'Nature', weight: 1.0 },
 
-  // Health: deliberately one source only, capped to ~1/day downstream
+  // Health (1–2 a day): WHO plus two broader feeds so the daily minimum can be met (added 2026-11-17)
   { url: 'https://www.who.int/rss-feeds/news-english.xml', cat: 'health', source: 'WHO', weight: 0.95 },
+  { url: 'https://feeds.bbci.co.uk/news/health/rss.xml', cat: 'health', source: 'BBC', weight: 0.9 },
+  { url: 'https://www.sciencedaily.com/rss/health_medicine.xml', cat: 'health', source: 'ScienceDaily', weight: 0.75 },
 
   // Culture
   { url: 'http://feeds.feedburner.com/ScrollinArticles.rss', cat: 'culture', source: 'Scroll.in', weight: 0.85 },
   { url: 'https://feeds.npr.org/1008/rss.xml', cat: 'culture', source: 'NPR', weight: 0.8 },
+  { url: 'https://www.theguardian.com/society/rss', cat: 'culture', source: 'The Guardian', weight: 0.85 },
 
   // Entertainment
   { url: 'https://variety.com/feed/', cat: 'entertainment', source: 'Variety', weight: 0.85 },
@@ -64,15 +69,17 @@ export const FEEDS = [
   // Sports
   { url: 'https://www.espn.com/espn/rss/news', cat: 'sports', source: 'ESPN', weight: 0.85 },
   { url: 'https://www.espncricinfo.com/rss/content/story/feeds/0.xml', cat: 'sports', source: 'ESPNcricinfo', weight: 0.9 },
+  { url: 'https://feeds.bbci.co.uk/sport/rss.xml', cat: 'sports', source: 'BBC Sport', weight: 0.9 },
 ];
 
 const FEED_TIMEOUT_MS = 8000;
 
 export function withTimeout(promise, ms, label) {
+  let timer;
   return Promise.race([
     promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error(`Timed out after ${ms}ms fetching ${label}`)), ms)),
-  ]);
+    new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`Timed out after ${ms}ms fetching ${label}`)), ms); }),
+  ]).finally(() => clearTimeout(timer));
 }
 
 function feedImage(item) {
@@ -82,7 +89,8 @@ function feedImage(item) {
 export async function fetchAllFeeds(log = console.log) {
   const results = await Promise.allSettled(
     FEEDS.map(async (feed) => {
-      const parsed = await withTimeout(parser.parseURL(feed.url), FEED_TIMEOUT_MS, feed.url);
+      const parsed = await withTimeout(parser.parseURL(feed.url), FEED_TIMEOUT_MS, feed.url)
+        .catch(() => withTimeout(browserParser.parseURL(feed.url), FEED_TIMEOUT_MS, feed.url));
       return (parsed.items || []).map((item) => ({
         title: item.title || '',
         link: item.link || '',
@@ -108,7 +116,7 @@ function normalizeTitle(title) {
   return (title || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-function titleSimilarity(a, b) {
+export function titleSimilarity(a, b) {
   const setA = new Set(normalizeTitle(a).split(' ').filter((w) => w.length > 3));
   const setB = new Set(normalizeTitle(b).split(' ').filter((w) => w.length > 3));
   if (setA.size < 3 || setB.size < 3) return 0;

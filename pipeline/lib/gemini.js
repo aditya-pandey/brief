@@ -34,6 +34,11 @@ export async function gemini({ system, user, key = 'free', json = false, search 
   if (key === 'paid' && usage.paidUsd >= MAX_RUN_USD) throw new Error(`Paid spend limit reached ($${usage.paidUsd.toFixed(2)} ≥ $${MAX_RUN_USD})`);
 
   const t0 = Date.now();
+  const canFallBack = fallbackToPaid && key === 'free' && !!process.env.GEMINI_API_KEY_PAID;
+  const toPaid = (why) => {
+    log(`  Free key ${why}; switching to the paid key.`);
+    return gemini({ system, user, key: 'paid', json, search, thinking, model, timeoutMs, maxAttempts: 4, log });
+  };
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     let res;
     try {
@@ -52,23 +57,27 @@ export async function gemini({ system, user, key = 'free', json = false, search 
         signal: AbortSignal.timeout(timeoutMs),
       });
     } catch (e) {
-      if (attempt === maxAttempts) throw e;
+      if (attempt === maxAttempts) {
+        if (canFallBack) return toPaid(`network errors (${e.message})`);
+        throw e;
+      }
       log(`  Gemini network error (${e.message}), retrying...`);
       await sleep(30);
       continue;
     }
 
     if (res.status === 503 || res.status === 429) {
+      const body = await res.text();
+      // A free-tier quota error will not clear in minutes: move to the paid key at once.
+      if (res.status === 429 && canFallBack && /quota/i.test(body)) return toPaid('is out of quota');
       if (attempt < maxAttempts) {
         const waitS = Math.min(120, attempt * 30);
         log(`  Gemini ${res.status} (busy), retrying in ${waitS}s (attempt ${attempt}/${maxAttempts})...`);
         await sleep(waitS);
         continue;
       }
-      if (fallbackToPaid && key === 'free') {
-        log('  Free key still busy; switching to the paid key.');
-        return gemini({ system, user, key: 'paid', json, search, thinking, model, timeoutMs, maxAttempts: 3, log });
-      }
+      if (canFallBack) return toPaid('still busy');
+      throw new Error(`Gemini ${res.status} after ${maxAttempts} attempts: ${body.slice(0, 200)}`);
     }
 
     const j = await res.json();

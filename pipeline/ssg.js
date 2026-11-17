@@ -1366,7 +1366,10 @@ async function runSSG() {
     
     const ogTitle = (story.headline || story.hl || "").replace(/"/g, '&quot;');
     const ogDesc = (story.summary || story.body || "").replace(/"/g, '&quot;');
-    const ogImage = `${domain}/og-images/flash/${story.id}.png`;
+    // Prefer the story's source photo for link previews; the generated card is the fallback.
+    const ogImage = (typeof story.image === 'string' && story.image.startsWith('http'))
+      ? story.image.replace(/"/g, '&quot;')
+      : `${domain}/og-images/flash/${story.id}.png`;
     const storyUrl = `${domain}/flash/story/${story.id}/`;
 
     let storyHtml = rootHtml;

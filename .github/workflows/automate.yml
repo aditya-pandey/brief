@@ -1,0 +1,105 @@
+name: Automated Flash
+
+# Daily at 07:00 IST (01:30 UTC).
+# Mode: drafts by default. To switch on auto-publish, set the repository variable FLASH_MODE=publish
+# (GitHub → Settings → Secrets and variables → Actions → Variables). No code change needed.
+on:
+  schedule:
+    - cron: "30 1 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "draft = save to data/drafts for review · publish = go live"
+        type: choice
+        options: [draft, publish]
+        default: draft
+      dry_run:
+        description: "Dry run: generate only, commit nothing"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: automate-flash
+  cancel-in-progress: false
+
+jobs:
+  flash:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+
+      - name: Generate Flash
+        id: flash
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_PAID: ${{ secrets.GEMINI_API_KEY_PAID }}
+          MODE: ${{ inputs.mode || vars.FLASH_MODE || 'draft' }}
+          DRY: ${{ inputs.dry_run && '--dry' || '' }}
+        run: |
+          set +e
+          node pipeline/flash-auto.js --mode="$MODE" $DRY
+          echo "exit=$?" >> "$GITHUB_OUTPUT"
+
+      # A push made with the Action's own token does not trigger ssg.yml, so build the pages here.
+      - name: Build static pages
+        if: steps.flash.outputs.published == 'true'
+        run: npm run ssg
+
+      - name: Commit and push
+        if: ${{ !inputs.dry_run }}
+        env:
+          DATE: ${{ steps.flash.outputs.date }}
+          PUBLISHED: ${{ steps.flash.outputs.published }}
+        run: |
+          git config user.name "briefing-bot"
+          git config user.email "actions@github.com"
+          git add data/ flash.json
+          if [ "$PUBLISHED" = "true" ]; then
+            git add og-images/ story/ day/ flash/ briefings/ sitemap.xml search-index.json
+            msg="update: automated Flash for $DATE"
+          else
+            # No [skip ci]: Netlify must deploy the draft so flash-test.html can show it.
+            msg="draft: automated Flash for $DATE"
+          fi
+          if git diff --staged --quiet; then echo "Nothing to commit."; exit 0; fi
+          git commit -m "$msg"
+          for attempt in 1 2 3 4 5; do
+            if git push origin main; then echo "Pushed."; exit 0; fi
+            echo "Push rejected (attempt $attempt); rebasing on the latest main."
+            git fetch origin main
+            # On a conflict keep this run's files (generated data and pages).
+            git rebase -X theirs origin/main || { git rebase --abort; exit 1; }
+          done
+          exit 1
+
+      - name: Send push notification
+        if: steps.flash.outputs.published == 'true' && !inputs.dry_run
+        env:
+          ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
+        run: |
+          if [ -z "$ADMIN_SECRET" ]; then echo "ADMIN_SECRET not set; skipping notification."; exit 0; fi
+          # Wait for Netlify to deploy the new flash.json, so the notification shows the new headline.
+          want=$(node -e 'console.log(require("./flash.json")[0]?.id || "")')
+          for i in $(seq 1 20); do
+            live=$(curl -fsS "https://thebriefings.netlify.app/flash.json?t=$(date +%s)" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s)[0]?.id||"")}catch{console.log("")}})')
+            [ "$live" = "$want" ] && break
+            echo "Waiting for deploy ($i/20)..."; sleep 30
+          done
+          curl -fsS -X POST https://thebriefings.netlify.app/.netlify/functions/notify \
+            -H 'Content-Type: application/json' \
+            -d "{\"secret\": \"$ADMIN_SECRET\"}" || echo "Notification failed (publishing still succeeded)."
+
+      - name: Fail if too few stories
+        if: steps.flash.outputs.exit != '0'
+        run: |
+          echo "::error::Flash produced fewer than 20 valid stories; saved as a draft instead of publishing. See the log above."
+          exit 1

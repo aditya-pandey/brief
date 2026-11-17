@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-18",
+  "generatedAt": "2026-11-17T20:19:07.075Z",
+  "mode": "draft",
+  "count": 25,
+  "shortfalls": [
+    "india 2/4",
+    "culture 0/1",
+    "science 1/2"
+  ],
+  "rejected": [
+    {
+      "headline": "India condemns Hormuz tanker attack leaving one Indian seafarer missing",
+      "cat": "india",
+      "reasons": [
+        "numbers not in article: 21"
+      ]
+    }
+  ],
+  "log": [
+    "Flash 2026-11-18 · mode: draft",
+    "  ✗ Moneycontrol (economics): Status code 403",
+    "Fetched 2220 items from 37/38 feeds.",
+    "1069 items in the last 30h → 948 distinct stories.",
+    "Shortlist: 84 stories not already run in the last 3 days.",
+    "Article text for 76/84.",
+    "  Gemini gemini-4-hydrogen (free) 131.4s: in 15388, out 1610, thinking 17730",
+    "Batch sports/entertainment/culture/health: 10 written from 20 candidates",
+    "  Gemini gemini-4-hydrogen (free) 138.5s: in 19814, out 1850, thinking 18270",
+    "Batch ai-tech/economics/science: 12 written from 26 candidates",
+    "  Gemini gemini-4-hydrogen (free) 177.1s: in 22154, out 2611, thinking 23308",
+    "Batch india/politics/global: 17 written from 30 candidates",
+    "Valid: 38 · rejected: 1",
+    "  ✗ [india] India condemns Hormuz tanker attack leaving one Indian seafarer missing — numbers not in article: 21",
+    "Below category minimum: india 2/4, culture 0/1, science 1/2",
+    "Final: 25 stories, 25 with photos. 3 call(s): 57356 in, 6071 out, 59308 thinking tokens; 0 searches; paid cost $0.000"
+  ]
+}

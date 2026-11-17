@@ -7,6 +7,10 @@ export const normalize = (s) => String(s)
   .replace(/\s+/g, ' ')
   .toLowerCase();
 
+const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
+  'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
+const TITLES = /^(President|Prime Minister|Minister|Chief Minister|Secretary|Chancellor|Governor|Senator|Justice|Chief Justice|Judge|General|Chairman|Chief|Dr|Mr|Ms|Mrs) /;
+
 // Title-case runs that are sentence starters or section headings, not names.
 const NOT_A_NAME = /^(The|In|This|That|What|Why|How|Who|When|Where|Plain English|Front|Overview|But|And|If|It|For|A|At|As|By|During|On|Is|Conclusion)\b/;
 
@@ -19,11 +23,27 @@ export function factCheck(text, corpus) {
   const body = normalize(text).replace(/\s+/g, ' ');
   const raw = String(text).replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
   const has = (s) => hay.includes(normalize(s).replace(/[,.;:]+$/, ''));
+  // "10" in the text may be "ten" in the article (and "10%" may be "10 per cent").
+  const hasNumber = (n) => {
+    if (has(n)) return true;
+    const v = n.replace(/%$/, '');
+    if (n.endsWith('%') && (has(`${v} per cent`) || has(`${v} percent`))) return true;
+    const word = NUMBER_WORDS[Number(v)];
+    return !!word && new RegExp(`\\b${word}\\b`).test(hay);
+  };
+  // A name passes if it appears in full, or if its surname does once titles are stripped
+  // ("President Donald Trump" when the article says "Trump").
+  const hasName = (n) => {
+    if (has(n)) return true;
+    const parts = n.replace(TITLES, '').trim().split(' ');
+    const last = parts.at(-1);
+    return parts.length >= 1 && last.length >= 4 && new RegExp(`\\b${normalize(last)}\\b`).test(hay);
+  };
 
   const quotes = [...raw.matchAll(/"([^"\n]{12,240})"/g)].map((m) => m[1]);
   const numbers = [...new Set([...raw.matchAll(/\b\d[\d,.]*\d%?|\b\d%?\b/g)].map((m) => m[0].replace(/[.,]$/, '')))]
     .filter((n) => n.replace(/[^\d]/g, '').length >= 2);
-  const names = [...new Set([...raw.matchAll(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})\b/g)].map((m) => m[1]))]
+  const names = [...new Set([...raw.matchAll(/\b([A-Z][a-z]+(?: [A-Z][a-z]+){1,2})\b/g)].map((m) => m[1]))]
     .filter((n) => !NOT_A_NAME.test(n));
   // Headings are not claims: drop names that only occur inside Markdown headings.
   const headingText = normalize([...raw.matchAll(/^#+ .*$|^[A-Z][^\n.]{0,120}$/gm)].map((m) => m[0]).join(' '));
@@ -31,8 +51,8 @@ export function factCheck(text, corpus) {
 
   return {
     quotes: quotes.map((q) => ({ value: q, found: has(q) })),
-    numbers: numbers.map((n) => ({ value: n, found: has(n) })),
-    names: names.filter(inBody).map((n) => ({ value: n, found: has(n) })),
+    numbers: numbers.map((n) => ({ value: n, found: hasNumber(n) })),
+    names: names.filter(inBody).map((n) => ({ value: n, found: hasName(n) })),
   };
 }
 
