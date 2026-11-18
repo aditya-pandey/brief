@@ -1,38 +1,51 @@
 {
   "date": "2026-11-18",
-  "generatedAt": "2026-11-17T20:19:07.075Z",
+  "generatedAt": "2026-11-18T09:02:16.459Z",
   "mode": "draft",
   "count": 25,
   "shortfalls": [
-    "india 2/4",
+    "sports 1/2",
     "culture 0/1",
-    "science 1/2"
+    "science 0/2"
   ],
   "rejected": [
     {
-      "headline": "India condemns Hormuz tanker attack leaving one Indian seafarer missing",
-      "cat": "india",
+      "headline": "Abu Dhabi fund, LIC back Mahanadi Coalfields ahead of $963M IPO",
+      "cat": "economics",
       "reasons": [
-        "numbers not in article: 21"
+        "numbers not in article: 2,295"
+      ]
+    },
+    {
+      "headline": "Profit-booking pulls Nifty below 25,200 as metals and durables slide",
+      "cat": "economics",
+      "reasons": [
+        "numbers not in article: 625, 0.8%"
       ]
     }
   ],
   "log": [
     "Flash 2026-11-18 · mode: draft",
-    "  ✗ Moneycontrol (economics): Status code 403",
-    "Fetched 2220 items from 37/38 feeds.",
-    "1069 items in the last 30h → 948 distinct stories.",
-    "Shortlist: 84 stories not already run in the last 3 days.",
-    "Article text for 76/84.",
-    "  Gemini gemini-4-hydrogen (free) 131.4s: in 15388, out 1610, thinking 17730",
-    "Batch sports/entertainment/culture/health: 10 written from 20 candidates",
-    "  Gemini gemini-4-hydrogen (free) 138.5s: in 19814, out 1850, thinking 18270",
-    "Batch ai-tech/economics/science: 12 written from 26 candidates",
-    "  Gemini gemini-4-hydrogen (free) 177.1s: in 22154, out 2611, thinking 23308",
-    "Batch india/politics/global: 17 written from 30 candidates",
-    "Valid: 38 · rejected: 1",
-    "  ✗ [india] India condemns Hormuz tanker attack leaving one Indian seafarer missing — numbers not in article: 21",
-    "Below category minimum: india 2/4, culture 0/1, science 1/2",
-    "Final: 25 stories, 25 with photos. 3 call(s): 57356 in, 6071 out, 59308 thinking tokens; 0 searches; paid cost $0.000"
+    "  ✗ Indian Express (india): Status code 403",
+    "  ✗ Indian Express (politics): Status code 403",
+    "  ✗ Indian Express (entertainment): Status code 403",
+    "  ✗ ESPN (sports): Unable to parse XML.",
+    "Fetched 1589 items from 34/38 feeds.",
+    "946 items in the last 30h → 829 distinct stories.",
+    "Shortlist: 79 stories not already run in the last 3 days.",
+    "Article text for 65/79.",
+    "  Gemini 503 (busy), retrying in 30s (attempt 1/6)...",
+    "  Gemini 503 (busy), retrying in 30s (attempt 1/6)...",
+    "  Gemini gemini-4-hydrogen (free) 154.2s: in 15434, out 1692, thinking 14550",
+    "Batch sports/entertainment/culture/health: 11 written from 20 candidates",
+    "  Gemini gemini-4-hydrogen (free) 155.1s: in 19327, out 1996, thinking 17321",
+    "Batch ai-tech/economics/science: 12 written from 20 candidates",
+    "  Gemini gemini-4-hydrogen (free) 173.2s: in 19986, out 2174, thinking 20377",
+    "Batch india/politics/global: 14 written from 25 candidates",
+    "Valid: 35 · rejected: 2",
+    "  ✗ [economics] Abu Dhabi fund, LIC back Mahanadi Coalfields ahead of $963M IPO — numbers not in article: 2,295",
+    "  ✗ [economics] Profit-booking pulls Nifty below 25,200 as metals and durables slide — numbers not in article: 625, 0.8%",
+    "Below category minimum: sports 1/2, culture 0/1, science 0/2",
+    "Final: 25 stories, 22 with photos. 3 call(s): 54747 in, 5862 out, 52248 thinking tokens; 0 searches; paid cost $0.000"
   ]
 }
