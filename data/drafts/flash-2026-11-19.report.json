@@ -1,0 +1,77 @@
+{
+  "date": "2026-11-19",
+  "generatedAt": "2026-11-19T09:30:26.704Z",
+  "mode": "draft",
+  "count": 25,
+  "shortfalls": [
+    "politics 1/2",
+    "culture 0/1",
+    "science 0/2"
+  ],
+  "rejected": [
+    {
+      "headline": "Elon Musk regrets nearly $500 million spent on losing midterm races",
+      "cat": "politics",
+      "reasons": [
+        "numbers not in article: 500"
+      ]
+    },
+    {
+      "headline": "Supreme Court refuses to stay Azam Khan's bail in ED case",
+      "cat": "india",
+      "reasons": [
+        "already ran in the last 3 days"
+      ]
+    },
+    {
+      "headline": "Polish leaders criticise Trump's warm greeting of Putin in China",
+      "cat": "global",
+      "reasons": [
+        "names not in article: Foreign Minister Radoslaw, Russian President Vladimir"
+      ]
+    },
+    {
+      "headline": "Karnataka seeks Supreme Court nod to use old Bengaluru voter rolls",
+      "cat": "politics",
+      "reasons": [
+        "numbers not in article: 18"
+      ]
+    },
+    {
+      "headline": "Nvidia refuses to reinstate Jensen Huang as Musk criticises ouster",
+      "cat": "ai-tech",
+      "reasons": [
+        "already ran in the last 3 days"
+      ]
+    }
+  ],
+  "log": [
+    "Flash 2026-11-19 · mode: draft",
+    "  ✗ Indian Express (india): Status code 403",
+    "  ✗ Indian Express (politics): Status code 403",
+    "  ✗ Indian Express (entertainment): Status code 403",
+    "  ✗ ESPN (sports): Unable to parse XML.",
+    "Fetched 1592 items from 34/38 feeds.",
+    "953 items in the last 30h → 845 distinct stories.",
+    "Shortlist: 79 stories not already run in the last 3 days.",
+    "Article text for 64/79.",
+    "  Gemini 503 (busy), retrying in 30s (attempt 1/6)...",
+    "  Gemini 503 (busy), retrying in 30s (attempt 1/6)...",
+    "  Gemini gemini-4-hydrogen (free) 278.7s: in 19755, out 1683, thinking 21716",
+    "Batch india/politics/global: 11 written from 23 candidates",
+    "  Gemini gemini-4-hydrogen (free) 295.5s: in 17298, out 1867, thinking 18795",
+    "Batch sports/entertainment/culture/health: 12 written from 21 candidates",
+    "  Gemini network error (fetch failed), retrying...",
+    "  Gemini 503 (busy), retrying in 90s (attempt 3/6)...",
+    "  Gemini gemini-4-hydrogen (free) 625.0s: in 17444, out 2028, thinking 16427",
+    "Batch ai-tech/economics/science: 12 written from 20 candidates",
+    "Valid: 30 · rejected: 5",
+    "  ✗ [politics] Elon Musk regrets nearly $500 million spent on losing midterm races — numbers not in article: 500",
+    "  ✗ [india] Supreme Court refuses to stay Azam Khan's bail in ED case — already ran in the last 3 days",
+    "  ✗ [global] Polish leaders criticise Trump's warm greeting of Putin in China — names not in article: Foreign Minister Radoslaw, Russian President Vladimir",
+    "  ✗ [politics] Karnataka seeks Supreme Court nod to use old Bengaluru voter rolls — numbers not in article: 18",
+    "  ✗ [ai-tech] Nvidia refuses to reinstate Jensen Huang as Musk criticises ouster — already ran in the last 3 days",
+    "Below category minimum: politics 1/2, culture 0/1, science 0/2",
+    "Final: 25 stories, 21 with photos. 3 call(s): 54497 in, 5578 out, 56938 thinking tokens; 0 searches; paid cost $0.000"
+  ]
+}
