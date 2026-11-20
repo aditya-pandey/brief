@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-20",
+  "generatedAt": "2026-11-20T09:05:03.888Z",
+  "mode": "draft",
+  "count": 25,
+  "shortfalls": [
+    "sports 1/2",
+    "science 0/2"
+  ],
+  "rejected": [
+    {
+      "headline": "Cyclone Akvan makes landfall near Gopalpur after mass Odisha evacuations",
+      "cat": "india",
+      "reasons": [
+        "already ran in the last 3 days"
+      ]
+    }
+  ],
+  "log": [
+    "Flash 2026-11-20 · mode: draft",
+    "  ✗ Indian Express (india): Status code 403",
+    "  ✗ Indian Express (politics): Status code 403",
+    "  ✗ Moneycontrol (economics): Unexpected close tag\nLine: 17\nColumn: 10\nChar: >",
+    "  ✗ Indian Express (entertainment): Status code 403",
+    "  ✗ ESPN (sports): Unable to parse XML.",
+    "Fetched 1583 items from 33/38 feeds.",
+    "929 items in the last 30h → 814 distinct stories.",
+    "Shortlist: 79 stories not already run in the last 3 days.",
+    "Article text for 66/79.",
+    "  Gemini 503 (busy), retrying in 30s (attempt 1/6)...",
+    "  Gemini gemini-4-hydrogen (free) 101.6s: in 17915, out 1973, thinking 13705",
+    "Batch ai-tech/economics/science: 12 written from 20 candidates",
+    "  Gemini gemini-4-hydrogen (free) 119.5s: in 19776, out 2139, thinking 18026",
+    "Batch india/politics/global: 14 written from 27 candidates",
+    "  Gemini gemini-4-hydrogen (free) 163.6s: in 16466, out 1150, thinking 13715",
+    "Batch sports/entertainment/culture/health: 7 written from 19 candidates",
+    "Valid: 32 · rejected: 1",
+    "  ✗ [india] Cyclone Akvan makes landfall near Gopalpur after mass Odisha evacuations — already ran in the last 3 days",
+    "Below category minimum: sports 1/2, science 0/2",
+    "Final: 25 stories, 21 with photos. 3 call(s): 54157 in, 5262 out, 45446 thinking tokens; 0 searches; paid cost $0.000"
+  ]
+}
