@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-21",
+  "generatedAt": "2026-11-21T08:51:32.946Z",
+  "mode": "draft",
+  "count": 25,
+  "shortfalls": [
+    "culture 0/1",
+    "science 0/2"
+  ],
+  "rejected": [
+    {
+      "headline": "Second US federal judge halts Trump's massive Washington triumphal arch project",
+      "cat": "politics",
+      "reasons": [
+        "banned phrase: landmark"
+      ]
+    },
+    {
+      "headline": "FCC blocks California from enforcing landline service mandate on AT&T",
+      "cat": "politics",
+      "reasons": [
+        "numbers not in article: 199,000"
+      ]
+    }
+  ],
+  "log": [
+    "Flash 2026-11-21 · mode: draft",
+    "  ✗ Indian Express (india): Status code 403",
+    "  ✗ Indian Express (politics): Status code 403",
+    "  ✗ Indian Express (entertainment): Status code 403",
+    "  ✗ ESPN (sports): Unable to parse XML.",
+    "Fetched 1584 items from 34/38 feeds.",
+    "896 items in the last 30h → 819 distinct stories.",
+    "Shortlist: 79 stories not already run in the last 3 days.",
+    "Article text for 66/79.",
+    "  Gemini 503 (busy), retrying in 30s (attempt 1/6)...",
+    "  Gemini gemini-4-hydrogen (free) 288.0s: in 15927, out 1363, thinking 13670",
+    "Batch sports/entertainment/culture/health: 9 written from 19 candidates",
+    "  Gemini gemini-4-hydrogen (free) 294.8s: in 20929, out 2686, thinking 24290",
+    "Batch india/politics/global: 17 written from 27 candidates",
+    "  Gemini network error (fetch failed), retrying...",
+    "  Gemini 503 (busy), retrying in 60s (attempt 2/6)...",
+    "  Gemini gemini-4-hydrogen (free) 613.6s: in 17249, out 1927, thinking 19131",
+    "Batch ai-tech/economics/science: 12 written from 20 candidates",
+    "Valid: 36 · rejected: 2",
+    "  ✗ [politics] Second US federal judge halts Trump's massive Washington triumphal arch project — banned phrase: landmark",
+    "  ✗ [politics] FCC blocks California from enforcing landline service mandate on AT&T — numbers not in article: 199,000",
+    "Below category minimum: culture 0/1, science 0/2",
+    "Final: 25 stories, 23 with photos. 3 call(s): 54105 in, 5976 out, 57091 thinking tokens; 0 searches; paid cost $0.000"
+  ]
+}
