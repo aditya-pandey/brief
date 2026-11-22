@@ -1,0 +1,65 @@
+{
+  "date": "2026-11-22",
+  "generatedAt": "2026-11-22T08:44:07.572Z",
+  "mode": "draft",
+  "count": 25,
+  "shortfalls": [
+    "science 0/2"
+  ],
+  "rejected": [
+    {
+      "headline": "Northern Ireland senior doctors prepare Monday walkout as resident strike ends",
+      "cat": "health",
+      "reasons": [
+        "already ran in the last 3 days"
+      ]
+    },
+    {
+      "headline": "Voltas and Atomberg sign ₹200-crore joint venture for AC compressors",
+      "cat": "economics",
+      "reasons": [
+        "numbers not in article: 200"
+      ]
+    },
+    {
+      "headline": "COP31 climate talks stall in overtime over fossil fuel text",
+      "cat": "global",
+      "reasons": [
+        "already ran in the last 3 days"
+      ]
+    },
+    {
+      "headline": "Max Verstappen holds off Norris and Russell to win Las Vegas GP",
+      "cat": "sports",
+      "reasons": [
+        "already ran in the last 3 days"
+      ]
+    }
+  ],
+  "log": [
+    "Flash 2026-11-22 · mode: draft",
+    "  ✗ Indian Express (india): Status code 403",
+    "  ✗ Indian Express (politics): Status code 403",
+    "  ✗ Moneycontrol (economics): Unexpected close tag\nLine: 17\nColumn: 10\nChar: >",
+    "  ✗ Indian Express (entertainment): Status code 403",
+    "  ✗ ESPN (sports): Unable to parse XML.",
+    "Fetched 1581 items from 33/38 feeds.",
+    "807 items in the last 30h → 713 distinct stories.",
+    "Shortlist: 79 stories not already run in the last 3 days.",
+    "Article text for 67/79.",
+    "  Gemini 503 (busy), retrying in 30s (attempt 1/6)...",
+    "  Gemini gemini-4-hydrogen (free) 124.4s: in 14818, out 1377, thinking 12382",
+    "Batch sports/entertainment/culture/health: 9 written from 19 candidates",
+    "  Gemini gemini-4-hydrogen (free) 153.5s: in 17666, out 1397, thinking 13375",
+    "Batch ai-tech/economics/science: 9 written from 21 candidates",
+    "  Gemini gemini-4-hydrogen (free) 170.0s: in 20501, out 2267, thinking 15875",
+    "Batch india/politics/global: 15 written from 27 candidates",
+    "Valid: 29 · rejected: 4",
+    "  ✗ [health] Northern Ireland senior doctors prepare Monday walkout as resident strike ends — already ran in the last 3 days",
+    "  ✗ [economics] Voltas and Atomberg sign ₹200-crore joint venture for AC compressors — numbers not in article: 200",
+    "  ✗ [global] COP31 climate talks stall in overtime over fossil fuel text — already ran in the last 3 days",
+    "  ✗ [sports] Max Verstappen holds off Norris and Russell to win Las Vegas GP — already ran in the last 3 days",
+    "Below category minimum: science 0/2",
+    "Final: 25 stories, 23 with photos. 3 call(s): 52985 in, 5041 out, 41632 thinking tokens; 0 searches; paid cost $0.000"
+  ]
+}
