@@ -1,0 +1,68 @@
+{
+  "date": "2026-11-23",
+  "generatedAt": "2026-11-23T09:44:27.314Z",
+  "mode": "draft",
+  "count": 25,
+  "shortfalls": [
+    "politics 1/2",
+    "culture 0/1",
+    "science 0/2"
+  ],
+  "rejected": [
+    {
+      "headline": "Five Indian AI films from regional filmmakers screen at IFFI Goa",
+      "cat": "entertainment",
+      "reasons": [
+        "numbers not in article: 40%"
+      ]
+    },
+    {
+      "headline": "India unveils 24,000 crore NPR Nepal package after Modi-Shah talks",
+      "cat": "india",
+      "reasons": [
+        "duplicate of another story today"
+      ]
+    },
+    {
+      "headline": "Dalmia Bharat approves ₹700 crore share buyback at 19% premium",
+      "cat": "economics",
+      "reasons": [
+        "numbers not in article: 19%"
+      ]
+    },
+    {
+      "headline": "Theranos documentary crosses $100 million globally, eyeing all-time records",
+      "cat": "entertainment",
+      "reasons": [
+        "names not in article: United States, Latin America"
+      ]
+    }
+  ],
+  "log": [
+    "Flash 2026-11-23 · mode: draft",
+    "  ✗ Indian Express (india): Status code 403",
+    "  ✗ Indian Express (politics): Status code 403",
+    "  ✗ Moneycontrol (economics): Unexpected close tag\nLine: 17\nColumn: 10\nChar: >",
+    "  ✗ Indian Express (entertainment): Status code 403",
+    "  ✗ ESPN (sports): Unable to parse XML.",
+    "Fetched 1580 items from 33/38 feeds.",
+    "822 items in the last 30h → 716 distinct stories.",
+    "Shortlist: 79 stories not already run in the last 3 days.",
+    "Article text for 64/79.",
+    "  Gemini 503 (busy), retrying in 30s (attempt 1/6)...",
+    "  Gemini 503 (busy), retrying in 30s (attempt 1/6)...",
+    "  Gemini gemini-4-hydrogen (free) 119.7s: in 14704, out 2077, thinking 17417",
+    "Batch sports/entertainment/culture/health: 13 written from 17 candidates",
+    "  Gemini gemini-4-hydrogen (free) 292.7s: in 21580, out 2143, thinking 22305",
+    "Batch india/politics/global: 14 written from 27 candidates",
+    "  Gemini gemini-4-hydrogen (free) 306.9s: in 16766, out 2021, thinking 18523",
+    "Batch ai-tech/economics/science: 12 written from 20 candidates",
+    "Valid: 35 · rejected: 4",
+    "  ✗ [entertainment] Five Indian AI films from regional filmmakers screen at IFFI Goa — numbers not in article: 40%",
+    "  ✗ [india] India unveils 24,000 crore NPR Nepal package after Modi-Shah talks — duplicate of another story today",
+    "  ✗ [economics] Dalmia Bharat approves ₹700 crore share buyback at 19% premium — numbers not in article: 19%",
+    "  ✗ [entertainment] Theranos documentary crosses $100 million globally, eyeing all-time records — names not in article: United States, Latin America",
+    "Below category minimum: politics 1/2, culture 0/1, science 0/2",
+    "Final: 25 stories, 21 with photos. 3 call(s): 53050 in, 6241 out, 58245 thinking tokens; 0 searches; paid cost $0.000"
+  ]
+}
