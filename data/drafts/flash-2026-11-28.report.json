@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-28",
+  "generatedAt": "2026-11-28T09:23:22.201Z",
+  "mode": "draft",
+  "count": 23,
+  "shortfalls": [
+    "india 3/4",
+    "ai-tech 1/3",
+    "science 1/2"
+  ],
+  "rejected": [
+    {
+      "headline": "Tata Sons files caveats after trusts lose bid to halt board meeting",
+      "cat": "india",
+      "reasons": [
+        "numbers not in article: 65"
+      ]
+    },
+    {
+      "headline": "Punjab holds court-ordered municipal re-polling across 52 disputed wards",
+      "cat": "india",
+      "reasons": [
+        "numbers not in article: 52, 22"
+      ]
+    }
+  ],
+  "log": [
+    "Flash 2026-11-28 · mode: draft",
+    "  ✗ Indian Express (india): Status code 403",
+    "  ✗ Indian Express (politics): Status code 403",
+    "  ✗ Indian Express (entertainment): Status code 403",
+    "  ✗ ESPN (sports): Unable to parse XML.",
+    "Fetched 1599 items from 34/38 feeds.",
+    "864 items in the last 30h → 781 distinct stories.",
+    "Shortlist: 79 stories not already run in the last 3 days.",
+    "Article text for 67/79.",
+    "  Gemini gemini-4-hydrogen (free) 85.5s: in 20754, out 1118, thinking 15529",
+    "Batch ai-tech/economics/science: 7 written from 24 candidates",
+    "  Gemini gemini-4-hydrogen (free) 86.7s: in 20625, out 2214, thinking 16723",
+    "Batch india/politics/global: 14 written from 26 candidates",
+    "  Gemini 503 (busy), retrying in 30s (attempt 1/6)...",
+    "  Gemini gemini-4-hydrogen (free) 205.8s: in 14843, out 959, thinking 13092",
+    "Batch sports/entertainment/culture/health: 6 written from 17 candidates",
+    "Valid: 25 · rejected: 2",
+    "  ✗ [india] Tata Sons files caveats after trusts lose bid to halt board meeting — numbers not in article: 65",
+    "  ✗ [india] Punjab holds court-ordered municipal re-polling across 52 disputed wards — numbers not in article: 52, 22",
+    "Below category minimum: india 3/4, ai-tech 1/3, science 1/2",
+    "Final: 23 stories, 21 with photos. 3 call(s): 56222 in, 4291 out, 45344 thinking tokens; 0 searches; paid cost $0.000"
+  ]
+}
